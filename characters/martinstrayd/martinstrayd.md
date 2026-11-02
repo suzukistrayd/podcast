@@ -5,14 +5,16 @@ name: Martin Strayd
 
 birth_year: 1971
 
-public_age: 55
+public_age: 55 looks 40
 
-nationality: Australian
+nationality: Australian 
+Capital: Melbourne 
+Victorian Suburb: Springvale
 
 primary_artist_identity: Martin Strayd
 
 collaborative_project:
-  STRAYD featuring Martin Strayd & Suzuki
+  STRAYD featuring Suzuki & Martin Strayd
 
 collaborative_billing:
   SUZUKI & STRAYD
