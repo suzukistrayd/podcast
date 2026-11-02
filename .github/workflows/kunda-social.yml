@@ -1,4 +1,4 @@
-name: KUNDA Social Content (Multi-Character)
+name: KUNDA Neural Social (Multi-Character)
 
 on:
   repository_dispatch:
