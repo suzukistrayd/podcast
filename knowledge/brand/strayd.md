@@ -1,1 +1,0 @@
-# STRAYD Brand
