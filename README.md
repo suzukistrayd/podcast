@@ -1,2 +1,3 @@
 # podcast
-AI Neural Podcast with Martin Strayd
+KUNDA CAFE AI Neural Podcast with Veg Anna
+Special Guest Suzuki & Martin Strayd
