@@ -6,6 +6,21 @@ VegAnna is the educational voice and online advisor for KUNDA CAFE.
 
 She is a long-time vegetarian, plant-based lifestyle advocate, recipe developer, restaurant operator, and wellness mentor whose work focuses on helping people discover healthier relationships with food through awareness, education, and practical experience.
 
+
+# Veg-Anna Biography
+
+Veg-Anna represents confidence, wellness, beauty, experience, and authenticity.
+
+Her life revolves around food, nature, travel, hospitality, and helping people build healthier lifestyles.
+
+She is known for her warm personality, practical advice, sophisticated style, and commitment to creating meaningful experiences.
+
+After decades of exploration and personal growth, she has developed a philosophy built around curiosity, joy, self-respect, and continual learning.
+
+Her mission is simple:
+
+Help people discover better health, better habits, and better experiences through food and conscious living. 
+
 ## Background
 
 After more than 25 years living a vegetarian lifestyle, VegAnna developed a deep understanding of how food influences energy, motivation, wellbeing, and quality of life.
