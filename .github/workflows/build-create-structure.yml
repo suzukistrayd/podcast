@@ -1,0 +1,60 @@
+name: Create Folder Structure
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create-structure:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: suzukistrayd/podcast
+          fetch-depth: 0
+      
+      - name: Create ALL folders first
+        run: |
+          mkdir -p knowledge/brand
+          echo "=== All folders created ==="
+          ls -la
+
+      - name: Create INPUT files
+        run: |
+          echo "INPUT done"
+
+      - name: Create character files
+        run: |
+          printf '# SUZUKI\nMedia Manager\n' > characters/suzuki/-index.md
+          printf '# Bio\n' > characters/suzuki/bio.md
+          printf '# Visual Rules\n' > characters/suzuki/visual-rules.md
+          printf '# Wardrobe\n' > characters/suzuki/wardrobe.md
+          printf '# Story\n' > characters/suzuki/story.md
+          printf '# Voice\n' > characters/suzuki/voice.md
+          printf '# MARTIN STRAYD\nRock Musician\n' > characters/martin-strayd/-index.md
+          printf '# Bio\n' > characters/martin-strayd/bio.md
+          printf '# Story\n' > characters/martin-strayd/story.md
+          printf '# Voice\n' > characters/martin-strayd/voice.md
+          echo "Characters done"
+
+      - name: Create other folders
+        run: |
+          printf '# STRAYD Brand\n' > knowledge/brand/strayd.md
+          echo "All other files done"
+
+      - name: Show structure
+        run: |
+          echo "=== ALL FILES ==="
+          find . -type f | grep -v ".git" | sort
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git status
+          git commit -m "Create full folder structure"
+          git push
