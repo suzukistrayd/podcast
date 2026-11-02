@@ -1,1 +1,1 @@
-# STRAYD Social Content
+# KUNDA Co. Ltd. Social Content
