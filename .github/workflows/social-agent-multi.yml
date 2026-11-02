@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       characters:
-        description: "Characters to include (comma-separated, e.g. martinstrayd,suzuki)"
+        description: "Characters to include (comma-separated, e.g. veganna,martinstrayd,suzuki)"
         required: true
-        default: "martinstrayd"
+        default: "veganna"
 
 permissions:
   contents: write
@@ -113,23 +113,20 @@ jobs:
               "Weekly Song Journey",
               "Rock & Roll Fantasy",
               "Creativity After 55",
-              "Why Make Music",
-              "How To Rock",
-              "How To Write A Hit Song",
+              "Why Eat Kunda",
+              "How To Eat Kundak",
+              "How To Write A Recipe",
               "Creative Persistence",
-              "Suzuki & Strayd",
               "Daily Creativity",
               "Entrepreneur Journey",
-              "Archive Discoveries",
-              "Rock History",
           ]
 
           PLATFORM_HASHTAGS = {
-              "X": ["#STRAYD", "#MartinStrayd", "#RockMusic", "#Suzuki", "#Antipop", "#RockGuitar", "#NewMusic", "#MusicLife", "#Backstage", "#RockRoll", "#Straya", "#MusicianLife"],
-              "Facebook": ["#STRAYD", "#MartinStrayd", "#RockMusic", "#Suzuki", "#MusicProducer", "#Antipop", "#NewMusic", "#MusicLife", "#GuitarLife", "#RockAndRoll", "#IndieMusic", "#MusicianLife"],
-              "YouTube Community": ["#STRAYD", "#MartinStrayd", "#RockMusic", "#NewMusicFriday", "#Suzuki"],
-              "TikTok": ["#STRAYD", "#martinstrayd", "#rockmusic", "#straya", "#musicianlife", "#suzuki", "#newmusic", "#antipop", "#fyp", "#viral", "#australian", "#musicproducer"],
-              "Instagram": ["#STRAYD", "#MartinStrayd", "#RockMusic", "#Antipop", "#MusicProducer", "#RockGuitar", "#NewMusic", "#MusicLife", "#GuitarLife", "#RockAndRoll", "#IndieMusic", "#MusicianLife", "#StudioLife", "#GuitarPlayer", "#MusicIsLife"],
+              "X": ["#STRAYD", "#Kunda", "#Thailand", "#plantbased", "#vegan", "#vegetarian", "#localrestaurant", "#MusicLife", "#Backstage", "#RockRoll", "#Straya", "#MusicianLife"],
+              "Facebook": ["#Kunda", "#Thailand", "#plantbased", "#vegan", "#vegetarian", "#localrestaurant", "#NewMusic", "#MusicLife", "#GuitarLife", "#RockAndRoll", "#IndieMusic", "#MusicianLife"],
+              "YouTube Community": ["#Kunda", "#Thailand", "#plantbased", "#vegan", "#vegetarian", "#localrestaurant"],
+              "TikTok": ["#Kunda", "#Thailand", "#plantbased", "#vegan", "#vegetarian", "#localrestaurant", "#newmusic", "#antipop", "#fyp", "#viral", "#australian", "#musicproducer"],
+              "Instagram": ["#Kunda", "#Thailand", "#plantbased", "#vegan", "#vegetarian", "#localrestaurant", "#NewMusic", "#MusicLife", "#GuitarLife", "#RockAndRoll", "#IndieMusic", "#MusicianLife", "#StudioLife", "#GuitarPlayer", "#MusicIsLife"],
           }
 
           def log(message):
@@ -149,7 +146,7 @@ jobs:
                   content = path.read_text(encoding="utf-8").strip()
                   parts.append(f"\n\n===== BEGIN CHARACTER ({char.upper()}) [{filename}] =====\n{content}\n===== END CHARACTER [{filename}] =====\n")
               
-              for filename in ["songarchive.md", "brand-profile.md", "social-manager-prompt.md"]:
+              for filename in ["knowledge/songarchive.md", "knowledge/brand-profile.md", "knowledge/social-manager-prompt.md"]:
                   path = Path(filename)
                   if path.is_file():
                       content = path.read_text(encoding="utf-8").strip()
