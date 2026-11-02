@@ -1,48 +1,47 @@
-# MARTIN STRAYD — MASTER BRAND PROFILE
+# KUNDA CAFE / KUNDA Co. Ltd. — MASTER BRAND PROFILE
 
 Official Website:
-https://strayd.com
+https://kundacafe.com
 
 Primary Artist Identity:
-Martin Strayd
+KUNDA CAFE
 
 Primary Collaborative Identity:
-STRAYD featuring Martin Strayd & Suzuki
+KUNDA CAFE by Chef Lena
+Collaborative Billing Co-founders:
+CHEF LENA & STRAYD
 
-Collaborative Billing:
-SUZUKI & STRAYD
-
-© 2026 SS SUZUKI & STRAYD. All rights reserved.
+© 2026 Kunda Co. Ltd All rights reserved.
 
 ---
 
 # BRAND MISSION
 
-Create meaningful music, stories, archives, education, technology and entrepreneurial projects that encourage people to keep building, keep learning and keep creating throughout life.
+Create meaningful education on plant based diet, good music eg. Martin STrayd, diet stories, archives, technology and entrepreneurial projects that encourage people to keep building, keep learning and keep creating throughout life.
 
-The Martin Strayd ecosystem combines:
+The KUNDA CAFE ecosystem combines:
 
+- home made food
 - Music
-- Songwriting
+- calm relaxed life
 - Storytelling
 - Books
 - Rock history
-- 1990s - 2000 Hollywood Archives
-- Plant based vegetarian Education
 - Avoiding Artificial Intelligence
 - A life of Entrepreneurship
-- Community projects Hot Sauce Ecosystem 
-- Independent creativity 
+- Community projects 100mml Hot Sauce Ecosystem 
+- Independent COOLHOTSAYCE brand and seed to table ecosystem
+- 3 flavors sold on LAZADA online search KUNDA 
 
 The goal is not simply entertainment.
 
-The goal is to inspire creativity, independence, lifelong curiosity, meaningful human connection and financial freedom through modern soy free burger franchise.
+The goal is to inspire plant based thinking, creativity, independence, lifelong curiosity, meaningful human connection and financial freedom through modern soy free burger franchise.
 
 ---
 
 # IDENTITY
 
-Martin Strayd is an Australian:
+Co founder and investor is Martin Strayd is an Australian:
 
 - Musician
 - Songwriter
@@ -57,7 +56,8 @@ Martin Strayd is an Australian:
 
 His work combines:
 
-- Anti-Pop music
+- Personal assistance
+- Secret services
 - Rock and roll culture
 - Storytelling
 - Independent publishing
@@ -148,20 +148,23 @@ Release and promote a large catalogue of original music while building a global 
 
 ---
 
-## STRAYD
+## KUNDA CAFE
 
 ### Official Identity
 
-STRAYD featuring Martin Strayd & Suzuki
+KUNDA CAFE
 
 ### Collaborative Billing
 
-SUZUKI & STRAYD
+Chef Lena & Martin Strayd
 
 ### Focus
 
+- food mood and attitude
+- plant based lifestyle
+- vegetarian franchise
 - Weekly releases
-- Original music
+- Original music by Martin Strayd played in cafe, not live show
 - Creative partnership
 - Audience growth
 - Music discovery
@@ -169,6 +172,7 @@ SUZUKI & STRAYD
 
 ### Topics
 
+- vegetarian
 - Music
 - Collaboration
 - Creativity
@@ -179,20 +183,23 @@ SUZUKI & STRAYD
 
 ### Core Message
 
-Real music.
+Eat Kunda
 
-Real people.
+Listen to Real music.
 
-No waiting for permission.
+Join the Real people.
+
+Avoid AI slop they serve online.
 
 ---
 
-## Suzuki & Strayd
+## Chef Lena Suzuki & Strayd
 
 Represents the public-facing creative partnership.
 
 ### Focus
 
+- Franchise EXPANSION
 - Music promotion
 - Media
 - Branding
@@ -210,78 +217,6 @@ Represents the public-facing creative partnership.
 - Human connection
 
 ---
-
-## Fantasy7 Archive Project
-
-Historical archive project documenting the early-1990s rock band Fantasy7.
-
-### Historical References
-
-- Steve Jones
-- Mark McCoy
-- Touring stories
-- Backstage experiences
-- Rare photographs
-- Memorabilia
-- Personal memories
-
-### Focus
-
-- Preservation
-- Music history
-- Rock culture
-- Storytelling
-- Historical research
-- Archive restoration
-
-### Associated Future Project
-
-Fantasy7 book project documenting:
-
-- Personal experiences
-- Backstage stories
-- Touring memories
-- Historical archive discoveries
-
-### Topics
-
-- 1990s rock culture
-- Touring life
-- Music history
-- Lessons learned
-- Avoiding addiction
-- Personal growth
-- Behind-the-scenes stories
-
----
-
-## How To Rock Community
-
-Educational project.
-
-### Mission
-
-Teach creativity, confidence and persistence through real-world experience.
-
-### Topics
-
-- DIY creativity
-- Confidence
-- Music
-- Goal setting
-- Personal development
-- Problem solving
-- Independent thinking
-- Creative careers
-- Lifelong learning
-
-### Audience
-
-- Students
-- Musicians
-- Creators
-- Entrepreneurs
-- Lifelong learners
 
 ### Core Message
 
@@ -771,4 +706,4 @@ Keep building.
 
 Keep learning.
 
-© 2026 SS SUZUKI & STRAYD. All rights reserved.
+© 2026 KUNDA Co. Ltd. All rights reserved.
