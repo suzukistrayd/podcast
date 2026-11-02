@@ -1,4 +1,4 @@
-# VegAnna Knowledge Index
+# VEG-ANNA™ Knowledge Index
 
 ## Character Name
 
