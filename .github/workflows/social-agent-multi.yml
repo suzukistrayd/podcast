@@ -1,4 +1,4 @@
-name: STRAYD Social Content (Multi-Character)
+name: KUNDA Social Content (Multi-Character)
 
 on:
   repository_dispatch:
@@ -146,7 +146,7 @@ jobs:
                   content = path.read_text(encoding="utf-8").strip()
                   parts.append(f"\n\n===== BEGIN CHARACTER ({char.upper()}) [{filename}] =====\n{content}\n===== END CHARACTER [{filename}] =====\n")
               
-              for filename in ["knowledge/songarchive.md", "knowledge/brand-profile.md", "knowledge/social-manager-prompt.md"]:
+              for filename in ["knowledge/songarchive.md", "knowledge/kundacafe.md", "knowledge/brand-profile.md", "knowledge/social-manager-prompt.md"]:
                   path = Path(filename)
                   if path.is_file():
                       content = path.read_text(encoding="utf-8").strip()
