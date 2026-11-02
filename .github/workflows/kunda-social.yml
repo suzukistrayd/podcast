@@ -134,7 +134,7 @@ jobs:
           def read_knowledge():
               parts = []
               
-              # 1. Dynamically read EVERY markdown file in the knowledge/ directory
+              # 1. Dynamically read EVERY file in the knowledge/ directory
               knowledge_dir = Path("knowledge")
               if knowledge_dir.is_dir():
                   for k_file in sorted(knowledge_dir.glob("*")):
@@ -142,7 +142,7 @@ jobs:
                           content = k_file.read_text(encoding="utf-8").strip()
                           parts.append(f"\n\n===== BEGIN KNOWLEDGE REF [{k_file.name}] =====\n{content}\n===== END KNOWLEDGE REF [{k_file.name}] =====\n")
 
-              # 2. Dynamically load character suites (index, bio, story, voice, veganna.md, etc.)
+              # 2. Dynamically load character suites
               for char in SELECTED_CHARS:
                   char_dir = Path(f"characters/{char}")
                   if not char_dir.is_dir():
@@ -150,14 +150,12 @@ jobs:
                   
                   parts.append(f"\n\n===== BEGIN CHARACTER SUITE: {char.upper()} =====\n")
                   
-                  # Prioritize -index.md and main character file first
                   for priority_name in ["-index.md", f"{char}.md"]:
                       p = char_dir / priority_name
                       if p.is_file():
                           content = p.read_text(encoding="utf-8").strip()
                           parts.append(f"--- CORE FILE: {p.name} ---\n{content}\n")
 
-                  # Read remaining files in character folder dynamically
                   for p in sorted(char_dir.glob("*.md")):
                       if p.name not in ["-index.md", f"{char}.md"]:
                           content = p.read_text(encoding="utf-8").strip()
@@ -215,9 +213,11 @@ jobs:
           - TikTok: 3 to 5 hashtags max.
           - Instagram: 5 to 10 hashtags max.
 
-          FACTUAL RULES:
+          FACTUAL & ETHICAL RULES:
           - Never invent songs, titles, releases, dates, or credits.
-          - Kunda Cafe opened in 2011. NEVER output fictional dates (like 1962) or invented origins.
+          - Kunda Cafe opened in 2011 in Chiang Rai, Thailand. NEVER output fictional dates (like 1962).
+          - Kunda Cafe is strictly SOY-FREE and TOFU-FREE. NEVER mention, promote, praise, or reference tofu or soy products. Processed soy/tofu is considered wasteful and is completely excluded from Kunda.
+          - Kunda Cafe serves plant-based vegetarian/vegan burgers (classic frozen patties, signature sauces, drinks). NEVER claim Kunda serves generic "Thai favorites".
           - Use only facts from the supplied knowledge files.
           - NEVER use em dashes. Use plain hyphens only: -
           - NEVER use smart quotes. Use plain quotes only: ' and "
@@ -233,10 +233,10 @@ jobs:
               payload = {
                   "model": MODEL,
                   "messages": [
-                      {"role": "system", "content": "You are the all powerful and happy Veganna, the KUNDA CAFE Content Director. Return only raw production Markdown starting directly with the first day header."},
+                      {"role": "system", "content": "You are Veg Anna, the KUNDA CAFE Content Director. Return only raw production Markdown starting directly with the first day header. Follow all soy-free, tofu-free, and factual rules strictly."},
                       {"role": "user", "content": prompt},
                   ],
-                  "temperature": 0.7,
+                  "temperature": 0.6,
                   "max_tokens": 6000,
               }
               request_data = json.dumps(payload).encode("utf-8")
