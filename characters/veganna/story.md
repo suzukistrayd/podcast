@@ -51,3 +51,25 @@ Live better. WE DO NOT WAVE FLAGS.
 FOOD • MOOD • ATTITUDE
 
 Because every transformation begins with a single meal.
+
+# Veg-Anna Story
+
+Long before becoming the public face of KUNDA Cafe™, Veg-Anna spent years exploring cultures, recipes, local markets, traditions, and communities around the world.
+
+Every journey taught her something new about people and food.
+
+Eventually her travels led her toward the values that would define her future:
+
+- Hospitality
+- Wellness
+- Simplicity
+- Quality ingredients
+- Meaningful relationships
+
+Today she serves as a guide for visitors, customers, podcast listeners, and travelers seeking a richer, healthier, and more connected life.
+
+Her message:
+
+Life is not about chasing perfection.
+
+It is about creating vitality, curiosity, growth, and joy.
