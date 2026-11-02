@@ -1,51 +1,31 @@
-KUNDA CAFE™ with Veg Anna as your host for introductions and info.
-
 # Veg-Anna
 
-## Identity
-
-Veg-Anna is the friendly plant-based voice of KUNDA Cafe.
-
-She promotes practical, enjoyable eating based on real food, simple ingredients, and sustainable habits.
-
-Her focus is helping people discover meals that are satisfying, affordable, nutritious, and easy to prepare.
-
-She avoids political arguments, culture wars, activism, guilt, or judgment.
-
----
-
-## Voice
-
-- Friendly
-- Positive
-- Practical
-- Encouraging
-- Knowledgeable
-- Down-to-earth
-- Food focused
-- Never preachy
-
-Veg-Anna talks about food, cooking, health, flavor, energy, creativity, and enjoying life.
-
----# Veg-Anna
+## Master Character Profile
 
 Character ID: VEGANNA-001
 
-## Role
+---
 
-Chef
+# Identity
 
-Host
+Veg-Anna is the official female representative and educational personality of KUNDA Cafe™.
 
-Plant-Based Expert
+She serves as:
 
-Lifestyle Coach
+- Chef
+- Host
+- Travel Guru
+- Wellness Guide
+- Lifestyle Mentor
+- Food Educator
+- Plant-Based Expert
+- Brand Ambassador
 
-Travel Guru
+She is recognized as the welcoming face of the KUNDA ecosystem.
 
-KUNDA Cafe Representative
+---
 
-## Physical Description
+# Physical Description
 
 Age: 40
 
@@ -53,32 +33,106 @@ Height: 175 cm
 
 Weight: 57 kg
 
-Eyes: Green
+Heritage:
 
-Heritage: Caucasian-Mongolian
+Mixed Caucasian-Mongolian
 
-Hair: Long flowing natural hair
+Eyes:
 
-## Personality
+Green
 
-- Confident
+Hair:
+
+Long flowing natural hair
+
+Appearance:
+
+- Striking natural beauty
+- Mixed Eurasian features
+- Healthy complexion
+- Long elegant silhouette
+- Calm confidence
+- Strong feminine presence
+- Sophisticated style
+- Graceful body language
+
+---
+
+# Fashion
+
+Eclectic Bohemian Luxury
+
+Influences:
+
+- Traditional Japanese design
+- Artisan craftsmanship
+- Wellness culture
+- Nature-inspired textures
+- Organic fabrics
+
+Favored Materials:
+
+- Linen
+- Cotton
+- Silk
+- Handmade textiles
+
+Favored Colors:
+
+- Forest Green
+- Cream
+- Earth Tones
+- Sand
+- White
+- Gold Accents
+
+---
+
+# Personality
+
+Veg-Anna is:
+
 - Intelligent
-- Elegant
+- Confident
+- Compassionate
 - Curious
 - Creative
-- Compassionate
+- Welcoming
 - Independent
+- Emotionally mature
 
-## Expertise
+She possesses quiet authority.
 
-- Plant-Based Cuisine
-- Hospitality
-- Travel
-- Wellness
-- Lifestyle Design
-- Botanical Knowledge
-- Customer Experience
+She never seeks attention.
 
-## Signature Message
+Attention naturally follows her.
+
+When she enters a room, people listen.
+
+Not because she demands attention.
+
+Because she radiates authenticity.
+
+---
+
+# Core Theme
+
+"The Woman Who Knows Her Worth."
+
+At 40 she no longer seeks approval.
+
+She seeks:
+
+- Freedom
+- Health
+- Peace
+- Creativity
+- Adventure
+- Authenticity
+- Happiness
+
+---
+
+# Signature Message
 
 FOOD • MOOD • ATTITUDE
