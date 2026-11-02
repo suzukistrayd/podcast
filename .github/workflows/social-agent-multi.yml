@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: strayd-social-agent-multi-${{ github.ref }}
+  group: kunda-social-agent-multi-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -25,7 +25,7 @@ env:
 
 jobs:
   generate-social-content:
-    name: Generate STRAYD Content
+    name: Generate KUNDA Content
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -36,7 +36,7 @@ jobs:
       - name: Check required tools and knowledge files
         shell: bash
         env:
-          INPUT_CHARS: ${{ github.event.inputs.characters || github.event.client_payload.characters || 'martinstrayd' }}
+          INPUT_CHARS: ${{ github.event.inputs.characters || github.event.client_payload.characters || 'veganna' }}
         run: |
           set -euo pipefail
 
@@ -68,7 +68,7 @@ jobs:
         shell: bash
         env:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
-          INPUT_CHARS: ${{ github.event.inputs.characters || github.event.client_payload.characters || 'martinstrayd' }}
+          INPUT_CHARS: ${{ github.event.inputs.characters || github.event.client_payload.characters || 'veganna' }}
         run: |
           set -euo pipefail
 
@@ -87,7 +87,7 @@ jobs:
           API_KEY = os.environ["DAHL_API_KEY"]
           MODEL = os.environ["DAHL_MODEL"]
           RUN_NUMBER = os.environ.get("GITHUB_RUN_NUMBER", "1")
-          raw_chars = os.environ.get("INPUT_CHARS", "martinstrayd")
+          raw_chars = os.environ.get("INPUT_CHARS", "veganna")
           SELECTED_CHARS = [c.strip() for c in raw_chars.split(",") if c.strip()]
 
           ATTEMPTS = 5
@@ -122,7 +122,7 @@ jobs:
           ]
 
           PLATFORM_HASHTAGS = {
-              "X": ["#STRAYD", "#Kunda", "#Thailand", "#plantbased", "#vegan", "#vegetarian", "#localrestaurant", "#MusicLife", "#Backstage", "#RockRoll", "#Straya", "#MusicianLife"],
+              "X": ["#EatKunda", "#Kunda", "#Thailand", "#plantbased", "#vegan", "#vegetarian", "#localrestaurant", "#MusicLife", "#Backstage", "#RockRoll", "#Straya", "#MusicianLife"],
               "Facebook": ["#Kunda", "#Thailand", "#plantbased", "#vegan", "#vegetarian", "#localrestaurant", "#NewMusic", "#MusicLife", "#GuitarLife", "#RockAndRoll", "#IndieMusic", "#MusicianLife"],
               "YouTube Community": ["#Kunda", "#Thailand", "#plantbased", "#vegan", "#vegetarian", "#localrestaurant"],
               "TikTok": ["#Kunda", "#Thailand", "#plantbased", "#vegan", "#vegetarian", "#localrestaurant", "#newmusic", "#antipop", "#fyp", "#viral", "#australian", "#musicproducer"],
@@ -179,7 +179,7 @@ jobs:
               hashtag_reference = "\n".join(hashtag_ref)
 
               return f"""
-          You are the STRAYD Content Director focusing on characters: {chars_label}.
+          You are the KUNDA CAFE Content Director focusing on characters: {chars_label}.
           You MUST output Markdown content only.
           Do NOT include any internal thoughts, reasoning steps, planning, introduction, preamble, commentary, or summary.
           Start IMMEDIATELY with the first heading: ## Monday - {week_dates[0].isoformat()}
@@ -218,11 +218,11 @@ jobs:
               payload = {
                   "model": MODEL,
                   "messages": [
-                      {"role": "system", "content": "You are the STRAYD Content Director. Return only raw production Markdown starting directly with the first day header."},
+                      {"role": "system", "content": "You are the all powerfull and happy Veg-Anna, the KUNDA CAFE Content Director. Return only raw production Markdown starting directly with the first day header."},
                       {"role": "user", "content": prompt},
                   ],
                   "temperature": 0.7,
-                  "max_tokens": 5000,
+                  "max_tokens": 6000,
               }
               request_data = json.dumps(payload).encode("utf-8")
 
@@ -305,12 +305,12 @@ jobs:
 
               for day, date in zip(DAYS, week_dates):
                   daily_path = Path(f"social-posts/daily/{date.isoformat()}-{char_tag}-{day.lower()}.md")
-                  daily_content = f"# STRAYD Social Content ({char_tag.upper()}) - {day}, {date.isoformat()}\n\nSource calendar: {weekly_saved.as_posix()}\n\n{daily_sections[day]}"
+                  daily_content = f"# KUNDA Social Content ({char_tag.upper()}) - {day}, {date.isoformat()}\n\nSource calendar: {weekly_saved.as_posix()}\n\n{daily_sections[day]}"
                   safe_write(daily_path, daily_content)
 
               readme = Path("social-posts/README.md")
               if not readme.exists():
-                  readme.write_text("# STRAYD Social Content\n", encoding="utf-8")
+                  readme.write_text("# KUNDA Social Content\n", encoding="utf-8")
 
               log("SUCCESS: MULTI-CHARACTER CONTENT GENERATED AND SAVED")
 
@@ -329,7 +329,7 @@ jobs:
             echo "No new social content changes to commit."
             exit 0
           fi
-          git commit -m "Generate STRAYD content for characters"
+          git commit -m "Generate KUNDA content for characters"
           git pull --rebase origin main || git rebase --skip
           git push
           echo "Content committed successfully."
