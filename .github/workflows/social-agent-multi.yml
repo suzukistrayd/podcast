@@ -1,0 +1,338 @@
+name: STRAYD Social Content (Multi-Character)
+
+on:
+  repository_dispatch:
+    types: [generate-social-content]
+  workflow_dispatch:
+    inputs:
+      characters:
+        description: "Characters to include (comma-separated, e.g. martinstrayd,suzuki)"
+        required: true
+        default: "martinstrayd"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: strayd-social-agent-multi-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DAHL_API_KEY: ${{ secrets.DAHL_API_KEY }}
+  DAHL_API_URL: https://inference.dahl.global/v1/chat/completions
+  DAHL_MODEL: MiniMaxAI/MiniMax-M2.7
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  generate-social-content:
+    name: Generate STRAYD Content
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check required tools and knowledge files
+        shell: bash
+        env:
+          INPUT_CHARS: ${{ github.event.inputs.characters || github.event.client_payload.characters || 'martinstrayd' }}
+        run: |
+          set -euo pipefail
+
+          command -v python3 >/dev/null || {
+            echo "::error::Python 3 is required."
+            exit 1
+          }
+
+          test -n "${DAHL_API_KEY:-}" || {
+            echo "::error::DAHL_API_KEY secret is missing."
+            exit 1
+          }
+
+          echo "Selected characters input: $INPUT_CHARS"
+          IFS=',' read -ra ADDR <<< "$INPUT_CHARS"
+          for char in "${ADDR[@]}"; do
+            char="$(echo "$char" | xargs)"
+            CHAR_FILE="characters/${char}.md"
+            if [ ! -s "$CHAR_FILE" ]; then
+              echo "::error::Required character file missing or empty: $CHAR_FILE"
+              exit 1
+            fi
+            echo "Verified character knowledge: $CHAR_FILE"
+          done
+
+          mkdir -p social-posts/weekly social-posts/daily
+
+      - name: Generate, validate and save weekly and daily content
+        shell: bash
+        env:
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          INPUT_CHARS: ${{ github.event.inputs.characters || github.event.client_payload.characters || 'martinstrayd' }}
+        run: |
+          set -euo pipefail
+
+          python3 <<'PY'
+          import datetime
+          import json
+          import os
+          import re
+          import sys
+          import time
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
+
+          API_URL = os.environ["DAHL_API_URL"]
+          API_KEY = os.environ["DAHL_API_KEY"]
+          MODEL = os.environ["DAHL_MODEL"]
+          RUN_NUMBER = os.environ.get("GITHUB_RUN_NUMBER", "1")
+          raw_chars = os.environ.get("INPUT_CHARS", "martinstrayd")
+          SELECTED_CHARS = [c.strip() for c in raw_chars.split(",") if c.strip()]
+
+          ATTEMPTS = 5
+          RETRY_DELAYS = [5, 10, 20, 30, 45]
+          RETRY_CODES = {408, 409, 425, 429, 500, 502, 503, 504}
+
+          DAYS = [
+              "Monday", "Tuesday", "Wednesday", "Thursday",
+              "Friday", "Saturday", "Sunday"
+          ]
+
+          SECTIONS = [
+              "X",
+              "Facebook",
+              "YouTube Community",
+              "TikTok",
+              "Instagram",
+              "Image Prompt",
+              "Short Video Idea",
+          ]
+
+          PILLARS = [
+              "Weekly Song Journey",
+              "Rock & Roll Fantasy",
+              "Creativity After 55",
+              "Why Make Music",
+              "How To Rock",
+              "How To Write A Hit Song",
+              "Creative Persistence",
+              "Suzuki & Strayd",
+              "Daily Creativity",
+              "Entrepreneur Journey",
+              "Archive Discoveries",
+              "Rock History",
+          ]
+
+          PLATFORM_HASHTAGS = {
+              "X": ["#STRAYD", "#MartinStrayd", "#RockMusic", "#Suzuki", "#Antipop", "#RockGuitar", "#NewMusic", "#MusicLife", "#Backstage", "#RockRoll", "#Straya", "#MusicianLife"],
+              "Facebook": ["#STRAYD", "#MartinStrayd", "#RockMusic", "#Suzuki", "#MusicProducer", "#Antipop", "#NewMusic", "#MusicLife", "#GuitarLife", "#RockAndRoll", "#IndieMusic", "#MusicianLife"],
+              "YouTube Community": ["#STRAYD", "#MartinStrayd", "#RockMusic", "#NewMusicFriday", "#Suzuki"],
+              "TikTok": ["#STRAYD", "#martinstrayd", "#rockmusic", "#straya", "#musicianlife", "#suzuki", "#newmusic", "#antipop", "#fyp", "#viral", "#australian", "#musicproducer"],
+              "Instagram": ["#STRAYD", "#MartinStrayd", "#RockMusic", "#Antipop", "#MusicProducer", "#RockGuitar", "#NewMusic", "#MusicLife", "#GuitarLife", "#RockAndRoll", "#IndieMusic", "#MusicianLife", "#StudioLife", "#GuitarPlayer", "#MusicIsLife"],
+          }
+
+          def log(message):
+              print(message, flush=True)
+
+          def fail(message):
+              print(f"::error::{message}", flush=True)
+              sys.exit(1)
+
+          def read_knowledge():
+              parts = []
+              for char in SELECTED_CHARS:
+                  filename = f"characters/{char}.md"
+                  path = Path(filename)
+                  if not path.is_file():
+                      fail(f"Knowledge file not found: {filename}")
+                  content = path.read_text(encoding="utf-8").strip()
+                  parts.append(f"\n\n===== BEGIN CHARACTER ({char.upper()}) [{filename}] =====\n{content}\n===== END CHARACTER [{filename}] =====\n")
+              
+              for filename in ["songarchive.md", "brand-profile.md", "social-manager-prompt.md"]:
+                  path = Path(filename)
+                  if path.is_file():
+                      content = path.read_text(encoding="utf-8").strip()
+                      parts.append(f"\n\n===== BEGIN REFERENCE [{filename}] =====\n{content}\n===== END REFERENCE [{filename}] =====\n")
+              return "\n".join(parts)
+
+          def current_week():
+              today = datetime.datetime.now(datetime.timezone.utc).date()
+              monday = today - datetime.timedelta(days=today.weekday())
+              return [monday + datetime.timedelta(days=i) for i in range(7)]
+
+          def normalize_dashes(content):
+              replacements = {
+                  '\u2014': '-', '\u2013': '-', '\u2212': '-',
+                  '\u2018': "'", '\u2019': "'", '\u201c': '"', '\u201d': '"', '\u2026': '...'
+              }
+              result = content
+              for old, new in replacements.items():
+                  result = result.replace(old, new)
+              return result
+
+          def build_prompt(knowledge, week_dates):
+              date_lines = "\n".join(f"{day}: {date.isoformat()}" for day, date in zip(DAYS, week_dates))
+              section_lines = "\n".join(f"### {s}" for s in SECTIONS)
+              chars_label = " + ".join([c.upper() for c in SELECTED_CHARS])
+
+              hashtag_ref = []
+              for platform, tags in PLATFORM_HASHTAGS.items():
+                  hashtag_ref.append(f"\n{platform}: " + " ".join(tags))
+              hashtag_reference = "\n".join(hashtag_ref)
+
+              return f"""
+          You are the STRAYD Content Director focusing on characters: {chars_label}.
+          You MUST output Markdown content only.
+          Do NOT include any internal thoughts, reasoning steps, planning, introduction, preamble, commentary, or summary.
+          Start IMMEDIATELY with the first heading: ## Monday - {week_dates[0].isoformat()}
+          Do NOT wrap your response in markdown code blocks.
+
+          Generate content for all 7 days in exact order:
+          {date_lines}
+
+          STRICT DAY HEADER FORMAT:
+          ## DayName - YYYY-MM-DD (e.g. ## Monday - {week_dates[0].isoformat()})
+
+          Within EVERY day, include these 7 level-3 headings in this exact order:
+          {section_lines}
+
+          STRICT PLATFORM HASHTAG RULES:
+          - X: 2 to 4 hashtags max.
+          - Facebook: 3 to 5 hashtags max.
+          - YouTube Community: 2 to 3 hashtags max.
+          - TikTok: 3 to 5 hashtags max.
+          - Instagram: 5 to 10 hashtags max.
+
+          FACTUAL RULES:
+          - Never invent songs, titles, releases, dates, or credits.
+          - Use only facts from the knowledge files.
+          - NEVER use em dashes. Use plain hyphens only: -
+          - NEVER use smart quotes. Use plain quotes only: ' and "
+
+          PLATFORM HASHTAG REFERENCE:
+          {hashtag_reference}
+
+          SUPPLIED KNOWLEDGE FILES:
+          {knowledge}
+          """.strip()
+
+          def call_dahl(prompt):
+              payload = {
+                  "model": MODEL,
+                  "messages": [
+                      {"role": "system", "content": "You are the STRAYD Content Director. Return only raw production Markdown starting directly with the first day header."},
+                      {"role": "user", "content": prompt},
+                  ],
+                  "temperature": 0.7,
+                  "max_tokens": 5000,
+              }
+              request_data = json.dumps(payload).encode("utf-8")
+
+              for attempt in range(1, ATTEMPTS + 1):
+                  request = urllib.request.Request(
+                      API_URL, data=request_data,
+                      headers={"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json", "Accept": "application/json"},
+                      method="POST",
+                  )
+                  try:
+                      log(f"API Request attempt {attempt}/{ATTEMPTS}...")
+                      with urllib.request.urlopen(request, timeout=240) as response:
+                          raw = response.read().decode("utf-8")
+                          data = json.loads(raw)
+                      choices = data.get("choices") or []
+                      if not choices:
+                          raise ValueError("No choices returned.")
+                      content = choices[0].get("message", {}).get("content")
+                      if not isinstance(content, str) or not content.strip():
+                          raise ValueError("Empty content returned.")
+                      return content.strip()
+                  except Exception as exc:
+                      log(f"Attempt {attempt} failed: {exc}")
+                      if attempt == ATTEMPTS:
+                          fail("All API attempts failed.")
+                      time.sleep(RETRY_DELAYS[attempt - 1])
+
+          def parse_and_validate(markdown, week_dates):
+              if not markdown.strip():
+                  fail("Markdown is empty.")
+              markdown = re.sub(r"^```markdown\s*", "", markdown, flags=re.MULTILINE)
+              markdown = re.sub(r"^```\s*$", "", markdown, flags=re.MULTILINE)
+
+              day_pattern = re.compile(
+                  r"^##\s+(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s*[:—\u2014\-]\s*(\d{4}-\d{2}-\d{2})\s*$",
+                  re.MULTILINE | re.IGNORECASE
+              )
+              matches = list(day_pattern.finditer(markdown))
+              if len(matches) != 7:
+                  fail(f"Validation failed: expected 7 day headers, found {len(matches)}.")
+
+              sections_by_day = {}
+              for index, match in enumerate(matches):
+                  actual_day = match.group(1).capitalize()
+                  expected_day = DAYS[index]
+                  if actual_day != expected_day:
+                      fail(f"Days out of order: expected {expected_day}, found {actual_day}.")
+                  start = match.start()
+                  end = matches[index + 1].start() if index + 1 < len(matches) else len(markdown)
+                  sections_by_day[actual_day] = markdown[start:end].strip()
+              return sections_by_day
+
+          def safe_write(path, content):
+              path = Path(path)
+              path.parent.mkdir(parents=True, exist_ok=True)
+              target = path
+              counter = 1
+              while target.exists():
+                  target = path.with_name(f"{path.stem}-run-{RUN_NUMBER}{'' if counter == 1 else '-' + str(counter)}{path.suffix}")
+                  counter += 1
+              normalized = normalize_dashes(content.rstrip()) + "\n"
+              with target.open("x", encoding="utf-8", newline="\n") as handle:
+                  handle.write(normalized)
+              log(f"Created {target}")
+              return target
+
+          def main():
+              week_dates = current_week()
+              knowledge = read_knowledge()
+              prompt = build_prompt(knowledge, week_dates)
+
+              char_tag = "-".join(SELECTED_CHARS)
+              log(f"Generating content for week beginning {week_dates[0]} using characters: {char_tag}")
+              markdown = call_dahl(prompt)
+              daily_sections = parse_and_validate(markdown, week_dates)
+
+              clean_weekly_content = "\n\n".join(daily_sections[day] for day in DAYS)
+              weekly_path = Path(f"social-posts/weekly/{week_dates[0].isoformat()}-{char_tag}-calendar.md")
+              weekly_saved = safe_write(weekly_path, clean_weekly_content)
+
+              for day, date in zip(DAYS, week_dates):
+                  daily_path = Path(f"social-posts/daily/{date.isoformat()}-{char_tag}-{day.lower()}.md")
+                  daily_content = f"# STRAYD Social Content ({char_tag.upper()}) - {day}, {date.isoformat()}\n\nSource calendar: {weekly_saved.as_posix()}\n\n{daily_sections[day]}"
+                  safe_write(daily_path, daily_content)
+
+              readme = Path("social-posts/README.md")
+              if not readme.exists():
+                  readme.write_text("# STRAYD Social Content\n", encoding="utf-8")
+
+              log("SUCCESS: MULTI-CHARACTER CONTENT GENERATED AND SAVED")
+
+          if __name__ == "__main__":
+              main()
+          PY
+
+      - name: Commit generated social content
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add social-posts/
+          if git diff --cached --quiet; then
+            echo "No new social content changes to commit."
+            exit 0
+          fi
+          git commit -m "Generate STRAYD content for characters"
+          git pull --rebase origin main || git rebase --skip
+          git push
+          echo "Content committed successfully."
