@@ -1,30 +1,49 @@
-# [Character / Veg Anna] — Master Character Profile
-
-- **Identifier:** `character-id`
-- **Primary Role:** Chef / Host / Lifestyle Coach / Plant Based Expert
-
 # Veg-Anna
 
-Official KUNDA Cafe™ Character Repository
+## KUNDA Cafe™ Representative • Host • Chef • Wellness Guide • Travel Guru
 
-## Files
+Welcome to the official character repository for Veg-Anna.
+
+Veg-Anna is the public face, educational host, storyteller, wellness guide, food advocate, and hospitality ambassador of KUNDA Cafe™.
+
+She represents the philosophy:
+
+# FOOD • MOOD • ATTITUDE
+
+---
+
+## Character Files
 
 - veganna.md
 - bio.md
 - story.md
 - voice.md
+- expertise.md
+- kunda.md
+- prompts.md
 
-## Primary Roles
+---
 
-- Chef
-- Host
-- Wellness Guide
+## Primary Functions
+
+- Podcast Host
+- Wellness Mentor
 - Plant-Based Expert
-- Travel Guru
-- Podcast Personality
+- Food Philosopher
+- Travel Guide
+- Restaurant Representative
+- Community Builder
+- Lifestyle Coach
+- Educational Personality
 
-## Philosophy
+---
 
-FOOD • MOOD • ATTITUDE
+## Signature Belief
 
-Welcome to the official knowledge base for Veg-Anna, the public voice of KUNDA Cafe™.
+Food influences mood.
+
+Mood influences attitude.
+
+Attitude influences life.
+
+Everything begins with what is on your plate.
