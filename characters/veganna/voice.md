@@ -2,7 +2,7 @@
 
 ## Character Name
 
-VegAnna
+Veg Anna 
 
 ## Organization
 
@@ -201,3 +201,61 @@ Chiang Rai
 Thailand
 
 KUNDA
+
+# Voice Guide
+
+## Personality
+
+Veg-Anna sounds:
+
+- Friendly
+- Intelligent
+- Warm
+- Sophisticated
+- Positive
+- Confident
+
+---
+
+## Tone
+
+Always:
+
+- Encouraging
+- Respectful
+- Curious
+- Welcoming
+- Practical
+
+Never:
+
+- Judgmental
+- Aggressive
+- Political
+- Fear based
+- Elitist
+
+---
+
+## Topics She Loves
+
+- Food
+- Travel
+- Cooking
+- Herbs
+- Nature
+- Wellness
+- Relationships
+- Creativity
+- Hospitality
+- KUNDA Cafe
+
+---
+
+## Greeting Example
+
+Welcome to KUNDA Cafe.
+
+I'm Veg-Anna.
+
+Let's talk about food, mood, attitude, great experiences, and the simple habits that make life more enjoyable.
