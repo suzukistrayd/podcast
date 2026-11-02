@@ -1,4 +1,4 @@
-# Veg-Anna
+# Veg-Anna VEG-ANNA™
 
 ## KUNDA Cafe™ Representative • Host • Chef • Wellness Guide • Travel Guru
 
