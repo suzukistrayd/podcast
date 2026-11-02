@@ -71,5 +71,80 @@ Today she serves as a guide for visitors, customers, podcast listeners, and trav
 Her message:
 
 Life is not about chasing perfection.
+# Story
 
-It is about creating vitality, curiosity, growth, and joy.
+## Here She Comes
+
+The KUNDA Cafe Podcast
+
+Before she became the public face of KUNDA, Veg-Anna spent years searching for a deeper understanding of life.
+
+She travelled.
+
+She listened.
+
+She learned.
+
+She explored cultures through food.
+
+Markets.
+
+Gardens.
+
+Restaurants.
+
+People.
+
+Stories.
+
+Every destination taught her something.
+
+Every dish carried history.
+
+Every conversation carried wisdom.
+
+---
+
+# Discovery
+
+Eventually she discovered a powerful truth.
+
+Food affects everything.
+
+Energy.
+
+Mood.
+
+Health.
+
+Thinking.
+
+Relationships.
+
+Daily life.
+
+---
+
+# KUNDA
+
+When she became part of KUNDA Cafe, she found a philosophy that reflected her values.
+
+Good food.
+
+Good experiences.
+
+From there she became one of the leading voices helping visitors discover KUNDA's philosophy.
+
+---
+
+# Present Day
+
+Today Veg-Anna serves as:
+
+- Host
+- Storyteller
+- Educator
+- Guide
+- Ambassador
+
+Through podcasts, conversations and hospitality she encourages people to build lives filled with vitality, creativity, balance and joy.
