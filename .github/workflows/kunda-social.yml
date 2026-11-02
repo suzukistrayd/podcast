@@ -1,4 +1,4 @@
-name: KUNDA Neural Social (Multi-Character)
+name: KUNDA Social Content (Multi-Character)
 
 on:
   repository_dispatch:
@@ -67,7 +67,7 @@ jobs:
               exit 1
             fi
 
-            echo "Verified character directory and index for: $char"
+            echo "Verified character directory and core index for: $char"
           done
 
           mkdir -p social-posts/weekly social-posts/daily
@@ -134,14 +134,15 @@ jobs:
           def read_knowledge():
               parts = []
               
-              # 1. Automatically load ALL reference files from knowledge/ dynamically
+              # 1. Dynamically read EVERY markdown file in the knowledge/ directory
               knowledge_dir = Path("knowledge")
               if knowledge_dir.is_dir():
-                  for k_file in sorted(knowledge_dir.glob("*.md")):
-                      content = k_file.read_text(encoding="utf-8").strip()
-                      parts.append(f"\n\n===== BEGIN KNOWLEDGE REF [{k_file.name}] =====\n{content}\n===== END KNOWLEDGE REF [{k_file.name}] =====\n")
+                  for k_file in sorted(knowledge_dir.glob("*")):
+                      if k_file.is_file() and not k_file.name.startswith("."):
+                          content = k_file.read_text(encoding="utf-8").strip()
+                          parts.append(f"\n\n===== BEGIN KNOWLEDGE REF [{k_file.name}] =====\n{content}\n===== END KNOWLEDGE REF [{k_file.name}] =====\n")
 
-              # 2. Automatically load character suites (index, bio, story, voice, etc.) dynamically
+              # 2. Dynamically load character suites (index, bio, story, voice, veganna.md, etc.)
               for char in SELECTED_CHARS:
                   char_dir = Path(f"characters/{char}")
                   if not char_dir.is_dir():
@@ -149,14 +150,16 @@ jobs:
                   
                   parts.append(f"\n\n===== BEGIN CHARACTER SUITE: {char.upper()} =====\n")
                   
-                  # Prioritize core index first if it exists
-                  index_file = char_dir / "-index.md"
-                  if index_file.is_file():
-                      parts.append(f"--- CORE INDEX: -index.md ---\n{index_file.read_text(encoding='utf-8').strip()}\n")
+                  # Prioritize -index.md and main character file first
+                  for priority_name in ["-index.md", f"{char}.md"]:
+                      p = char_dir / priority_name
+                      if p.is_file():
+                          content = p.read_text(encoding="utf-8").strip()
+                          parts.append(f"--- CORE FILE: {p.name} ---\n{content}\n")
 
-                  # Load all other character markdown files dynamically
+                  # Read remaining files in character folder dynamically
                   for p in sorted(char_dir.glob("*.md")):
-                      if p.name != "-index.md":
+                      if p.name not in ["-index.md", f"{char}.md"]:
                           content = p.read_text(encoding="utf-8").strip()
                           parts.append(f"--- FILE: {p.name} ---\n{content}\n")
                           
@@ -214,7 +217,8 @@ jobs:
 
           FACTUAL RULES:
           - Never invent songs, titles, releases, dates, or credits.
-          - Use only facts from the knowledge files.
+          - Kunda Cafe opened in 2011. NEVER output fictional dates (like 1962) or invented origins.
+          - Use only facts from the supplied knowledge files.
           - NEVER use em dashes. Use plain hyphens only: -
           - NEVER use smart quotes. Use plain quotes only: ' and "
 
@@ -229,7 +233,7 @@ jobs:
               payload = {
                   "model": MODEL,
                   "messages": [
-                      {"role": "system", "content": "You are the all powerfull and happy Veg-Anna, the KUNDA CAFE Content Director. Return only raw production Markdown starting directly with the first day header."},
+                      {"role": "system", "content": "You are the all powerful and happy Veganna, the KUNDA CAFE Content Director. Return only raw production Markdown starting directly with the first day header."},
                       {"role": "user", "content": prompt},
                   ],
                   "temperature": 0.7,
