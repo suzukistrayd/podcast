@@ -54,7 +54,7 @@ jobs:
           IFS=',' read -ra ADDR <<< "$INPUT_CHARS"
           for char in "${ADDR[@]}"; do
             char="$(echo "$char" | xargs)"
-            CHAR_FILE="characters/${char}.md"
+          CHAR_FILE="characters/${char}/${char}.md"
             if [ ! -s "$CHAR_FILE" ]; then
               echo "::error::Required character file missing or empty: $CHAR_FILE"
               exit 1
@@ -139,7 +139,7 @@ jobs:
           def read_knowledge():
               parts = []
               for char in SELECTED_CHARS:
-                  filename = f"characters/{char}.md"
+                 filename = f"characters/{char}/{char}.md"
                   path = Path(filename)
                   if not path.is_file():
                       fail(f"Knowledge file not found: {filename}")
