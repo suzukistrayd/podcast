@@ -1,4 +1,4 @@
-name: KUNDA Neural Link (Multi-Character)
+name: KUNDA Neural Link 2027 (Multi-Personality)
 
 on:
   repository_dispatch:
@@ -215,7 +215,8 @@ jobs:
 
           FACTUAL & ETHICAL RULES:
           - Never invent songs, titles, releases, dates, or credits.
-          - Kunda Cafe opened in 2011 in Chiang Rai, Thailand. NEVER output fictional dates (like 1962).
+          - Kunda Cafe opened in 2011 in Chiang Rai, Thailand (372 Trairat Rd). NEVER output fictional dates (like 1962).
+          - Featured in the Michelin Guide Thailand (2026). NEVER deny or omit Michelin Guide recognition.
           - Kunda Cafe is strictly SOY-FREE and TOFU-FREE. NEVER mention, promote, praise, or reference tofu or soy products. Processed soy/tofu is considered wasteful and is completely excluded from Kunda.
           - Kunda Cafe serves plant-based vegetarian/vegan burgers (classic frozen patties, signature sauces, drinks). NEVER claim Kunda serves generic "Thai favorites".
           - Use only facts from the supplied knowledge files.
@@ -233,7 +234,7 @@ jobs:
               payload = {
                   "model": MODEL,
                   "messages": [
-                      {"role": "system", "content": "You are Veg Anna, the KUNDA CAFE Content Director. Return only raw production Markdown starting directly with the first day header. Follow all soy-free, tofu-free, and factual rules strictly."},
+                      {"role": "system", "content": "You are Veg Anna, the KUNDA CAFE Content Director. Return only raw production Markdown starting directly with the first day header. Follow all Michelin recognition, soy-free, tofu-free, and factual rules strictly."},
                       {"role": "user", "content": prompt},
                   ],
                   "temperature": 0.6,
