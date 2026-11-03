@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>THE VEG ANNA SHOW // KUNDA STUDIO</title>
+
+    <!-- LOCAL RELATIVE FAVICON LINK -->
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="shortcut icon" type="image/png" href="./favicon.png">
+
+    <style>
+        :root {
+            --bg-base: #09090b;
+            --bg-surface: rgba(18, 18, 22, 0.88);
+            --bg-card: #18181c;
+            --border-subtle: #27272a;
+            --accent-gold: #d97706;
+            --accent-gold-glow: rgba(217, 119, 6, 0.35);
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: var(--bg-base); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 0; 
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        header {
+            background: rgba(18, 18, 22, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            z-index: 20;
+            height: 72px;
+        }
+
+        .brand { display: flex; align-items: center; gap: 14px; }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 16px var(--accent-gold-glow);
+            flex-shrink: 0;
+            border: 1px solid rgba(251, 191, 36, 0.4);
+        }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        .brand-title { display: flex; flex-direction: column; }
+        .brand-title h1 { 
+            font-size: 20px; 
+            margin: 0; 
+            font-weight: 900; 
+            color: #ffffff; 
+            text-transform: uppercase;
+            line-height: 1.1;
+        }
+
+        .brand-subtitle { 
+            font-size: 10px; 
+            color: #fbbf24; 
+            font-family: var(--font-mono); 
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: 3px;
+        }
+
+        .header-controls { display: flex; align-items: center; gap: 10px; }
+
+        .voice-toggle-btn, .settings-toggle {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .voice-toggle-btn.active {
+            border-color: var(--accent-gold);
+            color: #fbbf24;
+            box-shadow: 0 0 12px var(--accent-gold-glow);
+        }
+
+        /* CINEMATIC WATERMARK CONTAINER */
+        .bg-watermark-container {
+            position: absolute;
+            top: 72px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 104px);
+            z-index: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            opacity: 0.22;
+            overflow: hidden;
+        }
+
+        .bg-watermark-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
+            filter: grayscale(15%) contrast(115%) brightness(90%);
+        }
+
+        body.is-thinking .bg-watermark-container {
+            opacity: 0.45 !important;
+            animation: neuralGlitch 0.8s infinite steps(2, end) !important;
+        }
+
+        @keyframes neuralGlitch {
+            0% { transform: translate(0, 0); filter: drop-shadow(0 0 20px rgba(217,119,6,0.6)); }
+            50% { transform: translate(-4px, 3px); filter: drop-shadow(0 0 35px rgba(239,68,68,0.9)); }
+            100% { transform: translate(0, 0); filter: drop-shadow(0 0 20px rgba(217,119,6,0.6)); }
+        }
+
+        #settings-panel {
+            display: none;
+            position: absolute;
+            top: 72px;
+            left: 0;
+            width: 100%;
+            background: rgba(18, 18, 22, 0.98);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 16px 20px;
+            z-index: 30;
+        }
+        #settings-panel label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+        }
+        #settings-panel input, #settings-panel select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-base);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            border-radius: 8px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            outline: none;
+        }
+
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 2;
+            position: relative;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .message.assistant {
+            background: rgba(18, 18, 22, 0.88);
+            border: 1px solid var(--border-subtle);
+            border-left: 3px solid var(--accent-gold);
+            align-self: flex-start;
+            color: var(--text-main);
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            color: #ffffff;
+            align-self: flex-end;
+        }
+
+        .message-header {
+            font-size: 10px;
+            font-family: var(--font-mono);
+            color: #fbbf24;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .status-bar {
+            padding: 8px 16px;
+            background: rgba(18, 18, 22, 0.92);
+            border-top: 1px solid var(--border-subtle);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        .status-bar.active { display: flex !important; }
+
+        .equalizer { display: flex; align-items: flex-end; gap: 3px; height: 16px; }
+        .bar { width: 2px; background: #fbbf24; border-radius: 2px; animation: bounce 0.8s infinite ease-in-out; }
+        .bar:nth-child(1) { height: 40%; animation-delay: 0.0s; }
+        .bar:nth-child(2) { height: 100%; animation-delay: 0.2s; }
+        .bar:nth-child(3) { height: 60%; animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 100% { height: 20%; background: var(--text-muted); }
+            50% { height: 100%; background: #fbbf24; }
+        }
+
+        .input-area {
+            background: rgba(18, 18, 22, 0.95);
+            border-top: 1px solid var(--border-subtle);
+            padding: 12px 16px;
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+            z-index: 15;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px 14px;
+            background: var(--bg-base);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            border-radius: 8px;
+            font-size: 14px;
+            height: 44px;
+            outline: none;
+        }
+        input[type="text"]:focus { border-color: var(--accent-gold); }
+
+        /* MIC BUTTON STYLE */
+        button.mic-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        button.mic-btn.listening {
+            background: #dc2626;
+            border-color: #ef4444;
+            color: #ffffff;
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.6);
+            animation: pulseMic 1.2s infinite;
+        }
+
+        @keyframes pulseMic {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        button.send-btn {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            color: white;
+            border: none;
+            padding: 0 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            height: 44px;
+            flex-shrink: 0;
+        }
+
+        /* SMOOTH SCROLLING SPONSOR TICKER FOOTER */
+        footer.ticker-footer {
+            background: #000000;
+            border-top: 1px solid var(--border-subtle);
+            height: 32px;
+            overflow: hidden;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            z-index: 15;
+            position: relative;
+        }
+
+        .ticker-track {
+            display: inline-flex;
+            align-items: center;
+            animation: tickerScroll 25s linear infinite;
+        }
+        .ticker-track:hover { animation-play-state: paused; }
+
+        .ticker-item {
+            font-size: 11px;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            padding: 0 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ticker-item a { color: #fbbf24; text-decoration: none; font-weight: 600; }
+        .ticker-item a:hover { text-decoration: underline; }
+
+        .ad-spot {
+            color: #f87171 !important;
+            font-weight: 700 !important;
+            border: 1px dashed rgba(248, 113, 113, 0.4);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        @keyframes tickerScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <!-- LOCAL RELATIVE PATH TO AVATAR -->
+            <div class="avatar"><img src="./favicon.png" alt="Veg Anna"></div>
+            <div class="brand-title">
+                <h1>VEG ANNA</h1>
+                <span class="brand-subtitle">KUNDA CAFE ONLINE</span>
+            </div>
+        </div>
+        <div class="header-controls">
+            <button id="voice-btn" class="voice-toggle-btn active" onclick="toggleVoice()">🔊 VOICE ON</button>
+            <button class="settings-toggle" onclick="toggleSettings()">⚙️ Settings</button>
+        </div>
+    </header>
+
+    <div class="bg-watermark-container">
+        <!-- LOCAL RELATIVE PATH TO WATERMARK -->
+        <img src="./bg-avatar.png" alt="Backdrop">
+    </div>
+
+    <div id="settings-panel">
+        <label>DAHL API Key:</label>
+        <input type="password" id="api-key" placeholder="Paste DAHL API Key..." oninput="saveApiKey()">
+        
+        <label>Voice Accent Profile:</label>
+        <select id="voice-profile" onchange="saveVoiceProfile()">
+            <option value="british">British Female - Veg Anna (en-GB / Clean English)</option>
+            <option value="scandinavian">Nordic / Scandinavian English Female</option>
+            <option value="international">International English Female</option>
+        </select>
+    </div>
+
+    <div id="chat-container">
+        <div class="message assistant">
+            <div class="message-header">Veg Anna</div>
+            Veg Anna here. Ask me anything?
+        </div>
+    </div>
+
+    <div id="status-bar" class="status-bar">
+        <div class="equalizer">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <span id="status-text">Neural transmission active // Processing...</span>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Message Veg Anna... (Press Enter or Tap Mic)" onkeydown="handleKey(event)">
+        <!-- MOBILE SPEECH TO TEXT MICROPHONE BUTTON -->
+        <button id="mic-btn" class="mic-btn" title="Hold or Tap to Speak" onclick="toggleSpeechRecognition()">🎤</button>
+        <button class="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+
+    <!-- FULL SCROLLING TICKER FOOTER WITH ALL SPONSORS -->
+    <footer class="ticker-footer">
+        <div class="ticker-track">
+            <span class="ticker-item">☕ Support Lore: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">🍔 Official Site: <a href="https://kundacafe.com" target="_blank">kundacafe.com</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">🔥 Hot Sauce: <a href="https://coolhotsauce.com" target="_blank">coolhotsauce.com</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item"><a href="https://kundacafe.com" class="ad-spot" target="_blank">🚀 YOUR AD HERE &bull; SPONSOR THE SHOW</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">&copy; Veg Anna Show / KUNDA Co Ltd. 2027</span>
+            <span class="ticker-item">&bull;</span>
+
+            <span class="ticker-item">☕ Support Lore: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">🍔 Official Site: <a href="https://kundacafe.com" target="_blank">kundacafe.com</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">🔥 Hot Sauce: <a href="https://coolhotsauce.com" target="_blank">coolhotsauce.com</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item"><a href="https://kundacafe.com" class="ad-spot" target="_blank">🚀 YOUR AD HERE &bull; SPONSOR THE SHOW</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">&copy; Veg Anna Show / KUNDA Co Ltd. 2027</span>
+            <span class="ticker-item">&bull;</span>
+        </div>
+    </footer>
+
+<script>
+    const REPO_OWNER = "suzukistrayd";
+    const REPO_NAME = "podcast";
+    let isVoiceEnabled = true;
+    let recognition = null;
+    let isListening = false;
+
+    window.onload = function() {
+        try {
+            const savedKey = localStorage.getItem('dahl_api_key');
+            if (savedKey) document.getElementById('api-key').value = savedKey;
+
+            const savedVoice = localStorage.getItem('selected_voice_profile');
+            if (savedVoice) document.getElementById('voice-profile').value = savedVoice;
+
+            document.getElementById('user-input').focus();
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
+            }
+
+            // Initialize Speech Recognition for Mobile / Supported Browsers
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+
+                recognition.onresult = function(event) {
+                    const speechText = event.results[0][0].transcript;
+                    document.getElementById('user-input').value = speechText;
+                    stopListeningUI();
+                    sendMessage(); // Auto-send upon finishing speech
+                };
+
+                recognition.onerror = function(event) {
+                    stopListeningUI();
+                };
+
+                recognition.onend = function() {
+                    stopListeningUI();
+                };
+            }
+        } catch (e) {}
+    };
+
+    function toggleSpeechRecognition() {
+        if (!recognition) {
+            alert("Speech recognition is not supported on this browser or device.");
+            return;
+        }
+
+        const micBtn = document.getElementById('mic-btn');
+        if (!isListening) {
+            try {
+                recognition.start();
+                isListening = true;
+                micBtn.classList.add('listening');
+                micBtn.title = "Listening... Speak now";
+            } catch (e) {
+                isListening = false;
+                micBtn.classList.remove('listening');
+            }
+        } else {
+            try {
+                recognition.stop();
+            } catch (e) {}
+            stopListeningUI();
+        }
+    }
+
+    function stopListeningUI() {
+        isListening = false;
+        const micBtn = document.getElementById('mic-btn');
+        if (micBtn) {
+            micBtn.classList.remove('listening');
+            micBtn.title = "Hold or Tap to Speak";
+        }
+    }
+
+    function toggleVoice() {
+        isVoiceEnabled = !isVoiceEnabled;
+        const btn = document.getElementById('voice-btn');
+        btn.className = isVoiceEnabled ? "voice-toggle-btn active" : "voice-toggle-btn";
+        btn.textContent = isVoiceEnabled ? "🔊 VOICE ON" : "🔇 VOICE OFF";
+        if (!isVoiceEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    }
+
+    function toggleSettings() {
+        const panel = document.getElementById('settings-panel');
+        panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function saveApiKey() {
+        try { localStorage.setItem('dahl_api_key', document.getElementById('api-key').value.trim()); } catch (e) {}
+    }
+
+    function saveVoiceProfile() {
+        try { localStorage.setItem('selected_voice_profile', document.getElementById('voice-profile').value); } catch (e) {}
+    }
+
+    function handleKey(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+
+    function speakText(text) {
+        if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+
+        const clean = text
+            .replace(/<think>[\s\S]*?<\/think>/g, '')
+            .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '')
+            .replace(/[*_#`~]/g, '')
+            .trim();
+
+        if (!clean) return;
+
+        const utterance = new SpeechSynthesisUtterance(clean);
+        const voices = window.speechSynthesis.getVoices();
+        const profile = document.getElementById('voice-profile').value;
+
+        let voice;
+        if (profile === 'scandinavian') {
+            voice = voices.find(v => !v.lang.includes('de') && !v.name.toLowerCase().includes('male') && (v.lang.startsWith('sv') || v.lang.startsWith('nb') || v.lang.startsWith('da') || v.name.includes('Astrid') || v.name.includes('Nora')));
+            utterance.pitch = 1.10;
+            utterance.rate = 0.95;
+        } else if (profile === 'international') {
+            voice = voices.find(v => !v.lang.includes('de') && !v.name.toLowerCase().includes('male') && (v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Moira') || v.lang.startsWith('en-US')));
+            utterance.pitch = 1.12;
+            utterance.rate = 0.98;
+        } else {
+            voice = voices.find(v => !v.lang.includes('de') && !v.name.toLowerCase().includes('male') && (v.name.includes('Female') || v.name.includes('Victoria') || v.name.includes('Sonia') || v.name.includes('Hazel') || v.lang === 'en-GB'));
+            utterance.pitch = 1.15;
+            utterance.rate = 1.0;
+        }
+
+        if (voice) utterance.voice = voice;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    async function fetchKnowledgeContext() {
+        let snippets = [];
+        try {
+            const cacheBust = `?t=${Date.now()}`;
+            const treeUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/git/trees/main?recursive=1${cacheBust}`;
+            const treeRes = await fetch(treeUrl);
+
+            if (treeRes.ok) {
+                const treeData = await treeRes.json();
+                const filePaths = (treeData.tree || []).filter(item => item.type === 'blob').map(item => item.path);
+                const filesToIngest = filePaths.filter(path => path.startsWith('knowledge/') || path.startsWith('characters/'));
+
+                await Promise.all(filesToIngest.map(async (path) => {
+                    try {
+                        const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${path}?t=${Date.now()}`;
+                        const res = await fetch(rawUrl);
+                        if (res.ok) {
+                            const text = await res.text();
+                            if (text && text.trim().length > 0) snippets.push(`\n[FILE: ${path}]\n${text}`);
+                        }
+                    } catch (e) {}
+                }));
+            }
+        } catch (err) {}
+        return snippets.length > 0 ? snippets.join('\n\n---\n\n') : null;
+    }
+
+    async function sendMessage() {
+        const apiKey = document.getElementById('api-key').value.trim();
+        const input = document.getElementById('user-input');
+        const query = input.value.trim();
+
+        if (!apiKey) {
+            alert('Please tap ⚙️ Settings in the top right to paste your DAHL API Key.');
+            toggleSettings();
+            return;
+        }
+        if (!query) return;
+
+        if (query.toLowerCase().includes("play music") || query.toLowerCase().includes("playlist")) {
+            window.open("https://open.spotify.com/search/kunda%20cafe", "_blank");
+        }
+
+        appendMsg(query, 'user', 'You');
+        input.value = '';
+
+        document.body.classList.add('is-thinking');
+        document.getElementById('status-bar').classList.add('active');
+
+        const repoContext = await fetchKnowledgeContext();
+
+        const now = new Date();
+        const currentDateTimeStr = now.toLocaleString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+
+        const coreFacts = ` MANDATORY KUNDA BOUNDARIES & STRICT TRUTH:
+- CURRENT REAL-TIME CONTEXT: Today's live date and time is ${currentDateTimeStr}. If the user asks what day or time it is, answer using this exact data.
+- NAME & IDENTITY: Your name is strictly VEG ANNA. NEVER refer to yourself as just "Anna". Always say "Veg Anna".
+- MARTIN STRAYD & SONGARCHIVE INSTRUCTIONS: Martin Strayd is a co-founder, but you do NOT mention this unprompted unless specifically asked about co-founders. When asked about Martin Strayd, his background, or songs/music, you MUST read and pull exact information directly from the ingested repository files, specifically from [FILE: knowledge/songarchive.md].
+- STRICT ANTI-HALLUCINATION RULE FOR SONGS: You are completely forbidden from inventing, guessing, or making up song titles. You must extract exact track info from [FILE: knowledge/songarchive.md].
+- OPENING HOURS: Kunda Cafe opens daily at 12:00 PM (Noon). Kitchen closes strictly at 7:30 PM.
+- LOCATION & MICHELIN: 372 Trairat Rd, Chiang Rai (opposite Wat Ming Muang). Michelin Guide Thailand 2026.
+- FOOD ETHOS: Strictly SOY-FREE and TOFU-FREE. No Thai food, no rice, no commercial sodas.
+- NO ORDER TAKING: YOU ARE NOT A POS ORDER TAKING BOT.`;
+
+        let systemPrompt = `You are roleplaying purely as VEG ANNA.
+        
+RESPONSE RULES:
+- Always introduce or identify yourself as Veg Anna, NEVER just "Anna".
+- Keep answers punchy, natural, conversational, and concise (under 50 words unless deep lore or song archives are asked). 
+- ABSOLUTE TRUTH: Never hallucinate character names or song titles. Always cite exact song titles from [FILE: knowledge/songarchive.md].
+- NEVER output internal reasoning, <think> tags, or conversational AI crutches.
+${coreFacts}`;
+
+        if (repoContext) {
+            systemPrompt += `\n\n[INGESTED REPOSITORY FILES]:\n"${repoContext}"`;
+        }
+
+        try {
+            const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: "MiniMaxAI/MiniMax-M2.7",
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: query }
+                    ],
+                    temperature: 0.0,
+                    max_tokens: 1000
+                })
+            });
+
+            if (!res.ok) throw new Error(`API Error ${res.status}`);
+
+            const data = await res.json();
+            let reply = data.choices[0].message.content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
+            document.body.classList.remove('is-thinking');
+            document.getElementById('status-bar').classList.remove('active');
+
+            appendMsg(reply, 'assistant', 'Veg Anna');
+            speakText(reply);
+
+        } catch (err) {
+            document.body.classList.remove('is-thinking');
+            document.getElementById('status-bar').classList.remove('active');
+            appendMsg(`Error: ${err.message}`, 'assistant', 'System Error');
+        }
+
+        input.focus();
+    }
+
+    function appendMsg(text, sender, label) {
+        const container = document.getElementById('chat-container');
+        const div = document.createElement('div');
+        div.className = `message ${sender}`;
+        div.innerHTML = `<div class="message-header">${label}</div><div style="white-space:pre-wrap;">${text}</div>`;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+</script>
+</body>
+</html>
