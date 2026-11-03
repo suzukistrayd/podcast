@@ -19,7 +19,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Secure HTTPS Webview Wrapper
+      - name: Setup Secure Android Wrapper (Locked Input + Output Audio)
         run: |
           mkdir -p android-project/app/src/main/res/values
           mkdir -p android-project/app/src/main/res/layout
@@ -65,7 +65,7 @@ jobs:
           }
           EOF
 
-          # Create AndroidManifest.xml with Full Hardware & Network Permissions
+          # Create AndroidManifest.xml with Audio, Mic, and Media Hardware Permissions
           cat << 'EOF' > android-project/app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -93,7 +93,7 @@ jobs:
           </manifest>
           EOF
 
-          # Create MainActivity Java wrapper pointing to the secure HTTPS URL with Audio/Mic Handlers
+          # Create MainActivity Java wrapper with Native Audio Speaker Routing & WebChromeClient Permission Grants
           mkdir -p android-project/app/src/main/java/com/veganna/app
           cat << 'EOF' > android-project/app/src/main/java/com/veganna/app/MainActivity.java
           package com.veganna.app;
@@ -115,7 +115,7 @@ jobs:
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
 
-                  // Route all audio output to main media speaker
+                  // Force audio output stream to main phone speakers
                   setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
                   // Request microphone permission at runtime on Android 6+
@@ -125,7 +125,7 @@ jobs:
                       }
                   }
 
-                  // Enable remote debugging
+                  // Enable remote debugging (chrome://inspect)
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                       WebView.setWebContentsDebuggingEnabled(true);
                   }
@@ -136,14 +136,28 @@ jobs:
                   settings.setDomStorageEnabled(true);
                   settings.setDatabaseEnabled(true);
                   settings.setLoadsImagesAutomatically(true);
-                  settings.setMediaPlaybackRequiresUserGesture(false); // Allow instant speech/audio autoplay
+                  settings.setMediaPlaybackRequiresUserGesture(false); // Unlocks audio & speech synthesis autoplay
                   settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
                   settings.setAllowFileAccess(true);
                   settings.setAllowContentAccess(true);
 
-                  webView.setWebViewClient(new WebViewClient());
+                  webView.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public void onPageFinished(WebView view, String url) {
+                          super.onPageFinished(view, url);
+                          // Inject Web Audio & Speech synthesis unlock snippet automatically into the webview
+                          view.evaluateJavascript(
+                              "document.addEventListener('touchstart', function() {" +
+                              "  if (window.AudioContext || window.webkitAudioContext) {" +
+                              "    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();" +
+                              "    if (audioCtx.state === 'suspended') { audioCtx.resume(); }" +
+                              "  }" +
+                              "  if ('speechSynthesis' in window) { window.speechSynthesis.resume(); }" +
+                              "}, { once: false });", null);
+                      }
+                  });
                   
-                  // Continuously auto-grant permission requests (mic, audio) from the web app
+                  // Auto-grant continuous microphone and hardware media permissions
                   webView.setWebChromeClient(new WebChromeClient() {
                       @Override
                       public void onPermissionRequest(final PermissionRequest request) {
@@ -156,7 +170,7 @@ jobs:
                       }
                   });
 
-                  // Load the live HTTPS GitHub Pages URL (Enables Secure Context for Mic/Audio APIs)
+                  // Load live HTTPS secure context for speech/mic APIs
                   webView.loadUrl("https://suzukistrayd.github.io/podcast/dashboard/index.html");
                   setContentView(webView);
               }
