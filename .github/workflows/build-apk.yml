@@ -12,31 +12,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: PWABuilder Android Action
+        uses: pwa-builder/pwa-action@v1.0.1
         with:
-          node-version: '18'
-
-      - name: Set up Java JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Install Bubblewrap CLI
-        run: npm install -g @bubblewrap/cli
-
-      - name: Generate Android Project from Manifest
-        run: |
-          bubblewrap init --manifest=https://suzukistrayd.github.io/podcast/dashboard/manifest.json --directory=android-app --batch
-
-      - name: Build APK Binary
-        run: |
-          cd android-app
-          bubblewrap build
+          manifest-url: 'https://suzukistrayd.github.io/podcast/dashboard/manifest.json'
+          output-type: 'apk'
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: KundaCafe-VegAnna-APK
-          path: android-app/app/build/outputs/apk/release/app-release-signed.apk
+          path: '*.apk'
