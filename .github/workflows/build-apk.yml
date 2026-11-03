@@ -19,15 +19,23 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Webview Project
+      - name: Setup Webview Project with Audio, Mic & Icons
         run: |
           mkdir -p android-project/app/src/main/res/values
           mkdir -p android-project/app/src/main/res/layout
           mkdir -p android-project/app/src/main/assets
+          mkdir -p android-project/app/src/main/res/mipmap-xxhdpi
           
           # Copy repository web files into Android assets directory
           cp -r dashboard assets icons index.html manifest.json android-project/app/src/main/assets/ 2>/dev/null || true
           cp -r * android-project/app/src/main/assets/ 2>/dev/null || true
+
+          # Copy icon if available for the app launcher icon
+          if [ -f "icons/icon-512x512.png" ]; then
+            cp icons/icon-512x512.png android-project/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          elif [ -f "dashboard/icons/icon-512x512.png" ]; then
+            cp dashboard/icons/icon-512x512.png android-project/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          fi
 
           # Create root settings.gradle
           cat << 'EOF' > android-project/settings.gradle
@@ -69,14 +77,19 @@ jobs:
           }
           EOF
 
-          # Create AndroidManifest.xml
+          # Create AndroidManifest.xml with Microphone & Audio Permissions
           cat << 'EOF' > android-project/app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.RECORD_AUDIO" />
+              <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
               <application
                   android:allowBackup="true"
                   android:label="Veg Anna Show"
+                  android:icon="@mipmap/ic_launcher"
+                  android:roundIcon="@mipmap/ic_launcher"
                   android:supportsRtl="true"
                   android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
                   <activity
@@ -91,7 +104,7 @@ jobs:
           </manifest>
           EOF
 
-          # Create MainActivity Java wrapper
+          # Create MainActivity Java wrapper with Audio/Mic permissions handler
           mkdir -p android-project/app/src/main/java/com/veganna/app
           cat << 'EOF' > android-project/app/src/main/java/com/veganna/app/MainActivity.java
           package com.veganna.app;
@@ -101,16 +114,45 @@ jobs:
           import android.webkit.WebSettings;
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
+          import android.webkit.WebChromeClient;
+          import android.webkit.PermissionRequest;
+          import android.Manifest;
+          import android.content.pm.PackageManager;
+          import android.os.Build;
 
           public class MainActivity extends Activity {
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
+
+                  // Request microphone permission at runtime on Android 6+
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                      if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                          requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 100);
+                      }
+                  }
+
                   WebView webView = new WebView(this);
                   WebSettings settings = webView.getSettings();
                   settings.setJavaScriptEnabled(true);
                   settings.setDomStorageEnabled(true);
+                  settings.setMediaPlaybackRequiresUserGesture(false); // Allow audio/video autoplay
+
                   webView.setWebViewClient(new WebViewClient());
+                  
+                  // Grant microphone/media permissions to the web app inside the WebView
+                  webView.setWebChromeClient(new WebChromeClient() {
+                      @Override
+                      public void onPermissionRequest(final PermissionRequest request) {
+                          runOnUiThread(new Runnable() {
+                              @Override
+                              public void run() {
+                                  request.grant(request.getResources());
+                              }
+                          });
+                      }
+                  });
+
                   webView.loadUrl("file:///android_asset/dashboard/index.html");
                   setContentView(webView);
               }
