@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>THE VEG ANNA SHOW // KUNDA STUDIO</title>
+    <title>THE VEG ANNA SHOW // KUNDA CAFE CHIANG RAI</title>
 
-    <!-- LOCAL RELATIVE FAVICON LINK -->
+    <!-- LOCAL RELATIVE FAVICON & PWA MANIFEST LINK -->
     <link rel="icon" type="image/png" href="./favicon.png">
     <link rel="shortcut icon" type="image/png" href="./favicon.png">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#d97706">
 
     <style>
         :root {
@@ -42,7 +44,7 @@
             background: rgba(18, 18, 22, 0.95);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border-subtle);
-            padding: 14px 18px;
+            padding: 10px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -51,7 +53,7 @@
             height: 72px;
         }
 
-        .brand { display: flex; align-items: center; gap: 14px; }
+        .brand { display: flex; align-items: center; gap: 12px; }
 
         .avatar {
             width: 44px;
@@ -70,21 +72,27 @@
 
         .brand-title { display: flex; flex-direction: column; }
         .brand-title h1 { 
-            font-size: 20px; 
+            font-size: 18px; 
             margin: 0; 
             font-weight: 900; 
             color: #ffffff; 
             text-transform: uppercase;
             line-height: 1.1;
         }
+        .brand-title span {
+            font-size: 10px;
+            font-family: var(--font-mono);
+            color: var(--accent-gold);
+            letter-spacing: 0.5px;
+        }
 
-        .header-controls { display: flex; align-items: center; gap: 10px; }
+        .header-controls { display: flex; align-items: center; gap: 8px; }
 
-        .voice-toggle-btn, .settings-toggle {
+        .portal-btn, .voice-toggle-btn, .settings-toggle {
             background: var(--bg-card);
             border: 1px solid var(--border-subtle);
             color: var(--text-muted);
-            padding: 8px 12px;
+            padding: 8px 10px;
             border-radius: 6px;
             font-size: 11px;
             font-family: var(--font-mono);
@@ -92,7 +100,13 @@
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
+            text-decoration: none;
+        }
+        .portal-btn.highlight {
+            border-color: var(--accent-gold);
+            color: #fbbf24;
+            background: rgba(217, 119, 6, 0.15);
         }
 
         .voice-toggle-btn.active {
@@ -101,13 +115,44 @@
             box-shadow: 0 0 12px var(--accent-gold-glow);
         }
 
+        /* QUICK NAVIGATION BAR */
+        .kunda-nav-bar {
+            background: rgba(12, 12, 15, 0.95);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 6px 12px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            flex-shrink: 0;
+            z-index: 18;
+            scrollbar-width: none;
+        }
+        .kunda-nav-bar::-webkit-scrollbar { display: none; }
+
+        .nav-chip {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            white-space: nowrap;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+        .nav-chip:hover { border-color: var(--accent-gold); color: #fbbf24; }
+
         /* CINEMATIC WATERMARK CONTAINER */
         .bg-watermark-container {
             position: absolute;
-            top: 72px;
+            top: 108px;
             left: 0;
             width: 100%;
-            height: calc(100% - 104px);
+            height: calc(100% - 140px);
             z-index: 0;
             pointer-events: none;
             display: flex;
@@ -136,15 +181,17 @@
             100% { transform: translate(0, 0); filter: drop-shadow(0 0 20px rgba(217,119,6,0.6)); }
         }
 
-        #settings-panel {
+        #settings-panel, #portal-modal {
             display: none;
             position: absolute;
-            top: 72px;
+            top: 108px;
             left: 0;
             width: 100%;
+            max-height: calc(100% - 140px);
+            overflow-y: auto;
             background: rgba(18, 18, 22, 0.98);
             border-bottom: 1px solid var(--border-subtle);
-            padding: 16px 20px;
+            padding: 18px 20px;
             z-index: 30;
         }
         #settings-panel label {
@@ -166,6 +213,33 @@
             font-family: var(--font-mono);
             font-size: 13px;
             outline: none;
+        }
+
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .portal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 14px;
+        }
+        .portal-card h3 { margin: 0 0 6px 0; font-size: 14px; color: #fbbf24; }
+        .portal-card p { margin: 0 0 10px 0; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+        .portal-card a {
+            display: inline-block;
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            color: white;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            font-weight: 600;
         }
 
         #chat-container {
@@ -214,7 +288,6 @@
             align-items: center;
         }
 
-        /* MESSAGE ACTION TOOLBAR (COPY & SOCIAL SHARE) */
         .msg-actions {
             display: flex;
             gap: 8px;
@@ -384,19 +457,52 @@
 
     <header>
         <div class="brand">
-            <div class="avatar"><img src="./favicon.png" alt=""></div>
+            <div class="avatar"><img src="./favicon.png" alt="Veg Anna"></div>
             <div class="brand-title">
                 <h1>Veg Anna</h1>
+                <span>KUNDA CAFE CHIANG RAI</span>
             </div>
         </div>
         <div class="header-controls">
+            <button class="portal-btn highlight" onclick="togglePortal()">📲 APK & Info</button>
             <button id="voice-btn" class="voice-toggle-btn active" onclick="toggleVoice()">🔊 ON</button>
             <button class="settings-toggle" onclick="toggleSettings()">⚙️</button>
         </div>
     </header>
 
+    <div class="kunda-nav-bar">
+        <span class="nav-chip" onclick="quickAsk('Tell me about Kunda Cafe burgers and soy-free ethos.')">🍔 Plant-Based Burgers</span>
+        <a href="https://coolhotsauce.com" target="_blank" class="nav-chip">🔥 Cool Hot Sauce</a>
+        <a href="https://buymeacoffee.com/kundacafe" target="_blank" class="nav-chip">☕ Download App / APK</a>
+        <span class="nav-chip" onclick="quickAsk('What are your opening hours and location in Chiang Rai?')">📍 Michelin 2026 Location</span>
+        <span class="nav-chip" onclick="quickAsk('Tell me about Martin Strayd and the music archives.')">🎵 Song Archives</span>
+    </div>
+
     <div class="bg-watermark-container">
         <img src="./bg-avatar.png" alt="Backdrop">
+    </div>
+
+    <div id="portal-modal">
+        <h2 style="margin: 0 0 4px 0; color: #ffffff; font-size: 18px;">KUNDA CAFE DIGITAL PORTAL</h2>
+        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 14px;">Established 2011 • Michelin Guide Thailand 2026 • Chiang Rai, Thailand</p>
+        
+        <div class="portal-grid">
+            <div class="portal-card">
+                <h3>📱 Mobile App (Android APK)</h3>
+                <p>Get the official Kunda Cafe & Veg Anna mobile app directly via Buy Me a Coffee support.</p>
+                <a href="https://buymeacoffee.com/kundacafe" target="_blank">Download APK</a>
+            </div>
+            <div class="portal-card">
+                <h3>🔥 Artisanal Hot Sauces</h3>
+                <p>Handcrafted, sugar-free, soy-free gourmet hot sauces shipped internationally.</p>
+                <a href="https://coolhotsauce.com" target="_blank">Visit CoolHotSauce.com</a>
+            </div>
+            <div class="portal-card">
+                <h3>📜 Brand & Menu Assets</h3>
+                <p>Access high-resolution official logos, PDF menus, and brand lore files.</p>
+                <a href="https://kundacafe.com" target="_blank">Official Website & PDFs</a>
+            </div>
+        </div>
     </div>
 
     <div id="settings-panel">
@@ -405,16 +511,16 @@
         
         <label>Voice Accent Profile:</label>
         <select id="voice-profile" onchange="saveVoiceProfile()">
+            <option value="scandinavian">Nordic / Scandinavian English Female</option>
             <option value="international">International English Female</option>
             <option value="british">British Female - Veg Anna (en-GB / Clean English)</option>
-              <option value="scandinavian">Nordic / Scandinavian English Female</option>
         </select>
     </div>
 
     <div id="chat-container">
         <div class="message assistant" id="initial-msg">
             <div class="message-header"><span>Veg Anna</span></div>
-            <div class="msg-body">Sawadee. Ask me anything?</div>
+            <div class="msg-body">Sawadee! I am Veg Anna, your 24/7 personal plant-based guru for Kunda Cafe Chiang Rai. Ask me about our world-class soy-free burgers, artisanal hot sauces, or store details!</div>
             <div class="msg-actions">
                 <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
                 <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
@@ -440,7 +546,7 @@
 
     <footer class="ticker-footer">
         <div class="ticker-track">
-            <span class="ticker-item">☕ Support Lore: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
+            <span class="ticker-item">☕ Download App & Support: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
             <span class="ticker-item">&bull;</span>
             <span class="ticker-item">🍔 Official Site: <a href="https://kundacafe.com" target="_blank">kundacafe.com</a></span>
             <span class="ticker-item">&bull;</span>
@@ -451,7 +557,7 @@
             <span class="ticker-item">&copy; Veg Anna Show / KUNDA Co Ltd. 2027</span>
             <span class="ticker-item">&bull;</span>
 
-            <span class="ticker-item">☕ Support Lore: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
+            <span class="ticker-item">☕ Download App & Support: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
             <span class="ticker-item">&bull;</span>
             <span class="ticker-item">🍔 Official Site: <a href="https://kundacafe.com" target="_blank">kundacafe.com</a></span>
             <span class="ticker-item">&bull;</span>
@@ -540,7 +646,21 @@
 
     function toggleSettings() {
         const panel = document.getElementById('settings-panel');
+        document.getElementById('portal-modal').style.display = 'none';
         panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function togglePortal() {
+        const modal = document.getElementById('portal-modal');
+        document.getElementById('settings-panel').style.display = 'none';
+        modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function quickAsk(promptText) {
+        document.getElementById('portal-modal').style.display = 'none';
+        document.getElementById('settings-panel').style.display = 'none';
+        document.getElementById('user-input').value = promptText;
+        sendMessage();
     }
 
     function saveApiKey() {
@@ -558,7 +678,6 @@
         }
     }
 
-    // SOCIAL SHARING & COPY HELPERS
     function copyMessage(btn) {
         const bodyDiv = btn.closest('.message').querySelector('.msg-body');
         const textToCopy = bodyDiv.innerText;
@@ -566,9 +685,7 @@
             const originalText = btn.textContent;
             btn.textContent = "✅ Copied!";
             setTimeout(() => btn.textContent = originalText, 2000);
-        }).catch(err => {
-            alert("Failed to copy text.");
-        });
+        }).catch(err => alert("Failed to copy text."));
     }
 
     function shareTwitter(btn) {
@@ -655,10 +772,6 @@
         }
         if (!query) return;
 
-        if (query.toLowerCase().includes("play music") || query.toLowerCase().includes("playlist")) {
-            window.open("https://open.spotify.com/search/kunda%20cafe", "_blank");
-        }
-
         appendMsg(query, 'user', 'You');
         input.value = '';
 
@@ -678,13 +791,13 @@
         });
 
         const coreFacts = ` MANDATORY KUNDA BOUNDARIES & STRICT TRUTH:
-- CURRENT REAL-TIME CONTEXT: Today's live date and time is ${currentDateTimeStr}. If the user asks what day or time it is, answer using this exact data.
+- CURRENT REAL-TIME CONTEXT: Today's live date and time is ${currentDateTimeStr}.
 - NAME & IDENTITY: Your name is strictly VEG ANNA. NEVER refer to yourself as just "Anna". Always say "Veg Anna".
-- MARTIN STRAYD & SONGARCHIVE INSTRUCTIONS: Martin Strayd is a co-founder, but you do NOT mention this unprompted unless specifically asked about co-founders. When asked about Martin Strayd, his background, or songs/music, you MUST read and pull exact information directly from the ingested repository files, specifically from [FILE: knowledge/songarchive.md].
-- STRICT ANTI-HALLUCINATION RULE FOR SONGS: You are completely forbidden from inventing, guessing, or making up song titles. You must extract exact track info from [FILE: knowledge/songarchive.md].
+- MARTIN STRAYD & SONGARCHIVE INSTRUCTIONS: Martin Strayd is a co-founder. Read and pull exact info directly from ingested repository files, specifically [FILE: knowledge/songarchive.md].
+- STRICT ANTI-HALLUCINATION RULE FOR SONGS: Extract exact track info from [FILE: knowledge/songarchive.md].
 - OPENING HOURS: Kunda Cafe opens daily at 12:00 PM (Noon). Kitchen closes strictly at 7:30 PM.
 - LOCATION & MICHELIN: 372 Trairat Rd, Chiang Rai (opposite Wat Ming Muang). Michelin Guide Thailand 2026.
-- FOOD ETHOS: Strictly SOY-FREE and TOFU-FREE. No Thai food, no rice, no commercial sodas.
+- FOOD ETHOS: Strictly SOY-FREE, TOFU-FREE, and SUGAR-FREE world-class plant-based burgers. No Thai food, no fries, no commercial sodas.
 - NO ORDER TAKING: YOU ARE NOT A POS ORDER TAKING BOT.`;
 
         let systemPrompt = `You are roleplaying purely as VEG ANNA.
