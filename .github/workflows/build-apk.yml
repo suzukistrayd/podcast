@@ -19,7 +19,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Webview Project (No Icon Dependency)
+      - name: Setup Webview Project with Full Audio Routing & Persistent Mic
         run: |
           mkdir -p android-project/app/src/main/res/values
           mkdir -p android-project/app/src/main/res/layout
@@ -69,7 +69,7 @@ jobs:
           }
           EOF
 
-          # Create AndroidManifest.xml WITHOUT icon attributes to prevent any missing resource errors
+          # Create AndroidManifest.xml with Audio Routing Permissions
           cat << 'EOF' > android-project/app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -86,7 +86,8 @@ jobs:
                   android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
                   <activity
                       android:name=".MainActivity"
-                      android:exported="true">
+                      android:exported="true"
+                      android:configChanges="orientation|screenSize|keyboardHidden">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
                           <category android:name="android.intent.category.LAUNCHER" />
@@ -96,7 +97,7 @@ jobs:
           </manifest>
           EOF
 
-          # Create MainActivity Java wrapper with Remote Debugging & Media Support
+          # Create MainActivity Java wrapper with Audio Focus & Persistent Permission Grants
           mkdir -p android-project/app/src/main/java/com/veganna/app
           cat << 'EOF' > android-project/app/src/main/java/com/veganna/app/MainActivity.java
           package com.veganna.app;
@@ -111,11 +112,16 @@ jobs:
           import android.Manifest;
           import android.content.pm.PackageManager;
           import android.os.Build;
+          import android.media.AudioManager;
+          import android.content.Context;
 
           public class MainActivity extends Activity {
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
+
+                  // Force audio stream to media speaker output
+                  setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
                   // Request microphone permission at runtime on Android 6+
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -124,7 +130,7 @@ jobs:
                       }
                   }
 
-                  // Enable remote debugging so you can inspect console errors via chrome://inspect
+                  // Enable remote debugging
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                       WebView.setWebContentsDebuggingEnabled(true);
                   }
@@ -135,12 +141,12 @@ jobs:
                   settings.setDomStorageEnabled(true);
                   settings.setDatabaseEnabled(true);
                   settings.setLoadsImagesAutomatically(true);
-                  settings.setMediaPlaybackRequiresUserGesture(false); // Allow audio/speech autoplay
+                  settings.setMediaPlaybackRequiresUserGesture(false); // Force autoplay audio/voice
                   settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
                   webView.setWebViewClient(new WebViewClient());
                   
-                  // Grant microphone and audio recording permissions inside the WebView wrapper
+                  // Keep continuously granting microphone access requests from JavaScript
                   webView.setWebChromeClient(new WebChromeClient() {
                       @Override
                       public void onPermissionRequest(final PermissionRequest request) {
