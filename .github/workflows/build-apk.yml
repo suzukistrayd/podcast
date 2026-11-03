@@ -19,7 +19,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Secure Android Wrapper (Single Voice + Audio Out Fix)
+      - name: Setup Secure Android Wrapper with Responsive Voice Audio Engine
         run: |
           mkdir -p android-project/app/src/main/res/values
           mkdir -p android-project/app/src/main/res/layout
@@ -65,7 +65,7 @@ jobs:
           }
           EOF
 
-          # Create AndroidManifest.xml with Full Hardware & Network Permissions
+          # Create AndroidManifest.xml with Audio Hardware Permissions
           cat << 'EOF' > android-project/app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -93,7 +93,7 @@ jobs:
           </manifest>
           EOF
 
-          # Create MainActivity Java wrapper with Auto-Injected Single Voice Filter & Audio Routing
+          # Create MainActivity Java wrapper with ResponsiveVoice Injection & Native Speaker Routing
           mkdir -p android-project/app/src/main/java/com/veganna/app
           cat << 'EOF' > android-project/app/src/main/java/com/veganna/app/MainActivity.java
           package com.veganna.app;
@@ -115,17 +115,16 @@ jobs:
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
 
-                  // Route all audio directly to media speakers
+                  // Route all audio output straight to main phone speakers
                   setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
-                  // Request microphone permission at runtime on Android 6+
+                  // Request microphone permission at runtime
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                       if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                           requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 100);
                       }
                   }
 
-                  // Enable remote debugging
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                       WebView.setWebContentsDebuggingEnabled(true);
                   }
@@ -136,7 +135,7 @@ jobs:
                   settings.setDomStorageEnabled(true);
                   settings.setDatabaseEnabled(true);
                   settings.setLoadsImagesAutomatically(true);
-                  settings.setMediaPlaybackRequiresUserGesture(false); // Unlocks audio/speech autoplay
+                  settings.setMediaPlaybackRequiresUserGesture(false); // Unlocks HTML5 audio autoplay
                   settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
                   settings.setAllowFileAccess(true);
                   settings.setAllowContentAccess(true);
@@ -145,30 +144,26 @@ jobs:
                       @Override
                       public void onPageFinished(WebView view, String url) {
                           super.onPageFinished(view, url);
-                          // Automatically injects: 
-                          // 1. Keeps SpeechSynthesis context active on click
-                          // 2. Filters any voice dropdowns to just 1 clean US English female voice option
+                          // Injects ResponsiveVoice TTS Polyfill script into the page to bypass Android WebView speech block
                           view.evaluateJavascript(
-                              "document.addEventListener('click', function() {" +
-                              "  if ('speechSynthesis' in window) { window.speechSynthesis.resume(); }" +
-                              "}, true);" +
-                              "function cleanVoices() {" +
-                              "  if (!('speechSynthesis' in window)) return;" +
-                              "  var selects = document.querySelectorAll('select');" +
-                              "  selects.forEach(function(sel) {" +
-                              "    for (var i = sel.options.length - 1; i >= 0; i--) {" +
-                              "      var txt = sel.options[i].text.toLowerCase();" +
-                              "      if (!txt.includes('en') && !txt.includes('english') && i > 0) {" +
-                              "        // Keep only English/US choices" +
-                              "      }" +
+                              "(function() {" +
+                              "  if (!document.getElementById('rv-script')) {" +
+                              "    var script = document.createElement('script');" +
+                              "    script.id = 'rv-script';" +
+                              "    script.src = 'https://code.responsivevoice.org/responsivevoice.js?key=FREE_KEY';" +
+                              "    document.head.appendChild(script);" +
+                              "  }" +
+                              "  window.speechSynthesis = window.speechSynthesis || {};" +
+                              "  window.speechSynthesis.speak = function(utterance) {" +
+                              "    if (window.responsiveVoice) {" +
+                              "      window.responsiveVoice.speak(utterance.text, 'US English Female');" +
                               "    }" +
-                              "  });" +
-                              "}" +
-                              "setInterval(cleanVoices, 2000);", null);
+                              "  };" +
+                              "})();", null);
                       }
                   });
                   
-                  // Auto-grant continuous hardware/mic permissions
+                  // Auto-grant continuous microphone and media hardware permissions
                   webView.setWebChromeClient(new WebChromeClient() {
                       @Override
                       public void onPermissionRequest(final PermissionRequest request) {
@@ -181,7 +176,7 @@ jobs:
                       }
                   });
 
-                  // Load live secure context URL
+                  // Load live HTTPS secure context
                   webView.loadUrl("https://suzukistrayd.github.io/podcast/dashboard/index.html");
                   setContentView(webView);
               }
