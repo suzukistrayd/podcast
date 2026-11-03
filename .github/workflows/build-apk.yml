@@ -16,28 +16,25 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Set up Java 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: Build APK via Bubblewrap
+      - name: Initialize and Build APK
         run: |
-          npx @bubblewrap/cli update --force || npx @bubblewrap/cli init --manifest=https://suzukistrayd.github.io/podcast/dashboard/manifest.json --directory=android-app --skipPwaValidation --batch
+          npx @bubblewrap/cli init --manifest=https://suzukistrayd.github.io/podcast/dashboard/manifest.json --directory=android-app --skipPwaValidation --batch || true
           cd android-app
           npx @bubblewrap/cli build
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: kunda-cafe-apk
+          name: app-release-apk
           path: android-app/app/build/outputs/apk/release/*.apk
