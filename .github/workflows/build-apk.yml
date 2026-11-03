@@ -19,7 +19,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Secure Android Wrapper (Locked Mic + Async TTS Audio Output)
+      - name: Setup Secure Android Wrapper (Audio Output Fix)
         run: |
           mkdir -p android-project/app/src/main/res/values
           mkdir -p android-project/app/src/main/res/layout
@@ -65,7 +65,7 @@ jobs:
           }
           EOF
 
-          # Create AndroidManifest.xml with Audio, Mic, and Media Hardware Permissions
+          # Create AndroidManifest.xml with Hardware & Audio Permissions
           cat << 'EOF' > android-project/app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -93,7 +93,7 @@ jobs:
           </manifest>
           EOF
 
-          # Create MainActivity Java wrapper with SpeechSynthesis Gesture Persistence & Speaker Routing
+          # Create MainActivity Java wrapper with Speaker Routing & Touch Gesture Bridge
           mkdir -p android-project/app/src/main/java/com/veganna/app
           cat << 'EOF' > android-project/app/src/main/java/com/veganna/app/MainActivity.java
           package com.veganna.app;
@@ -115,7 +115,7 @@ jobs:
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
 
-                  // Force audio output stream to main phone speakers
+                  // Route all audio output directly to phone media speaker
                   setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
                   // Request microphone permission at runtime on Android 6+
@@ -136,7 +136,7 @@ jobs:
                   settings.setDomStorageEnabled(true);
                   settings.setDatabaseEnabled(true);
                   settings.setLoadsImagesAutomatically(true);
-                  settings.setMediaPlaybackRequiresUserGesture(false); // Unlocks audio & speech autoplay
+                  settings.setMediaPlaybackRequiresUserGesture(false); // Unlocks audio/speech synthesis
                   settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
                   settings.setAllowFileAccess(true);
                   settings.setAllowContentAccess(true);
@@ -145,22 +145,17 @@ jobs:
                       @Override
                       public void onPageFinished(WebView view, String url) {
                           super.onPageFinished(view, url);
-                          // Inject persistent touch listener to keep AudioContext and SpeechSynthesis active for async AI responses
+                          // Keep speech synthesis context permanently active on user clicks
                           view.evaluateJavascript(
                               "document.addEventListener('click', function() {" +
-                              "  if (window.AudioContext || window.webkitAudioContext) {" +
-                              "    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();" +
-                              "    if (audioCtx.state === 'suspended') { audioCtx.resume(); }" +
-                              "  }" +
                               "  if ('speechSynthesis' in window) {" +
                               "    window.speechSynthesis.resume();" +
-                              "    if (window.speechSynthesis.paused) { window.speechSynthesis.resume(); }" +
                               "  }" +
                               "}, true);", null);
                       }
                   });
                   
-                  // Auto-grant continuous microphone and hardware media permissions
+                  // Auto-grant microphone and media device permissions
                   webView.setWebChromeClient(new WebChromeClient() {
                       @Override
                       public void onPermissionRequest(final PermissionRequest request) {
@@ -173,7 +168,7 @@ jobs:
                       }
                   });
 
-                  // Load live HTTPS secure context for speech/mic APIs
+                  // Load live secure context URL
                   webView.loadUrl("https://suzukistrayd.github.io/podcast/dashboard/index.html");
                   setContentView(webView);
               }
