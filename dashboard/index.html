@@ -78,16 +78,6 @@
             line-height: 1.1;
         }
 
-        .brand-subtitle { 
-            font-size: 10px; 
-            color: #fbbf24; 
-            font-family: var(--font-mono); 
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            margin-top: 3px;
-        }
-
         .header-controls { display: flex; align-items: center; gap: 10px; }
 
         .voice-toggle-btn, .settings-toggle {
@@ -190,16 +180,17 @@
         }
 
         .message {
-            max-width: 85%;
+            max-width: 88%;
             padding: 12px 16px;
             border-radius: 12px;
             font-size: 14px;
             line-height: 1.5;
             word-break: break-word;
+            position: relative;
         }
 
         .message.assistant {
-            background: rgba(18, 18, 22, 0.88);
+            background: rgba(18, 18, 22, 0.92);
             border: 1px solid var(--border-subtle);
             border-left: 3px solid var(--accent-gold);
             align-self: flex-start;
@@ -218,6 +209,37 @@
             color: #fbbf24;
             text-transform: uppercase;
             margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* MESSAGE ACTION TOOLBAR (COPY & SOCIAL SHARE) */
+        .msg-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .action-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            font-size: 10px;
+            font-family: var(--font-mono);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            border-color: var(--accent-gold);
+            color: #fbbf24;
         }
 
         .status-bar {
@@ -270,7 +292,6 @@
         }
         input[type="text"]:focus { border-color: var(--accent-gold); }
 
-        /* MIC BUTTON STYLE */
         button.mic-btn {
             background: var(--bg-card);
             border: 1px solid var(--border-subtle);
@@ -284,7 +305,6 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            transition: all 0.2s;
         }
         button.mic-btn.listening {
             background: #dc2626;
@@ -313,7 +333,6 @@
             flex-shrink: 0;
         }
 
-        /* SMOOTH SCROLLING SPONSOR TICKER FOOTER */
         footer.ticker-footer {
             background: #000000;
             border-top: 1px solid var(--border-subtle);
@@ -365,40 +384,42 @@
 
     <header>
         <div class="brand">
-            <!-- LOCAL RELATIVE PATH TO AVATAR -->
             <div class="avatar"><img src="./favicon.png" alt=""></div>
             <div class="brand-title">
                 <h1>Veg Anna</h1>
-               
             </div>
         </div>
         <div class="header-controls">
             <button id="voice-btn" class="voice-toggle-btn active" onclick="toggleVoice()">🔊 ON</button>
-            <button class="settings-toggle" onclick="toggleSettings()"> ⚙️ </button>
+            <button class="settings-toggle" onclick="toggleSettings()">⚙️</button>
         </div>
     </header>
 
     <div class="bg-watermark-container">
-        <!-- LOCAL RELATIVE PATH TO WATERMARK -->
         <img src="./bg-avatar.png" alt="Backdrop">
     </div>
 
     <div id="settings-panel">
         <label>DAHL API Key:</label>
-        <input type="password" id="api-key" placeholder="Paste API Key " oninput="saveApiKey()">
+        <input type="password" id="api-key" placeholder="Paste API Key" oninput="saveApiKey()">
         
         <label>Voice Accent Profile:</label>
         <select id="voice-profile" onchange="saveVoiceProfile()">
-                    <option value="scandinavian">Nordic / Scandinavian English Female</option>
+            <option value="scandinavian">Nordic / Scandinavian English Female</option>
             <option value="international">International English Female</option>
-                <option value="british">British Female - Veg Anna (en-GB / Clean English)</option>
+            <option value="british">British Female - Veg Anna (en-GB / Clean English)</option>
         </select>
     </div>
 
     <div id="chat-container">
-        <div class="message assistant">
-            <div class="message-header">Veg Anna</div>
-            Sawadee. Ask me anything?
+        <div class="message assistant" id="initial-msg">
+            <div class="message-header"><span>Veg Anna</span></div>
+            <div class="msg-body">Sawadee. Ask me anything?</div>
+            <div class="msg-actions">
+                <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
+                <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
+                <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
+            </div>
         </div>
     </div>
 
@@ -413,15 +434,13 @@
 
     <div class="input-area">
         <input type="text" id="user-input" placeholder="Message Veg Anna... (Press Enter or Tap Mic)" onkeydown="handleKey(event)">
-        <!-- MOBILE SPEECH TO TEXT MICROPHONE BUTTON -->
-        <button id="mic-btn" class="mic-btn" title="Hold or Tap to Speak" onclick="toggleSpeechRecognition()">🎤</button>
+        <button id="mic-btn" class="mic-btn" title="Tap to Speak" onclick="toggleSpeechRecognition()">🎤</button>
         <button class="send-btn" onclick="sendMessage()">Send</button>
     </div>
 
-    <!-- FULL SCROLLING TICKER FOOTER WITH ALL SPONSORS -->
     <footer class="ticker-footer">
         <div class="ticker-track">
-            <span class="ticker-item">☕ Support Lore: <a href="https://buymeacee.com/kundacafe" target="_blank">buymeacee.com/kundacafe</a></span>
+            <span class="ticker-item">☕ Support Lore: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
             <span class="ticker-item">&bull;</span>
             <span class="ticker-item">🍔 Official Site: <a href="https://kundacafe.com" target="_blank">kundacafe.com</a></span>
             <span class="ticker-item">&bull;</span>
@@ -465,7 +484,6 @@
                 window.speechSynthesis.getVoices();
             }
 
-            // Initialize Speech Recognition for Mobile / Supported Browsers
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (SpeechRecognition) {
                 recognition = new SpeechRecognition();
@@ -477,41 +495,31 @@
                     const speechText = event.results[0][0].transcript;
                     document.getElementById('user-input').value = speechText;
                     stopListeningUI();
-                    sendMessage(); // Auto-send upon finishing speech
+                    sendMessage();
                 };
 
-                recognition.onerror = function(event) {
-                    stopListeningUI();
-                };
-
-                recognition.onend = function() {
-                    stopListeningUI();
-                };
+                recognition.onerror = () => stopListeningUI();
+                recognition.onend = () => stopListeningUI();
             }
         } catch (e) {}
     };
 
     function toggleSpeechRecognition() {
         if (!recognition) {
-            alert("Speech recognition is not supported on this browser or device.");
+            alert("Speech recognition is not supported on this browser.");
             return;
         }
-
         const micBtn = document.getElementById('mic-btn');
         if (!isListening) {
             try {
                 recognition.start();
                 isListening = true;
                 micBtn.classList.add('listening');
-                micBtn.title = "Listening... Speak now";
             } catch (e) {
-                isListening = false;
-                micBtn.classList.remove('listening');
+                stopListeningUI();
             }
         } else {
-            try {
-                recognition.stop();
-            } catch (e) {}
+            try { recognition.stop(); } catch (e) {}
             stopListeningUI();
         }
     }
@@ -519,10 +527,7 @@
     function stopListeningUI() {
         isListening = false;
         const micBtn = document.getElementById('mic-btn');
-        if (micBtn) {
-            micBtn.classList.remove('listening');
-            micBtn.title = "Hold or Tap to Speak";
-        }
+        if (micBtn) micBtn.classList.remove('listening');
     }
 
     function toggleVoice() {
@@ -551,6 +556,29 @@
             event.preventDefault();
             sendMessage();
         }
+    }
+
+    // SOCIAL SHARING & COPY HELPERS
+    function copyMessage(btn) {
+        const bodyDiv = btn.closest('.message').querySelector('.msg-body');
+        const textToCopy = bodyDiv.innerText;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalText = btn.textContent;
+            btn.textContent = "✅ Copied!";
+            setTimeout(() => btn.textContent = originalText, 2000);
+        }).catch(err => {
+            alert("Failed to copy text.");
+        });
+    }
+
+    function shareTwitter(btn) {
+        const bodyDiv = btn.closest('.message').querySelector('.msg-body');
+        const text = encodeURIComponent(`"${bodyDiv.innerText}" — Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe`);
+        window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+    }
+
+    function shareFacebook(btn) {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://kundacafe.com')}`, '_blank');
     }
 
     function speakText(text) {
@@ -714,7 +742,24 @@ ${coreFacts}`;
         const container = document.getElementById('chat-container');
         const div = document.createElement('div');
         div.className = `message ${sender}`;
-        div.innerHTML = `<div class="message-header">${label}</div><div style="white-space:pre-wrap;">${text}</div>`;
+        
+        if (sender === 'assistant') {
+            div.innerHTML = `
+                <div class="message-header"><span>${label}</span></div>
+                <div class="msg-body" style="white-space:pre-wrap;">${text}</div>
+                <div class="msg-actions">
+                    <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
+                    <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
+                    <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
+                </div>
+            `;
+        } else {
+            div.innerHTML = `
+                <div class="message-header"><span>${label}</span></div>
+                <div class="msg-body" style="white-space:pre-wrap;">${text}</div>
+            `;
+        }
+
         container.appendChild(div);
         container.scrollTop = container.scrollHeight;
     }
