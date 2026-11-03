@@ -1,0 +1,35 @@
+name: Generate Android APK
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Bubblewrap CLI
+        run: npm install -g @bubblewrap/cli
+
+      - name: Generate Android Project from Manifest
+        run: |
+          bubblewrap init --manifest=https://suzukistrayd.github.io/podcast/manifest.json --directory=android-app --batch
+
+      - name: Build APK Binary
+        run: |
+          cd android-app
+          bubblewrap build
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KundaCafe-VegAnna-APK
+          path: android-app/app/build/outputs/apk/release/app-release-signed.apk
