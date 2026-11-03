@@ -19,15 +19,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Webview Project with Full Audio Routing & Persistent Mic
+      - name: Setup Secure HTTPS Webview Wrapper
         run: |
           mkdir -p android-project/app/src/main/res/values
           mkdir -p android-project/app/src/main/res/layout
           mkdir -p android-project/app/src/main/assets
-          
-          # Copy repository web files into Android assets directory
-          cp -r dashboard assets icons index.html manifest.json android-project/app/src/main/assets/ 2>/dev/null || true
-          cp -r * android-project/app/src/main/assets/ 2>/dev/null || true
 
           # Create root settings.gradle
           cat << 'EOF' > android-project/settings.gradle
@@ -69,7 +65,7 @@ jobs:
           }
           EOF
 
-          # Create AndroidManifest.xml with Audio Routing Permissions
+          # Create AndroidManifest.xml with Full Hardware & Network Permissions
           cat << 'EOF' > android-project/app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -97,7 +93,7 @@ jobs:
           </manifest>
           EOF
 
-          # Create MainActivity Java wrapper with Audio Focus & Persistent Permission Grants
+          # Create MainActivity Java wrapper pointing to the secure HTTPS URL
           mkdir -p android-project/app/src/main/java/com/veganna/app
           cat << 'EOF' > android-project/app/src/main/java/com/veganna/app/MainActivity.java
           package com.veganna.app;
@@ -113,14 +109,13 @@ jobs:
           import android.content.pm.PackageManager;
           import android.os.Build;
           import android.media.AudioManager;
-          import android.content.Context;
 
           public class MainActivity extends Activity {
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
 
-                  // Force audio stream to media speaker output
+                  // Route all audio output to main media speaker
                   setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
                   // Request microphone permission at runtime on Android 6+
@@ -141,12 +136,14 @@ jobs:
                   settings.setDomStorageEnabled(true);
                   settings.setDatabaseEnabled(true);
                   settings.setLoadsImagesAutomatically(true);
-                  settings.setMediaPlaybackRequiresUserGesture(false); // Force autoplay audio/voice
+                  settings.setMediaPlaybackRequiresUserGesture(false); // Allow instant speech/audio autoplay
                   settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+                  settings.setAllowFileAccess(true);
+                  settings.setAllowContentAccess(true);
 
                   webView.setWebViewClient(new WebViewClient());
                   
-                  // Keep continuously granting microphone access requests from JavaScript
+                  // Continuously auto-grant permission requests (mic, camera, etc.) from the web app
                   webView.setWebChromeClient(new WebChromeClient() {
                       @Override
                       public void onPermissionRequest(final PermissionRequest request) {
@@ -159,7 +156,8 @@ jobs:
                       }
                   });
 
-                  webView.loadUrl("file:///android_asset/dashboard/index.html");
+                  // Load the live HTTPS GitHub Pages URL (Enables Secure Context for Mic/Audio APIs)
+                  webView.loadUrl("https://suzukistrayd.github.io/podcast/dashboard/index.html");
                   setContentView(webView);
               }
           }
