@@ -13,6 +13,12 @@ Business Overview
 
 KUNDA CAFE™ is an award-winning independent plant-based restaurant located in Chiang Rai, Thailand. Established in 2011, it is one of Thailand's longest-operating independent vegan and vegetarian restaurant brands. The company is recognized for handcrafted, whole-food menu development, soy-free innovation, and premium plant-based burger products.
 
+## OPERATING HOURS & TIMES
+- **Opening Time:** 12:00 PM (Noon) Closed MONDAY, so no service monday.
+- **Kitchen Closes:** 7:30 PM (Strict)
+- **Doors Close:** Around 8:00 PM
+- **Rule:** NEVER claim Kunda opens at 10:00 AM or closes at 9:00 PM.
+
 The brand is built around a simple philosophy:
 
 "Food For A Good Time. Eat Kunda."
