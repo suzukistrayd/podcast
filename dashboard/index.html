@@ -281,6 +281,7 @@
             height: 44px;
         }
 
+        /* SMOOTH SCROLLING SPONSOR TICKER FOOTER */
         footer.ticker-footer {
             background: #000000;
             border-top: 1px solid var(--border-subtle);
@@ -291,15 +292,41 @@
             align-items: center;
             flex-shrink: 0;
             z-index: 15;
+            position: relative;
         }
+
+        .ticker-track {
+            display: inline-flex;
+            align-items: center;
+            animation: tickerScroll 25s linear infinite;
+        }
+        .ticker-track:hover { animation-play-state: paused; }
 
         .ticker-item {
             font-size: 11px;
             font-family: var(--font-mono);
             color: var(--text-muted);
             padding: 0 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
-        .ticker-item a { color: #fbbf24; text-decoration: none; }
+
+        .ticker-item a { color: #fbbf24; text-decoration: none; font-weight: 600; }
+        .ticker-item a:hover { text-decoration: underline; }
+
+        .ad-spot {
+            color: #f87171 !important;
+            font-weight: 700 !important;
+            border: 1px dashed rgba(248, 113, 113, 0.4);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        @keyframes tickerScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
     </style>
 </head>
 <body>
@@ -357,8 +384,31 @@
         <button class="send-btn" onclick="sendMessage()">Send</button>
     </div>
 
+    <!-- FULL SCROLLING TICKER FOOTER WITH ALL SPONSORS -->
     <footer class="ticker-footer">
-        <div class="ticker-item">☕ Support Lore: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a> &bull; 🍔 Official Site: <a href="https://kundacafe.com" target="_blank">kundacafe.com</a></div>
+        <div class="ticker-track">
+            <span class="ticker-item">☕ Support Lore: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">🍔 Official Site: <a href="https://kundacafe.com" target="_blank">kundacafe.com</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">🔥 Hot Sauce: <a href="https://coolhotsauce.com" target="_blank">coolhotsauce.com</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item"><a href="https://kundacafe.com" class="ad-spot" target="_blank">🚀 YOUR AD HERE &bull; SPONSOR THE SHOW</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">&copy; Veg Anna Show / KUNDA Co Ltd. 2027</span>
+            <span class="ticker-item">&bull;</span>
+
+            <span class="ticker-item">☕ Support Lore: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">🍔 Official Site: <a href="https://kundacafe.com" target="_blank">kundacafe.com</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">🔥 Hot Sauce: <a href="https://coolhotsauce.com" target="_blank">coolhotsauce.com</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item"><a href="https://kundacafe.com" class="ad-spot" target="_blank">🚀 YOUR AD HERE &bull; SPONSOR THE SHOW</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">&copy; Veg Anna Show / KUNDA Co Ltd. 2027</span>
+            <span class="ticker-item">&bull;</span>
+        </div>
     </footer>
 
 <script>
