@@ -368,13 +368,13 @@
             <!-- LOCAL RELATIVE PATH TO AVATAR -->
             <div class="avatar"><img src="./favicon.png" alt="Veg Anna"></div>
             <div class="brand-title">
-                <h1>VEG ANNA</h1>
+                <h1>Veg Anna</h1>
                 <span class="brand-subtitle">KUNDA CAFE ONLINE</span>
             </div>
         </div>
         <div class="header-controls">
-            <button id="voice-btn" class="voice-toggle-btn active" onclick="toggleVoice()">🔊 VOICE ON</button>
-            <button class="settings-toggle" onclick="toggleSettings()">⚙️ Settings</button>
+            <button id="voice-btn" class="voice-toggle-btn active" onclick="toggleVoice()">🔊 ON</button>
+            <button class="settings-toggle" onclick="toggleSettings()">⚙️HELP</button>
         </div>
     </header>
 
@@ -389,9 +389,9 @@
         
         <label>Voice Accent Profile:</label>
         <select id="voice-profile" onchange="saveVoiceProfile()">
-            <option value="british">British Female - Veg Anna (en-GB / Clean English)</option>
-            <option value="scandinavian">Nordic / Scandinavian English Female</option>
+                    <option value="scandinavian">Nordic / Scandinavian English Female</option>
             <option value="international">International English Female</option>
+                <option value="british">British Female - Veg Anna (en-GB / Clean English)</option>
         </select>
     </div>
 
@@ -421,7 +421,7 @@
     <!-- FULL SCROLLING TICKER FOOTER WITH ALL SPONSORS -->
     <footer class="ticker-footer">
         <div class="ticker-track">
-            <span class="ticker-item">☕ Support Lore: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
+            <span class="ticker-item">☕ Support Lore: <a href="https://buymeacee.com/kundacafe" target="_blank">buymeacee.com/kundacafe</a></span>
             <span class="ticker-item">&bull;</span>
             <span class="ticker-item">🍔 Official Site: <a href="https://kundacafe.com" target="_blank">kundacafe.com</a></span>
             <span class="ticker-item">&bull;</span>
@@ -529,7 +529,7 @@
         isVoiceEnabled = !isVoiceEnabled;
         const btn = document.getElementById('voice-btn');
         btn.className = isVoiceEnabled ? "voice-toggle-btn active" : "voice-toggle-btn";
-        btn.textContent = isVoiceEnabled ? "🔊 VOICE ON" : "🔇 VOICE OFF";
+        btn.textContent = isVoiceEnabled ? "🔊 ON" : "🔇OFF";
         if (!isVoiceEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
     }
 
