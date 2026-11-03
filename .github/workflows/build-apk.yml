@@ -27,7 +27,17 @@ jobs:
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: Build APK Directly from Manifest
+      - name: Configure Bubblewrap non-interactively
+        run: |
+          mkdir -p ~/.bubblewrap
+          cat << 'EOF' > ~/.bubblewrap/config.json
+          {
+            "jdkPath": "/usr/lib/jvm/temurin-17-jdk-amd64",
+            "androidSdkPath": "/usr/local/lib/android/sdk"
+          }
+          EOF
+
+      - name: Build APK Directly
         run: |
           npx @bubblewrap/cli build --manifest=twa-manifest.json --skipPwaValidation
 
