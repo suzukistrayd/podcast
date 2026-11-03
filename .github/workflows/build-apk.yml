@@ -93,7 +93,7 @@ jobs:
           </manifest>
           EOF
 
-          # Create MainActivity Java wrapper pointing to the secure HTTPS URL
+          # Create MainActivity Java wrapper pointing to the secure HTTPS URL with Audio/Mic Handlers
           mkdir -p android-project/app/src/main/java/com/veganna/app
           cat << 'EOF' > android-project/app/src/main/java/com/veganna/app/MainActivity.java
           package com.veganna.app;
@@ -143,7 +143,7 @@ jobs:
 
                   webView.setWebViewClient(new WebViewClient());
                   
-                  // Continuously auto-grant permission requests (mic, camera, etc.) from the web app
+                  // Continuously auto-grant permission requests (mic, audio) from the web app
                   webView.setWebChromeClient(new WebChromeClient() {
                       @Override
                       public void onPermissionRequest(final PermissionRequest request) {
