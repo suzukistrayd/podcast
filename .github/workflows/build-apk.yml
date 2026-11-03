@@ -12,14 +12,53 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: PWABuilder Android Action
-        uses: pwa-builder/pwa-action@v1.0.1
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          manifest-url: 'https://suzukistrayd.github.io/podcast/dashboard/manifest.json'
-          output-type: 'apk'
+          node-version: '18'
+
+      - name: Set up Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Bubblewrap CLI
+        run: npm install -g @bubblewrap/cli
+
+      - name: Run Programmatic Bubblewrap Build
+        run: |
+          node -e '
+          const { Cli } = require("@bubblewrap/cli");
+          const path = require("path");
+          const fs = require("fs");
+
+          async function build() {
+            // Write config to bypass interactive prompt
+            const configDir = path.join(process.env.HOME, ".bubblewrap");
+            if (!fs.existsSync(configDir)) fs.mkdirSync(configDir, { recursive: true });
+            fs.writeFileSync(
+              path.join(configDir, "config.json"),
+              JSON.stringify({
+                jdkPath: process.env.JAVA_HOME,
+                androidSdkPath: "/usr/local/lib/android/sdk"
+              })
+            );
+
+            console.log("Configured Bubblewrap successfully.");
+          }
+          build();
+          '
+          # Initialize non-interactively using forced defaults
+          npx @bubblewrap/cli init --manifest=https://suzukistrayd.github.io/podcast/dashboard/manifest.json --directory=android-app --skipPwaValidation
+
+      - name: Build APK Binary
+        run: |
+          cd android-app
+          npx @bubblewrap/cli build
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: KundaCafe-VegAnna-APK
-          path: '*.apk'
+          path: android-app/app/build/outputs/apk/release/app-release-signed.apk
