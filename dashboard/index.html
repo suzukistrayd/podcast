@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>THE VEG ANNA SHOW // KUNDA STUDIO</title>
 
+    <!-- LOCAL RELATIVE FAVICON LINK -->
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="shortcut icon" type="image/png" href="./favicon.png">
+
     <style>
         :root {
             --bg-base: #09090b;
@@ -107,6 +111,7 @@
             box-shadow: 0 0 12px var(--accent-gold-glow);
         }
 
+        /* CINEMATIC WATERMARK CONTAINER */
         .bg-watermark-container {
             position: absolute;
             top: 72px;
@@ -127,6 +132,7 @@
             height: 100%;
             object-fit: cover;
             object-position: top center;
+            filter: grayscale(15%) contrast(115%) brightness(90%);
         }
 
         body.is-thinking .bg-watermark-container {
@@ -300,7 +306,8 @@
 
     <header>
         <div class="brand">
-            <div class="avatar"><img src="favicon.png" alt="Veg Anna" onerror="this.style.display='none'"></div>
+            <!-- LOCAL RELATIVE PATH TO AVATAR -->
+            <div class="avatar"><img src="./favicon.png" alt="Veg Anna"></div>
             <div class="brand-title">
                 <h1>VEG ANNA</h1>
                 <span class="brand-subtitle">KUNDA CAFE ONLINE</span>
@@ -313,7 +320,8 @@
     </header>
 
     <div class="bg-watermark-container">
-        <img src="bg-avatar.png" alt="Backdrop" onerror="this.style.display='none'">
+        <!-- LOCAL RELATIVE PATH TO WATERMARK -->
+        <img src="./bg-avatar.png" alt="Backdrop">
     </div>
 
     <div id="settings-panel">
@@ -401,7 +409,6 @@
         }
     }
 
-    // CLEAN ENGLISH VOICE SYNTHESIZER (NO FOREIGN LANGUAGE SWITCHING, NO SPANISH/GERMAN)
     function speakText(text) {
         if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
         window.speechSynthesis.cancel();
@@ -428,7 +435,6 @@
             utterance.pitch = 1.12;
             utterance.rate = 0.98;
         } else {
-            // Default: Clean British / International Female
             voice = voices.find(v => !v.lang.includes('de') && !v.name.toLowerCase().includes('male') && (v.name.includes('Female') || v.name.includes('Victoria') || v.name.includes('Sonia') || v.name.includes('Hazel') || v.lang === 'en-GB'));
             utterance.pitch = 1.15;
             utterance.rate = 1.0;
@@ -489,7 +495,6 @@
 
         const repoContext = await fetchKnowledgeContext();
 
-        // Dynamically grab current live local date and time from the user's browser
         const now = new Date();
         const currentDateTimeStr = now.toLocaleString('en-US', { 
             weekday: 'long', 
