@@ -19,39 +19,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Webview Project with Real Icons, Debugging & Full Audio/Mic Support
+      - name: Setup Webview Project (No Icon Dependency)
         run: |
           mkdir -p android-project/app/src/main/res/values
           mkdir -p android-project/app/src/main/res/layout
           mkdir -p android-project/app/src/main/assets
-          mkdir -p android-project/app/src/main/res/mipmap-mdpi
-          mkdir -p android-project/app/src/main/res/mipmap-hdpi
-          mkdir -p android-project/app/src/main/res/mipmap-xhdpi
-          mkdir -p android-project/app/src/main/res/mipmap-xxhdpi
-          mkdir -p android-project/app/src/main/res/mipmap-xxxhdpi
           
           # Copy repository web files into Android assets directory
           cp -r dashboard assets icons index.html manifest.json android-project/app/src/main/assets/ 2>/dev/null || true
           cp -r * android-project/app/src/main/assets/ 2>/dev/null || true
-
-          # Find and copy user's actual icon into all Android mipmap densities for real launcher icon
-          ICON_PATH=""
-          if [ -f "icons/icon-512x512.png" ]; then
-            ICON_PATH="icons/icon-512x512.png"
-          elif [ -f "dashboard/icons/icon-512x512.png" ]; then
-            ICON_PATH="dashboard/icons/icon-512x512.png"
-          fi
-
-          if [ -n "$ICON_PATH" ]; then
-            cp "$ICON_PATH" android-project/app/src/main/res/mipmap-mdpi/ic_launcher.png
-            cp "$ICON_PATH" android-project/app/src/main/res/mipmap-hdpi/ic_launcher.png
-            cp "$ICON_PATH" android-project/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-            cp "$ICON_PATH" android-project/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-            cp "$ICON_PATH" android-project/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-          else
-            # Fallback placeholder if no icon file is found
-            convert -size 512x512 xc:black android-project/app/src/main/res/mipmap-xxhdpi/ic_launcher.png 2>/dev/null || true
-          fi
 
           # Create root settings.gradle
           cat << 'EOF' > android-project/settings.gradle
@@ -93,7 +69,7 @@ jobs:
           }
           EOF
 
-          # Create AndroidManifest.xml with Microphone & Hardware Permissions
+          # Create AndroidManifest.xml WITHOUT icon attributes to prevent any missing resource errors
           cat << 'EOF' > android-project/app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -102,13 +78,10 @@ jobs:
               <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
               <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
               <uses-permission android:name="android.permission.WAKE_LOCK" />
-              <uses-permission android:name="android.permission.BLUETOOTH" />
               
               <application
                   android:allowBackup="true"
                   android:label="Veg Anna Show"
-                  android:icon="@mipmap/ic_launcher"
-                  android:roundIcon="@mipmap/ic_launcher"
                   android:supportsRtl="true"
                   android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
                   <activity
