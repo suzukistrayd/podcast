@@ -13,33 +13,117 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build Web App & Capacitor Native Shell
+      - name: Setup Webview Project
         run: |
-          npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "Veg Anna Show" "com.veganna.app" --web-dir .
-          npx cap add android
-          npx cap sync android
+          mkdir -p android-project/app/src/main/res/values
+          mkdir -p android-project/app/src/main/res/layout
+          mkdir -p android-project/app/src/main/assets
+          
+          # Copy repository web files into Android assets directory
+          cp -r dashboard assets icons index.html manifest.json android-project/app/src/main/assets/ 2>/dev/null || true
+          cp -r * android-project/app/src/main/assets/ 2>/dev/null || true
 
-      - name: Build APK via Gradle
+          # Create root settings.gradle
+          cat << 'EOF' > android-project/settings.gradle
+          rootProject.name = "VegAnnaShow"
+          include ':app'
+          EOF
+
+          # Create root build.gradle
+          cat << 'EOF' > android-project/build.gradle
+          buildscript {
+              repositories { google(); mavenCentral() }
+              dependencies { classpath 'com.android.tools.build:gradle:8.2.1' }
+          }
+          allprojects {
+              repositories { google(); mavenCentral() }
+          }
+          EOF
+
+          # Create app build.gradle
+          cat << 'EOF' > android-project/app/build.gradle
+          plugins {
+              id 'com.android.application'
+          }
+          android {
+              namespace 'com.veganna.app'
+              compileSdk 34
+              defaultConfig {
+                  applicationId "com.veganna.app"
+                  minSdk 24
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0"
+              }
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                  }
+              }
+          }
+          EOF
+
+          # Create AndroidManifest.xml
+          cat << 'EOF' > android-project/app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET" />
+              <application
+                  android:allowBackup="true"
+                  android:label="Veg Anna Show"
+                  android:supportsRtl="true"
+                  android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+
+          # Create MainActivity Java wrapper
+          mkdir -p android-project/app/src/main/java/com/veganna/app
+          cat << 'EOF' > android-project/app/src/main/java/com/veganna/app/MainActivity.java
+          package com.veganna.app;
+
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+
+          public class MainActivity extends Activity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  WebView webView = new WebView(this);
+                  WebSettings settings = webView.getSettings();
+                  settings.setJavaScriptEnabled(true);
+                  settings.setDomStorageEnabled(true);
+                  webView.setWebViewClient(new WebViewClient());
+                  webView.loadUrl("file:///android_asset/dashboard/index.html");
+                  setContentView(webView);
+              }
+          }
+          EOF
+
+      - name: Build APK with Gradle
         run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          cd android-project
+          gradle assembleDebug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: veganna-app-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: VegAnnaShow-APK
+          path: android-project/app/build/outputs/apk/debug/*.apk
