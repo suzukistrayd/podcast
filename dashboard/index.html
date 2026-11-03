@@ -374,7 +374,7 @@
         </div>
         <div class="header-controls">
             <button id="voice-btn" class="voice-toggle-btn active" onclick="toggleVoice()">🔊 ON</button>
-            <button class="settings-toggle" onclick="toggleSettings()">⚙️HELP</button>
+            <button class="settings-toggle" onclick="toggleSettings()"> ⚙️ </button>
         </div>
     </header>
 
@@ -529,7 +529,7 @@
         isVoiceEnabled = !isVoiceEnabled;
         const btn = document.getElementById('voice-btn');
         btn.className = isVoiceEnabled ? "voice-toggle-btn active" : "voice-toggle-btn";
-        btn.textContent = isVoiceEnabled ? "🔊 ON" : "🔇OFF";
+        btn.textContent = isVoiceEnabled ? "🔊 ON" : "🔇 OFF";
         if (!isVoiceEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
     }
 
