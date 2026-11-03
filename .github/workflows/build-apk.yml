@@ -1,46 +1,43 @@
-name: Generate Android APK
+name: Build Android APK
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
-  build-apk:
+  build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Java JDK 17
-        uses: actions/setup-java@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Android SDK Tools
+      - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Build Webview APK via Gradle
+      - name: Install Bubblewrap CLI
+        run: npm install -g @bubblewrap/cli
+
+      - name: Build APK via Bubblewrap
         run: |
-          # Clones standard Android TWA shell template
-          git clone https://github.com/GoogleChrome/android-browser-helper.git twa-shell
-          cd twa-shell/demos/twa-basic
-          
-          # Inject Kunda Cafe PWA configuration
-          cat <<EOF > app/src/main/res/values/strings.xml
-          <resources>
-              <string name="appName">Veg Anna Show</string>
-              <string name="hostName">suzukistrayd.github.io</string>
-              <string name="launchUrl">/podcast/dashboard/</string>
-          </resources>
-          EOF
-          
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          npx @bubblewrap/cli update --force || npx @bubblewrap/cli init --manifest=https://suzukistrayd.github.io/podcast/dashboard/manifest.json --directory=android-app --skipPwaValidation --batch
+          cd android-app
+          npx @bubblewrap/cli build
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: KundaCafe-VegAnna-APK
-          path: twa-shell/demos/twa-basic/app/build/outputs/apk/debug/app-debug.apk
+          name: kunda-cafe-apk
+          path: android-app/app/build/outputs/apk/release/*.apk
