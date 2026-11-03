@@ -16,12 +16,18 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Set up Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
       - name: Generate Android Project from Manifest
         run: |
-          bubblewrap init --manifest=https://suzukistrayd.github.io/podcast/dashboard/manifest.json --directory=android-app --batch
+          bubblewrap init --manifest=https://suzukistrayd.github.io/podcast/dashboard/manifest.json --directory=android-app --batch --skip-jdk-installation
 
       - name: Build APK Binary
         run: |
