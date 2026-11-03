@@ -23,21 +23,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
-
-      - name: Configure Bubblewrap Environment
-        run: |
-          mkdir -p ~/.bubblewrap
-          cat <<EOF > ~/.bubblewrap/config.json
-          {
-            "jdkPath": "${JAVA_HOME}",
-            "androidSdkPath": "${ANDROID_HOME}"
-          }
-          EOF
 
       - name: Generate Android Project from Manifest
         run: |
