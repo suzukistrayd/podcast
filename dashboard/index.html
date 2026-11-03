@@ -435,7 +435,7 @@
         isVoiceEnabled = !isVoiceEnabled;
         const btn = document.getElementById('voice-btn');
         btn.className = isVoiceEnabled ? "voice-toggle-btn active" : "voice-toggle-btn";
-        btn.textContent = isVoiceEnabled ? "🔊 VOICE ON" : "🔇 VOICE OFF";
+        btn.textContent = isVoiceEnabled ? "🔊" : "🔇";
         if (!isVoiceEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
     }
 
