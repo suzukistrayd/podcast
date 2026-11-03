@@ -19,7 +19,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Secure Android Wrapper (Locked Input + Output Audio)
+      - name: Setup Secure Android Wrapper (Locked Mic + Async TTS Audio Output)
         run: |
           mkdir -p android-project/app/src/main/res/values
           mkdir -p android-project/app/src/main/res/layout
@@ -93,7 +93,7 @@ jobs:
           </manifest>
           EOF
 
-          # Create MainActivity Java wrapper with Native Audio Speaker Routing & WebChromeClient Permission Grants
+          # Create MainActivity Java wrapper with SpeechSynthesis Gesture Persistence & Speaker Routing
           mkdir -p android-project/app/src/main/java/com/veganna/app
           cat << 'EOF' > android-project/app/src/main/java/com/veganna/app/MainActivity.java
           package com.veganna.app;
@@ -136,7 +136,7 @@ jobs:
                   settings.setDomStorageEnabled(true);
                   settings.setDatabaseEnabled(true);
                   settings.setLoadsImagesAutomatically(true);
-                  settings.setMediaPlaybackRequiresUserGesture(false); // Unlocks audio & speech synthesis autoplay
+                  settings.setMediaPlaybackRequiresUserGesture(false); // Unlocks audio & speech autoplay
                   settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
                   settings.setAllowFileAccess(true);
                   settings.setAllowContentAccess(true);
@@ -145,15 +145,18 @@ jobs:
                       @Override
                       public void onPageFinished(WebView view, String url) {
                           super.onPageFinished(view, url);
-                          // Inject Web Audio & Speech synthesis unlock snippet automatically into the webview
+                          // Inject persistent touch listener to keep AudioContext and SpeechSynthesis active for async AI responses
                           view.evaluateJavascript(
-                              "document.addEventListener('touchstart', function() {" +
+                              "document.addEventListener('click', function() {" +
                               "  if (window.AudioContext || window.webkitAudioContext) {" +
                               "    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();" +
                               "    if (audioCtx.state === 'suspended') { audioCtx.resume(); }" +
                               "  }" +
-                              "  if ('speechSynthesis' in window) { window.speechSynthesis.resume(); }" +
-                              "}, { once: false });", null);
+                              "  if ('speechSynthesis' in window) {" +
+                              "    window.speechSynthesis.resume();" +
+                              "    if (window.speechSynthesis.paused) { window.speechSynthesis.resume(); }" +
+                              "  }" +
+                              "}, true);", null);
                       }
                   });
                   
