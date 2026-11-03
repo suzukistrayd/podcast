@@ -1,0 +1,29 @@
+{
+  "path": "android-app",
+  "packageId": "com.github.suzukistrayd.podcast.twa",
+  "host": "suzukistrayd.github.io",
+  "name": "Veg Anna Show",
+  "shortName": "VegAnna",
+  "startUrl": "/podcast/dashboard/",
+  "display": "standalone",
+  "themeColor": "#000000",
+  "backgroundColor": "#ffffff",
+  "iconUrl": "https://suzukistrayd.github.io/podcast/dashboard/icons/icon-512x512.png",
+  "maskableIconUrl": "https://suzukistrayd.github.io/podcast/dashboard/icons/icon-512x512.png",
+  "monochromeIconUrl": "",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0",
+  "appVersionCode": 1,
+  "webManifestUrl": "https://suzukistrayd.github.io/podcast/dashboard/manifest.json",
+  "generatorApp": "bubblewrap-cli",
+  "fallbackType": "customtabs",
+  "features": {},
+  "shortcuts": [],
+  "enableNotifications": false,
+  "blankActivities": [],
+  "allowlist": []
+}
