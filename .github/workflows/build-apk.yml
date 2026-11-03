@@ -1,6 +1,7 @@
 name: Generate Android APK
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
 
@@ -27,7 +28,7 @@ jobs:
 
       - name: Generate Android Project from Manifest
         run: |
-          bubblewrap init --manifest=https://suzukistrayd.github.io/podcast/dashboard/manifest.json --directory=android-app --batch --skip-jdk-installation
+          echo "n" | bubblewrap init --manifest=https://suzukistrayd.github.io/podcast/dashboard/manifest.json --directory=android-app --batch
 
       - name: Build APK Binary
         run: |
