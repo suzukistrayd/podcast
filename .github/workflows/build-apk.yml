@@ -27,20 +27,12 @@ jobs:
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: Initialize and Build APK Non-Interactively
-        env:
-          JAVA_HOME: ${{ steps.setup-java.outputs.java-path }}
+      - name: Build APK Directly from Manifest
         run: |
-          # Use --batch to prevent interactive prompts from hanging the build
-          npx @bubblewrap/cli init --manifest=https://suzukistrayd.github.io/podcast/dashboard/manifest.json --directory=android-app --skipPwaValidation --batch || true
-          
-          cd android-app
-          
-          # Build the release APK
-          npx @bubblewrap/cli build --manifest=twa-manifest.json || npx @bubblewrap/cli build
+          npx @bubblewrap/cli build --manifest=twa-manifest.json --skipPwaValidation
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
-          path: android-app/app/build/outputs/apk/release/*.apk
+          path: '**/build/outputs/apk/release/*.apk'
