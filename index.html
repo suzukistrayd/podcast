@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>THE VEG ANNA SHOW // KUNDA CAFE // CHIANG RAI</title>
     
-    <!-- FIXED PATH FAVICON -->
+    <!-- FAVICON & ASSETS -->
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="shortcut icon" type="image/png" href="favicon.png">
     <meta name="theme-color" content="#d97706">
@@ -18,12 +18,12 @@
     <style>
         :root {
             --bg-dark: #050505;
-            --surface: #111111;
-            --surface-border: #222222;
+            --surface: rgba(15, 15, 15, 0.85);
+            --surface-border: #333333;
             --accent: #d97706;
-            --accent-glow: rgba(217, 119, 6, 0.4);
+            --accent-glow: rgba(217, 119, 6, 0.5);
             --text-main: #ffffff;
-            --text-muted: #a3a3a3;
+            --text-muted: #d1d5db;
         }
 
         * {
@@ -47,13 +47,15 @@
             color: #000;
             font-family: 'Syne', sans-serif;
             font-weight: 800;
-            font-size: 16px;
+            font-size: 15px;
             letter-spacing: 3px;
             text-transform: uppercase;
             padding: 14px 0;
             white-space: nowrap;
             overflow: hidden;
             display: flex;
+            position: relative;
+            z-index: 10;
         }
 
         .ticker-track {
@@ -73,36 +75,68 @@
             100% { transform: translateX(-50%); }
         }
 
-        /* HERO SECTION */
+        /* FULL-SCREEN HERO BACKGROUND & ANCHORING */
         header {
-            min-height: 85vh;
+            position: relative;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 50px 20px;
-            background: radial-gradient(circle at center, rgba(217,119,6,0.2) 0%, transparent 70%);
+            padding: 40px 20px;
+            overflow: hidden;
         }
 
-        .hero-avatar {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            border: 4px solid var(--accent);
-            box-shadow: 0 0 40px var(--accent-glow);
+        .hero-bg-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            margin-bottom: 24px;
+            /* MOBILE: ANCHORED LEFT-CENTER // WIDESCREEN: ANCHORED TOP-CENTER */
+            object-position: 25% center;
+            z-index: 1;
+            filter: brightness(0.45) contrast(1.1);
+        }
+
+        @media (min-width: 768px) {
+            .hero-bg-img {
+                object-position: center top;
+            }
+        }
+
+        /* DARK GRADIENT OVERLAY FOR TEXT READABILITY */
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(5,5,5,0.7) 0%, rgba(5,5,5,0.85) 100%);
+            z-index: 2;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 3;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         h1 {
             font-family: 'Syne', sans-serif;
-            font-size: clamp(3.5rem, 9vw, 7.5rem);
+            font-size: clamp(3.2rem, 8vw, 7rem);
             font-weight: 800;
-            line-height: 0.92;
+            line-height: 0.95;
             text-transform: uppercase;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             letter-spacing: -2px;
+            text-shadow: 0 4px 30px rgba(0,0,0,0.8);
         }
 
         h1 span {
@@ -111,17 +145,18 @@
         }
 
         .hero-subtitle {
-            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+            font-size: clamp(1rem, 2.2vw, 1.35rem);
             color: var(--text-muted);
-            max-width: 700px;
-            margin-bottom: 40px;
+            max-width: 650px;
+            margin-bottom: 35px;
             font-weight: 900;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.9);
         }
 
         /* CTA BUTTONS */
         .cta-group {
             display: flex;
-            gap: 20px;
+            gap: 16px;
             flex-wrap: wrap;
             justify-content: center;
         }
@@ -129,9 +164,9 @@
         .btn {
             font-family: 'Syne', sans-serif;
             font-weight: 800;
-            font-size: 18px;
-            padding: 18px 36px;
-            border-radius: 10px;
+            font-size: 16px;
+            padding: 16px 32px;
+            border-radius: 8px;
             text-decoration: none;
             text-transform: uppercase;
             transition: transform 0.2s ease, background 0.2s ease;
@@ -144,7 +179,7 @@
         .btn-primary {
             background: var(--accent);
             color: #000;
-            box-shadow: 0 6px 25px var(--accent-glow);
+            box-shadow: 0 4px 20px var(--accent-glow);
         }
 
         .btn-primary:hover {
@@ -153,7 +188,7 @@
         }
 
         .btn-secondary {
-            background: var(--surface);
+            background: rgba(20, 20, 20, 0.9);
             color: var(--text-main);
             border: 2px solid var(--surface-border);
         }
@@ -166,7 +201,7 @@
         .container {
             max-width: 1000px;
             margin: 0 auto;
-            padding: 60px 20px;
+            padding: 80px 20px;
         }
 
         .section-title {
@@ -182,7 +217,7 @@
             color: var(--accent);
         }
 
-        /* KUNDA INFO HIGHLIGHT BOX */
+        /* KUNDA CAFE INFO HIGHLIGHT BOX */
         .kunda-info-box {
             background: var(--surface);
             border: 2px solid var(--accent);
@@ -190,13 +225,14 @@
             padding: 40px;
             margin-bottom: 60px;
             box-shadow: 0 0 30px rgba(217,119,6,0.15);
+            backdrop-filter: blur(10px);
         }
 
         .kunda-info-box h3 {
             font-family: 'Syne', sans-serif;
             font-size: 2rem;
             color: var(--accent);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             text-transform: uppercase;
         }
 
@@ -208,7 +244,7 @@
         }
 
         .kunda-fact {
-            background: #000;
+            background: rgba(0, 0, 0, 0.6);
             padding: 20px;
             border-radius: 8px;
             border: 1px solid var(--surface-border);
@@ -242,6 +278,7 @@
             border-radius: 16px;
             padding: 36px;
             transition: border-color 0.2s;
+            backdrop-filter: blur(10px);
         }
 
         .guide-card:hover {
@@ -326,15 +363,20 @@
         </div>
     </div>
 
-    <!-- HERO SECTION -->
+    <!-- FULL-SCREEN HERO SECTION -->
     <header>
-        <img src="favicon.png" alt="Veg Anna Avatar" class="hero-avatar">
-        <h1>The Veg Anna Show <span>Live AI Portal</span></h1>
-        <p class="hero-subtitle">Step into Kunda Cafe's neural transmission hub. Experience real-time interactive podcast lore, deep archives, and direct voice synthesis with Veg Anna.</p>
-        
-        <div class="cta-group">
-            <a href="dashboard/" class="btn btn-primary">🚀 Launch Chat Dashboard</a>
-            <a href="https://buymeacoffee.com/kundacafe" target="_blank" class="btn btn-secondary">☕ Support on BuyMeACoffee</a>
+        <!-- Full Screen Background Image with dynamic mobile/widescreen anchoring -->
+        <img src="VegAnna-Hero-PFP.jpg" alt="Veg Anna Backdrop" class="hero-bg-img">
+        <div class="hero-overlay"></div>
+
+        <div class="hero-content">
+            <h1>The Veg Anna Show <span>Live AI Portal</span></h1>
+            <p class="hero-subtitle">Step into Kunda Cafe's neural transmission hub. Experience real-time interactive podcast lore, deep archives, and direct voice synthesis with Veg Anna.</p>
+            
+            <div class="cta-group">
+                <a href="dashboard/" class="btn btn-primary">🚀 Launch Chat Dashboard</a>
+                <a href="https://buymeacoffee.com/kundacafe" target="_blank" class="btn btn-secondary">☕ Support on BuyMeACoffee</a>
+            </div>
         </div>
     </header>
 
@@ -381,22 +423,4 @@
             <div class="guide-card">
                 <div class="card-number">03</div>
                 <h4>Voice & Share</h4>
-                <p>Experience backstage-configured British/International female speech synthesis, mic voice input, and one-click social sharing to X, FB, and IG.</p>
-            </div>
-        </div>
-
-        <!-- FOOTER NETWORK LINKS -->
-        <div class="portal-footer-links">
-            <a href="https://kundacafe.com" target="_blank">🌐 Official Website</a>
-            <a href="https://coolhotsauce.com" target="_blank">🔥 Cool Hot Sauce</a>
-            <a href="https://www.lazada.co.th/shop/kundacafe" target="_blank">🛒 Lazada Store</a>
-            <a href="https://buymeacoffee.com/kundacafe" target="_blank">☕ Buy Me a Coffee</a>
-        </div>
-    </main>
-
-    <footer>
-        <p>&copy; The World Famous Veg Anna Show in association with KUNDA Co Ltd. 2027. All rights reserved.</p>
-    </footer>
-
-</body>
-</html>
+                <p
