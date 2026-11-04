@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA // MILITARY-GRADE BASE ENGINE + AUDIO EQUALIZER
+// AGENT ANNA // MILITARY-GRADE ENGINE + WORKFLOW CLIPBOARD SYNC
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -66,13 +66,8 @@ function initSpeechRecognition() {
             sendMessage();
         };
 
-        recognition.onerror = function(event) {
-            stopListeningUI();
-        };
-
-        recognition.onend = function() {
-            stopListeningUI();
-        };
+        recognition.onerror = function() { stopListeningUI(); };
+        recognition.onend = function() { stopListeningUI(); };
     } catch (err) {}
 }
 
@@ -105,9 +100,7 @@ async function startAudioVisualizer() {
         }
 
         renderFrame();
-    } catch (e) {
-        console.warn("Visualizer fallback to active CSS mode.");
-    }
+    } catch (e) {}
 }
 
 function stopAudioVisualizer() {
@@ -148,7 +141,7 @@ function stopListeningUI() {
 }
 
 // =================================================================
-// 2. CORE KNOWLEDGE & DUAL TELEMETRY HARVESTER
+// 2. CORE KNOWLEDGE & TELEMETRY HARVESTER
 // =================================================================
 function loadVoices() {
     if (!('speechSynthesis' in window)) return;
@@ -178,7 +171,6 @@ async function preloadCoreKnowledge() {
 async function fetchLiveTelemetry() {
     let btc = "Unavailable", eth = "Unavailable", doge = "Unavailable";
     
-    // Fetch live rates from CoinGecko API
     try {
         const cryptoRes = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin&vs_currencies=usd");
         if (cryptoRes.ok) {
@@ -189,7 +181,6 @@ async function fetchLiveTelemetry() {
         }
     } catch (e) {}
 
-    // Fetch telemetry from local JSON or GitHub fallback
     let status = "ONLINE", activeBot = "Grok Scanner", solanaEquity = "$142.85", signal = "Active";
     try {
         const localRes = await fetch(`portal-relay.json?t=${Date.now()}`);
@@ -291,22 +282,39 @@ ${liveTelemetry}`;
         const data = await res.json();
         let reply = (data.choices[0].message.content || "").replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
+        document.body.classList.get('is-thinking'); // safe check
         document.body.classList.remove('is-thinking');
         updateHUDState("READY");
 
-        appendMsg(reply, 'assistant', 'Agent Anna Core');
+        appendMsg(reply, 'assistant', 'Agent Anna Core', true);
         speakText(reply);
 
     } catch (err) {
         document.body.classList.remove('is-thinking');
         updateHUDState("ERROR");
-        appendMsg(`Execution Error: ${err.message}`, 'assistant', 'System Alert');
+        appendMsg(`Execution Error: ${err.message}`, 'assistant', 'System Alert', false);
     }
 }
 
 // =================================================================
-// 4. UTILITIES & UI CONTROLS
+// 4. WORKFLOW CLIPBOARD AUTOMATION & UTILITIES
 // =================================================================
+function copyToClipboard(text, btnElement) {
+    navigator.clipboard.writeText(text).then(() => {
+        if (btnElement) {
+            const originalText = btnElement.innerText;
+            btnElement.innerText = "COPIED!";
+            btnElement.style.color = "#00ffcc";
+            setTimeout(() => {
+                btnElement.innerText = originalText;
+                btnElement.style.color = "";
+            }, 1500);
+        }
+    }).catch(err => {
+        console.error("Clipboard copy failed:", err);
+    });
+}
+
 function updateHUDState(stateLabel) {
     const stateText = document.getElementById('state-text');
     if (stateText) stateText.innerText = stateLabel;
@@ -360,17 +368,35 @@ function clearLogs() {
     }
 }
 
-function appendMsg(text, sender, label) {
+function appendMsg(text, sender, label, includeCopy = false) {
     const container = document.getElementById('chat-container');
     if (!container) return;
 
     const div = document.createElement('div');
     div.className = `message ${sender}`;
+    
+    let copyBtnHTML = "";
+    if (includeCopy) {
+        // Encapsulate text safely for inline execution
+        const encodedText = encodeURIComponent(text);
+        copyBtnHTML = `<button class="copy-telemetry-btn" onclick="copyToClipboard(decodeURIComponent('${encodedText}'), this)" style="float: right; background: transparent; border: 1px solid #00ffcc; color: #00ffcc; font-size: 10px; padding: 2px 6px; cursor: pointer; border-radius: 3px; font-family: monospace;">[COPY DATA]</button>`;
+    }
+
     div.innerHTML = `
-        <div class="msg-header">${label}</div>
-        <div style="white-space:pre-wrap;">${text}</div>
+        <div class="msg-header">${label} ${copyBtnHTML}</div>
+        <div style="white-space:pre-wrap; margin-top: 6px;">${text}</div>
     `;
 
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
+
+    // AUTOMATION HOOK: Automatically trigger clipboard copy on assistant messages for data pipeline feeding
+    if (includeReflexiveWorkflow(text)) {
+        navigator.clipboard.writeText(text).catch(() => {});
+    }
+}
+
+// Optional: Filter if you want automated silent copying on specific tickers/signals
+function includeReflexiveWorkflow(text) {
+    return text.includes("BTC Price") || text.includes("DOGE Price") || text.includes("LIVE TELEMETRY");
 }
