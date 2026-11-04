@@ -7,7 +7,7 @@
     --accent-gold-glow: rgba(217, 119, 6, 0.35);
     --text-main: #f4f4f5;
     --text-muted: #a1a1aa;
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --font-mono: 'Anton', sans-serif, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
