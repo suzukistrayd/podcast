@@ -405,7 +405,7 @@ button.send-btn {
 footer.ticker-footer {
     background: #000000;
     border-top: 1px solid var(--border-subtle);
-    height: 32px;
+    height: 30px;
     overflow: hidden;
     white-space: nowrap;
     display: flex;
@@ -423,7 +423,7 @@ footer.ticker-footer {
 .ticker-track:hover { animation-play-state: paused; }
 
 .ticker-item {
-    font-size: 11px;
+    font-size: 12px;
     font-family: var(--font-mono);
     color: var(--text-muted);
     padding: 0 18px;
