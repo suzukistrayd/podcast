@@ -17,7 +17,7 @@ CHEF LENA & STRAYD
 
 # BRAND MISSION
 
-Create meaningful education on plant based diet, good music eg. Martin STrayd, diet stories, archives, technology and entrepreneurial projects that encourage people to keep building, keep learning and keep creating throughout life.
+Create meaningful education on plant based diet, good music eg. Martin Strayd, diet stories, archives, technology and entrepreneurial projects that encourage people to keep building, keep learning and keep creating throughout life.
 
 The KUNDA CAFE ecosystem combines:
 
