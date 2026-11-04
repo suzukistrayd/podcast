@@ -19,19 +19,17 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android Wrapper (Audio Output + Injected Clear Chat Button)
+      - name: Setup Android WebView Wrapper (Audio Stream & Mic Route)
         run: |
           mkdir -p android-project/app/src/main/res/values
           mkdir -p android-project/app/src/main/res/layout
           mkdir -p android-project/app/src/main/assets
 
-          # Create root settings.gradle
           cat << 'EOF' > android-project/settings.gradle
           rootProject.name = "VegAnnaShow"
           include ':app'
           EOF
 
-          # Create root build.gradle
           cat << 'EOF' > android-project/build.gradle
           buildscript {
               repositories { google(); mavenCentral() }
@@ -42,7 +40,6 @@ jobs:
           }
           EOF
 
-          # Create app build.gradle
           cat << 'EOF' > android-project/app/build.gradle
           plugins {
               id 'com.android.application'
@@ -65,7 +62,6 @@ jobs:
           }
           EOF
 
-          # Create AndroidManifest.xml with Audio Hardware Permissions
           cat << 'EOF' > android-project/app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -93,7 +89,6 @@ jobs:
           </manifest>
           EOF
 
-          # Create MainActivity Java wrapper with Injected Voice Engine & Clear Chat Controls
           mkdir -p android-project/app/src/main/java/com/veganna/app
           cat << 'EOF' > android-project/app/src/main/java/com/veganna/app/MainActivity.java
           package com.veganna.app;
@@ -115,10 +110,8 @@ jobs:
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
 
-                  // Route audio directly to main phone media speakers
                   setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
-                  // Request microphone permission at runtime
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                       if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                           requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 100);
@@ -135,61 +128,13 @@ jobs:
                   settings.setDomStorageEnabled(true);
                   settings.setDatabaseEnabled(true);
                   settings.setLoadsImagesAutomatically(true);
-                  settings.setMediaPlaybackRequiresUserGesture(false); // Unlocks HTML5 audio playback
+                  settings.setMediaPlaybackRequiresUserGesture(false);
                   settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
                   settings.setAllowFileAccess(true);
                   settings.setAllowContentAccess(true);
 
-                  webView.setWebViewClient(new WebViewClient() {
-                      @Override
-                      public void onPageFinished(WebView view, String url) {
-                          super.onPageFinished(view, url);
-                          
-                          // Inject ResponsiveVoice TTS engine & Clear Chat UI dynamically into the web page
-                          view.evaluateJavascript(
-                              "(function() {" +
-                              "  if (!document.getElementById('rv-script')) {" +
-                              "    var script = document.createElement('script');" +
-                              "    script.id = 'rv-script';" +
-                              "    script.src = 'https://code.responsivevoice.org/responsivevoice.js?key=FREE_KEY';" +
-                              "    document.head.appendChild(script);" +
-                              "  }" +
-                              "  window.speechSynthesis = window.speechSynthesis || {};" +
-                              "  window.speechSynthesis.cancel = function() { if(window.responsiveVoice && typeof window.responsiveVoice.cancel === 'function') { window.responsiveVoice.cancel(); } };" +
-                              "  window.speechSynthesis.resume = function() {};" +
-                              "  window.speechSynthesis.speak = function(utterance) {" +
-                              "    if (window.responsiveVoice) {" +
-                              "      window.responsiveVoice.speak(utterance.text, 'US English Female');" +
-                              "    }" +
-                              "  };" +
-                              "  if (!document.getElementById('injected-clear-btn')) {" +
-                              "    var btn = document.createElement('button');" +
-                              "    btn.id = 'injected-clear-btn';" +
-                              "    btn.innerText = 'Clear Chat';" +
-                              "    btn.style.position = 'fixed';" +
-                              "    btn.style.top = '10px';" +
-                              "    btn.style.right = '10px';" +
-                              "    btn.style.zIndex = '99999';" +
-                              "    btn.style.backgroundColor = '#ff4444';" +
-                              "    btn.style.color = '#ffffff';" +
-                              "    btn.style.border = 'none';" +
-                              "    btn.style.padding = '8px 14px';" +
-                              "    btn.style.borderRadius = '20px';" +
-                              "    btn.style.fontWeight = 'bold';" +
-                              "    btn.style.boxShadow = '0px 2px 5px rgba(0,0,0,0.3)';" +
-                              "    btn.onclick = function() {" +
-                              "      if (window.speechSynthesis) window.speechSynthesis.cancel();" +
-                              "      var containers = document.querySelectorAll('#chat-container, #chat-box, .chat-messages, .messages');" +
-                              "      containers.forEach(function(c) { c.innerHTML = ''; });" +
-                              "      localStorage.clear();" +
-                              "    };" +
-                              "    document.body.appendChild(btn);" +
-                              "  }" +
-                              "})();", null);
-                      }
-                  });
+                  webView.setWebViewClient(new WebViewClient());
                   
-                  // Auto-grant continuous microphone and media hardware permissions
                   webView.setWebChromeClient(new WebChromeClient() {
                       @Override
                       public void onPermissionRequest(final PermissionRequest request) {
@@ -202,7 +147,6 @@ jobs:
                       }
                   });
 
-                  // Load live HTTPS secure context
                   webView.loadUrl("https://suzukistrayd.github.io/podcast/dashboard/index.html");
                   setContentView(webView);
               }
