@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA // UNIFIED ALL-IN-ONE COMMAND & TELEMETRY ENGINE
+// AGENT ANNA // UNIFIED MISSION CONTROL ENGINE (ALL-IN-ONE)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -31,7 +31,7 @@ window.onload = function() {
     initSpeechRecognition();
 };
 
-// MULTI-BROWSER SPEECH RECOGNITION ENGINE
+// MULTI-BROWSER VOICE INPUT ENGINE
 function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
@@ -60,9 +60,6 @@ function initSpeechRecognition() {
 
         recognition.onerror = function(event) {
             stopListeningUI();
-            if (event.error === 'not-allowed') {
-                alert("Microphone access blocked. Enable permissions in address bar.");
-            }
         };
 
         recognition.onend = function() {
@@ -73,7 +70,7 @@ function initSpeechRecognition() {
 
 function toggleMic() {
     if (!recognition) initSpeechRecognition();
-    if (!recognition) return alert("Speech recognition unavailable in this browser context.");
+    if (!recognition) return alert("Speech recognition is unavailable in this environment.");
 
     if (!isListening) {
         try { recognition.start(); } catch (e) { stopListeningUI(); }
@@ -98,7 +95,7 @@ function loadVoices() {
     cachedVoices = window.speechSynthesis.getVoices();
 }
 
-// PRELOAD CORE KNOWLEDGE (RULES & IDENTITY)
+// PRELOAD CORE KNOWLEDGE BASE
 async function preloadCoreKnowledge() {
     const corePaths = [
         "agent-anna/character/agent-anna.md",
@@ -119,14 +116,14 @@ async function preloadCoreKnowledge() {
     coreKnowledgeCache = snippets.join('\n\n---\n\n');
 }
 
-// FETCH LIVE TELEMETRY FROM PORTAL-RELAY.JSON
+// FETCH LIVE TELEMETRY RELAY
 async function fetchLiveTelemetry() {
     try {
         const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/portal-relay.json?t=${Date.now()}`;
         const res = await fetch(url);
         if (res.ok) {
             const data = await res.json();
-            return `[LIVE TELEMETRY RELAY]\n- Status: ${data.status || 'ACTIVE'}\n- Active Bot: ${data.active_bot || 'N/A'}\n- Equity: ${data.solana_equity || '$142.85'}\n- Latest Signal: ${data.latest_signal || 'None'}`;
+            return `[LIVE TELEMETRY RELAY]\n- Status: ${data.status || 'ACTIVE'}\n- Active Bot: ${data.active_bot || 'N/A'}\n- Equity: ${data.solana_equity || '$142.85'}\n- Signal: ${data.latest_signal || 'None'}`;
         }
     } catch (e) {}
     return "";
@@ -172,6 +169,7 @@ function clearLogs() {
     }
 }
 
+// AUDIO SYNTHESIZER (SOFT FEMALE VOICE PROFILE)
 function speakText(text) {
     if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
@@ -191,6 +189,7 @@ function speakText(text) {
     window.speechSynthesis.speak(utterance);
 }
 
+// INFERENCE DISPATCH TO DAHL API
 async function sendMessage() {
     const keyEl = document.getElementById('api-key');
     const input = document.getElementById('user-input');
@@ -218,8 +217,8 @@ async function sendMessage() {
     const liveTelemetry = await fetchLiveTelemetry();
     const combinedContext = `${coreKnowledgeCache}\n\n${liveTelemetry}`;
 
-    const systemPrompt = `You are AGENT ANNA, a military-grade execution engine operating under character/agent-anna.md rules.
-Use live telemetry context if relevant to Commander queries. Provide direct, highly optimized technical output.
+    const systemPrompt = `You are AGENT ANNA, a military-grade execution engine operating under character/agent-anna.md.
+Provide direct, single-sentence execution answers suitable for clear voice synthesis readout.
 
 Context:
 ${combinedContext}`;
