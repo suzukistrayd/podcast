@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>THE VEG ANNA SHOW // KUNDA CAFE CHIANG RAI</title>
+
+    <!-- LOCAL RELATIVE FAVICON & PWA MANIFEST LINK -->
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="shortcut icon" type="image/png" href="./favicon.png">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#d97706">
+    <!-- EXTERNAL STYLESHEET LINK -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <div class="avatar"><img src="./favicon.png" alt="Veg Anna"></div>
+            <div class="brand-title">
+                <h1>Veg Anna</h1>
+                <span></span>
+            </div>
+        </div>
+        <div class="header-controls">
+            <button class="clear-btn" onclick="clearChatHistory()" title="Clear Conversation">🗑️</button>
+
+            <button class="portal-btn highlight" onclick="togglePortal()">📲 APK</button>
+            <button id="voice-btn" class="voice-toggle-btn active" onclick="toggleVoice()">🔊 ON</button>
+            <button class="settings-toggle" onclick="toggleSettings()">⚙️</button>
+        </div>
+    </header>
+
+    <div class="kunda-nav-bar">
+        <span class="nav-chip" onclick="quickAsk('Tell me about Kunda Cafe burgers and soy-free ethos.')">🍔 Eat Kunda</span>
+        <span class="nav-chip" onclick="quickAsk('What are your opening hours and location in Chiang Rai?')">📍 Michelin 2026 </span>
+
+        <a href="https://coolhotsauce.com" target="_blank" class="nav-chip">🔥 Cool Hot Sauce</a>
+        <a href="https://buymeacoffee.com/kundacafe" target="_blank" class="nav-chip">☕ Coffee</a>
+        <span class="nav-chip" onclick="quickAsk('Tell me about Martin Strayd and the music archives.')">🎵 Singles</span>
+    </div>
+
+    <div class="bg-watermark-container">
+        <img src="./bg-avatar.png" alt="Backdrop">
+    </div>
+
+    <div id="portal-modal">
+        <h2 style="margin: 0 0 4px 0; color: #ffffff; font-size: 18px;">KUNDA CAFE DIGITAL PORTAL</h2>
+        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 14px;">Established 2011 • Michelin Guide Thailand 2026 • Chiang Rai, Thailand</p>
+        
+        <div class="portal-grid">
+            <div class="portal-card">
+                <h3>📱 Mobile App (Android APK)</h3>
+                <p>Get the official Kunda Cafe & Veg Anna mobile app directly via Buy Me a Coffee support.</p>
+                <a href="https://buymeacoffee.com/kundacafe" target="_blank">Download APK</a>
+            </div>
+            <div class="portal-card">
+                <h3>🔥 Artisanal Hot Sauces</h3>
+                <p>Handcrafted, sugar-free, soy-free gourmet hot sauces shipped internationally.</p>
+                <a href="https://coolhotsauce.com" target="_blank">Visit CoolHotSauce.com</a>
+            </div>
+            <div class="portal-card">
+                <h3>📜 Brand & Menu Assets</h3>
+                <p>Access high-resolution official logos, PDF menus, and brand lore files.</p>
+                <a href="https://kundacafe.com" target="_blank">Official Website & PDFs</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-panel">
+        <label>KUNDACAFE API Key:</label>
+        <input type="password" id="api-key" placeholder="Paste API Key" oninput="saveApiKey()">
+    </div>
+
+    <div id="chat-container">
+        <div class="message assistant" id="initial-msg">
+            <div class="message-header"><span>Veg Anna</span></div>
+            <div class="msg-body">Sawadee! I am Veg Anna, your personal Kunda guru. Ask me anything!</div>
+            <div class="msg-actions">
+                <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
+                <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
+                <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
+                <button class="action-btn" onclick="shareInstagram(this)">📸 Share IG</button>
+                <button class="action-btn" onclick="shareTikTok(this)">🎵 Share TT</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="status-bar" class="status-bar">
+        <div class="equalizer">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <span id="status-text">Neural transmission active // Processing...</span>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Message Veg Anna... " onkeydown="handleKey(event)">
+        <button id="mic-btn" class="mic-btn" title="Tap to Speak" onclick="toggleSpeechRecognition()">🎤</button>
+        <button class="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+
+    <footer class="ticker-footer">
+        <div class="ticker-track">
+            <span class="ticker-item">☕ Download App & Support: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">🍔 Official Site: <a href="https://kundacafe.com" target="_blank">kundacafe.com</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">🛒 Lazada: <a href="https://www.lazada.co.th/shop/kundacafe" target="_blank">lazada.co.th</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">🔥 Hot Sauce: <a href="https://coolhotsauce.com" target="_blank">coolhotsauce.com</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item"><a href="https://kundacafe.com" class="ad-spot" target="_blank">🚀 YOUR AD HERE &bull; SPONSOR THE VEG ANNA SHOW</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">&copy; The World Famous Veg Anna Show in association with KUNDA Co Ltd. 2027</span>
+            <span class="ticker-item">&bull;</span>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
