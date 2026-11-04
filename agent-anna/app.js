@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA // MILITARY MISSION CONTROL ENGINE (GITHUB ALIGNED)
+// AGENT ANNA // MILITARY MISSION CONTROL ENGINE (VOICE & DAHL FIXED)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -31,25 +31,87 @@ window.onload = function() {
     initSpeechRecognition();
 };
 
+// ROBUST MULTI-BROWSER SPEECH RECOGNITION ENGINE
 function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognition) {
+        console.warn("Speech recognition not supported on this browser context.");
+        return;
+    }
 
     try {
         recognition = new SpeechRecognition();
-        recognition.lang = 'en-US';
+        recognition.continuous = false;
         recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = function() {
+            isListening = true;
+            const micBtn = document.getElementById('mic-btn');
+            if (micBtn) micBtn.classList.add('listening');
+            const stateText = document.getElementById('state-text');
+            if (stateText) stateText.innerText = "LISTENING";
+        };
 
         recognition.onresult = function(event) {
             const speechText = event.results[0][0].transcript;
             const userInput = document.getElementById('user-input');
-            if (userInput) userInput.value = speechText;
+            if (userInput) {
+                userInput.value = speechText;
+            }
             stopListeningUI();
+            // Automatically execute request after speech capture
             sendMessage();
         };
-        recognition.onerror = stopListeningUI;
-        recognition.onend = stopListeningUI;
-    } catch (err) {}
+
+        recognition.onerror = function(event) {
+            console.error("Speech Recognition Error:", event.error);
+            stopListeningUI();
+            if (event.error === 'not-allowed') {
+                alert("Microphone access denied. Please allow microphone permissions in your browser address bar.");
+            }
+        };
+
+        recognition.onend = function() {
+            stopListeningUI();
+        };
+    } catch (err) {
+        console.error("Initialization failure for speech recognition:", err);
+    }
+}
+
+function toggleMic() {
+    if (!recognition) {
+        initSpeechRecognition();
+    }
+    
+    if (!recognition) {
+        alert("Speech recognition is not supported in this environment or requires an HTTPS connection.");
+        return;
+    }
+
+    if (!isListening) {
+        try {
+            recognition.start();
+        } catch (e) {
+            stopListeningUI();
+        }
+    } else {
+        try {
+            recognition.stop();
+        } catch (e) {}
+        stopListeningUI();
+    }
+}
+
+function stopListeningUI() {
+    isListening = false;
+    const micBtn = document.getElementById('mic-btn');
+    if (micBtn) micBtn.classList.remove('listening');
+    const stateText = document.getElementById('state-text');
+    if (stateText && stateText.innerText === "LISTENING") {
+        stateText.innerText = "READY";
+    }
 }
 
 function loadVoices() {
@@ -57,7 +119,6 @@ function loadVoices() {
     cachedVoices = window.speechSynthesis.getVoices();
 }
 
-// ALIGNED TO YOUR EXACT GITHUB TREE
 async function preloadCoreKnowledge() {
     const corePaths = [
         "agent-anna/character/agent-anna.md",
@@ -76,27 +137,6 @@ async function preloadCoreKnowledge() {
         } catch (e) {}
     }));
     coreKnowledgeCache = snippets.join('\n\n---\n\n');
-}
-
-function toggleSpeechRecognition() {
-    if (!recognition) return alert("Speech recognition not supported.");
-    const micBtn = document.getElementById('mic-btn');
-    if (!isListening) {
-        try {
-            recognition.start();
-            isListening = true;
-            if (micBtn) micBtn.classList.add('listening');
-        } catch (e) { stopListeningUI(); }
-    } else {
-        try { recognition.stop(); } catch (e) {}
-        stopListeningUI();
-    }
-}
-
-function stopListeningUI() {
-    isListening = false;
-    const micBtn = document.getElementById('mic-btn');
-    if (micBtn) micBtn.classList.remove('listening');
 }
 
 function toggleVoice() {
@@ -155,7 +195,7 @@ function speakText(text) {
     if (selectedVoice) utterance.voice = selectedVoice;
     utterance.pitch = 1.05;
     utterance.rate = 0.94;
-    window.speechSynthesis.speak(utterance);
+    window.speechSynthesis.speakText ? window.speechSynthesis.speakText(utterance) : window.speechSynthesis.speak(utterance);
 }
 
 async function sendMessage() {
@@ -174,7 +214,6 @@ async function sendMessage() {
     appendMsg(query, 'user', 'Commander');
     if (input) input.value = '';
 
-    // ACTIVATE HUD GLITCH & AUDIO WAVE ANIMATION
     document.body.classList.add('is-thinking');
     const statusBar = document.getElementById('status-bar');
     if (statusBar) statusBar.classList.add('active');
@@ -213,7 +252,6 @@ ${coreKnowledgeCache}`;
         const data = await res.json();
         let reply = (data.choices[0].message.content || "").replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
-        // DEACTIVATE HUD GLITCH
         document.body.classList.remove('is-thinking');
         if (statusBar) statusBar.classList.remove('active');
         if (stateText) stateText.innerText = "READY";
