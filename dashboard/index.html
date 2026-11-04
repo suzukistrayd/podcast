@@ -2,236 +2,448 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veg Anna Show - Live Dashboard</title>
-    <!-- ResponsiveVoice Audio Engine for Android WebView TTS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>THE VEG ANNA SHOW // KUNDA CAFE CHIANG RAI</title>
+
+    <!-- LOCAL RELATIVE FAVICON & PWA MANIFEST -->
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="shortcut icon" type="image/png" href="./favicon.png">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#d97706">
+
+    <!-- EXTERNAL STYLESHEET LINK -->
+    <link rel="stylesheet" href="./styles.css">
+
+    <!-- ResponsiveVoice Audio Engine -->
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE_KEY"></script>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #0f0f11;
-            color: #f0f0f5;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-        header {
-            background-color: #18181b;
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #27272a;
-        }
-        h1 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #ec4899;
-            letter-spacing: 0.5px;
-        }
-        .header-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .btn-clear {
-            background-color: #ef4444;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-clear:hover { background-color: #dc2626; }
-        #chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            background-color: #09090b;
-        }
-        .message {
-            max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            line-height: 1.5;
-            word-wrap: break-word;
-            font-size: 0.95rem;
-        }
-        .user-msg {
-            background-color: #3b82f6;
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 2px;
-        }
-        .veganna-msg {
-            background-color: #27272a;
-            color: #f4f4f5;
-            align-self: flex-start;
-            border-bottom-left-radius: 2px;
-            border: 1px solid #3f3f46;
-        }
-        .input-panel {
-            background-color: #18181b;
-            padding: 16px 20px;
-            display: flex;
-            gap: 12px;
-            border-top: 1px solid #27272a;
-            align-items: center;
-        }
-        input[type="text"] {
-            flex: 1;
-            background-color: #27272a;
-            border: 1px solid #3f3f46;
-            border-radius: 8px;
-            padding: 12px 16px;
-            color: white;
-            font-size: 1rem;
-            outline: none;
-        }
-        input[type="text"]:focus {
-            border-color: #ec4899;
-        }
-        .btn-action {
-            background-color: #ec4899;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .btn-action:hover { background-color: #db2777; }
-        .mic-active { background-color: #10b981 !important; }
-    </style>
 </head>
 <body>
 
     <header>
-        <h1>Veg Anna Show</h1>
-        <div class="header-actions">
-            <button class="btn-clear" onclick="clearChatHistory()">Clear Chat</button>
+        <div class="brand">
+            <div class="avatar"><img src="./favicon.png" alt="Veg Anna"></div>
+            <div class="brand-title">
+                <h1>Veg Anna</h1>
+                <span></span>
+            </div>
+        </div>
+        <div class="header-controls">
+            <button class="clear-btn" onclick="clearChatHistory()">🗑️ Clear</button>
+            <button class="portal-btn highlight" onclick="togglePortal()">📲 APK & Info</button>
+            <button id="voice-btn" class="voice-toggle-btn active" onclick="toggleVoice()">🔊 ON</button>
+            <button class="settings-toggle" onclick="toggleSettings()">⚙️</button>
         </div>
     </header>
 
-    <div id="chat-container">
-        <div class="message veganna-msg">
-            Hello! I am VegAnna. Your audio input and US English female voice output are locked and ready. Type or speak below!
+    <div class="kunda-nav-bar">
+        <span class="nav-chip" onclick="quickAsk('Tell me about Kunda Cafe burgers and soy-free ethos.')">🍔 Plant-Based Burgers</span>
+        <a href="https://coolhotsauce.com" target="_blank" class="nav-chip">🔥 Cool Hot Sauce</a>
+        <a href="https://buymeacoffee.com/kundacafe" target="_blank" class="nav-chip">☕ Download App / APK</a>
+        <span class="nav-chip" onclick="quickAsk('What are your opening hours and location in Chiang Rai?')">📍 Michelin 2026 Location</span>
+        <span class="nav-chip" onclick="quickAsk('Tell me about Martin Strayd and the music archives.')">🎵 Song Archives</span>
+    </div>
+
+    <div class="bg-watermark-container">
+        <img src="./bg-avatar.png" alt="Backdrop">
+    </div>
+
+    <div id="portal-modal">
+        <h2 style="margin: 0 0 4px 0; color: #ffffff; font-size: 18px;">KUNDA CAFE DIGITAL PORTAL</h2>
+        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 14px;">Established 2011 • Michelin Guide Thailand 2026 • Chiang Rai, Thailand</p>
+        
+        <div class="portal-grid">
+            <div class="portal-card">
+                <h3>📱 Mobile App (Android APK)</h3>
+                <p>Get the official Kunda Cafe & Veg Anna mobile app directly via Buy Me a Coffee support.</p>
+                <a href="https://buymeacoffee.com/kundacafe" target="_blank">Download APK</a>
+            </div>
+            <div class="portal-card">
+                <h3>🔥 Artisanal Hot Sauces</h3>
+                <p>Handcrafted, sugar-free, soy-free gourmet hot sauces shipped internationally.</p>
+                <a href="https://coolhotsauce.com" target="_blank">Visit CoolHotSauce.com</a>
+            </div>
+            <div class="portal-card">
+                <h3>📜 Brand & Menu Assets</h3>
+                <p>Access high-resolution official logos, PDF menus, and brand lore files.</p>
+                <a href="https://kundacafe.com" target="_blank">Official Website & PDFs</a>
+            </div>
         </div>
     </div>
 
-    <div class="input-panel">
-        <input type="text" id="user-input" placeholder="Type your message or tap mic..." onkeydown="if(event.key==='Enter') sendMessage();">
-        <button class="btn-action" id="mic-btn" onclick="toggleSpeechInput()">🎤 Mic</button>
-        <button class="btn-action" onclick="sendMessage()">Send</button>
+    <div id="settings-panel">
+        <label>DAHL API Key:</label>
+        <input type="password" id="api-key" placeholder="Paste API Key" oninput="saveApiKey()">
+        
+        <label>Voice Accent Profile:</label>
+        <select id="voice-profile" onchange="saveVoiceProfile()">
+            <option value="scandinavian">Nordic / Scandinavian English Female</option>
+            <option value="international">International English Female</option>
+            <option value="british">British Female - Veg Anna (en-GB / Clean English)</option>
+        </select>
     </div>
 
-    <script>
-        // --- 1. AUDIO OUTPUT SETUP (ResponsiveVoice US English Female) ---
-        window.speechSynthesis = window.speechSynthesis || {};
-        window.speechSynthesis.cancel = function() {
+    <div id="chat-container">
+        <div class="message assistant" id="initial-msg">
+            <div class="message-header"><span>Veg Anna</span></div>
+            <div class="msg-body">Sawadee! I am Veg Anna, your 24/7 personal plant-based guru for Kunda Cafe Chiang Rai. Ask me about our world-class soy-free burgers, artisanal hot sauces, or store details!</div>
+            <div class="msg-actions">
+                <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
+                <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
+                <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="status-bar" class="status-bar">
+        <div class="equalizer">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <span id="status-text">Neural transmission active // Processing...</span>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Message Veg Anna... (Press Enter or Tap Mic)" onkeydown="handleKey(event)">
+        <button id="mic-btn" class="mic-btn" title="Tap to Speak" onclick="toggleSpeechRecognition()">🎤</button>
+        <button class="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+
+    <footer class="ticker-footer">
+        <div class="ticker-track">
+            <span class="ticker-item">☕ Download App & Support: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">🍔 Official Site: <a href="https://kundacafe.com" target="_blank">kundacafe.com</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">🔥 Hot Sauce: <a href="https://coolhotsauce.com" target="_blank">coolhotsauce.com</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item"><a href="https://kundacafe.com" class="ad-spot" target="_blank">🚀 YOUR AD HERE &bull; SPONSOR THE SHOW</a></span>
+            <span class="ticker-item">&bull;</span>
+            <span class="ticker-item">&copy; Veg Anna Show / KUNDA Co Ltd. 2027</span>
+            <span class="ticker-item">&bull;</span>
+        </div>
+    </footer>
+
+<script>
+    const REPO_OWNER = "suzukistrayd";
+    const REPO_NAME = "podcast";
+    let isVoiceEnabled = true;
+    let recognition = null;
+    let isListening = false;
+
+    window.onload = function() {
+        try {
+            const savedKey = localStorage.getItem('dahl_api_key');
+            if (savedKey) document.getElementById('api-key').value = savedKey;
+
+            const savedVoice = localStorage.getItem('selected_voice_profile');
+            if (savedVoice) document.getElementById('voice-profile').value = savedVoice;
+
+            document.getElementById('user-input').focus();
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+
+                recognition.onresult = function(event) {
+                    const speechText = event.results[0][0].transcript;
+                    document.getElementById('user-input').value = speechText;
+                    stopListeningUI();
+                    sendMessage();
+                };
+
+                recognition.onerror = () => stopListeningUI();
+                recognition.onend = () => stopListeningUI();
+            }
+        } catch (e) {}
+    };
+
+    function toggleSpeechRecognition() {
+        if (!recognition) {
+            alert("Speech recognition is not supported on this browser.");
+            return;
+        }
+        const micBtn = document.getElementById('mic-btn');
+        if (!isListening) {
+            try {
+                recognition.start();
+                isListening = true;
+                micBtn.classList.add('listening');
+            } catch (e) {
+                stopListeningUI();
+            }
+        } else {
+            try { recognition.stop(); } catch (e) {}
+            stopListeningUI();
+        }
+    }
+
+    function stopListeningUI() {
+        isListening = false;
+        const micBtn = document.getElementById('mic-btn');
+        if (micBtn) micBtn.classList.remove('listening');
+    }
+
+    function toggleVoice() {
+        isVoiceEnabled = !isVoiceEnabled;
+        const btn = document.getElementById('voice-btn');
+        btn.className = isVoiceEnabled ? "voice-toggle-btn active" : "voice-toggle-btn";
+        btn.textContent = isVoiceEnabled ? "🔊 ON" : "🔇 OFF";
+        if (!isVoiceEnabled) {
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
             if (window.responsiveVoice && typeof window.responsiveVoice.cancel === 'function') {
                 window.responsiveVoice.cancel();
             }
-        };
-        window.speechSynthesis.speak = function(utterance) {
-            if (window.responsiveVoice) {
-                window.responsiveVoice.speak(utterance.text, "US English Female");
-            }
-        };
+        }
+    }
 
-        function speakVegAnnaReply(text) {
-            if (!text) return;
+    function toggleSettings() {
+        const panel = document.getElementById('settings-panel');
+        document.getElementById('portal-modal').style.display = 'none';
+        panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function togglePortal() {
+        const modal = document.getElementById('portal-modal');
+        document.getElementById('settings-panel').style.display = 'none';
+        modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function quickAsk(promptText) {
+        document.getElementById('portal-modal').style.display = 'none';
+        document.getElementById('settings-panel').style.display = 'none';
+        document.getElementById('user-input').value = promptText;
+        sendMessage();
+    }
+
+    function saveApiKey() {
+        try { localStorage.setItem('dahl_api_key', document.getElementById('api-key').value.trim()); } catch (e) {}
+    }
+
+    function saveVoiceProfile() {
+        try { localStorage.setItem('selected_voice_profile', document.getElementById('voice-profile').value); } catch (e) {}
+    }
+
+    function handleKey(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+
+    function clearChatHistory() {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        if (window.responsiveVoice && typeof window.responsiveVoice.cancel === 'function') {
+            window.responsiveVoice.cancel();
+        }
+        
+        const chatContainer = document.getElementById('chat-container');
+        chatContainer.innerHTML = `
+            <div class="message assistant" id="initial-msg">
+                <div class="message-header"><span>Veg Anna</span></div>
+                <div class="msg-body">Chat history cleared. Sawadee! I am Veg Anna, your 24/7 personal plant-based guru for Kunda Cafe Chiang Rai. Ask me anything!</div>
+                <div class="msg-actions">
+                    <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
+                    <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
+                    <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
+                </div>
+            </div>
+        `;
+        localStorage.removeItem('veganna_chat_history');
+        sessionStorage.clear();
+    }
+
+    function copyMessage(btn) {
+        const bodyDiv = btn.closest('.message').querySelector('.msg-body');
+        const textToCopy = bodyDiv.innerText;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalText = btn.textContent;
+            btn.textContent = "✅ Copied!";
+            setTimeout(() => btn.textContent = originalText, 2000);
+        }).catch(err => alert("Failed to copy text."));
+    }
+
+    function shareTwitter(btn) {
+        const bodyDiv = btn.closest('.message').querySelector('.msg-body');
+        const text = encodeURIComponent(`"${bodyDiv.innerText}" — Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe`);
+        window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+    }
+
+    function shareFacebook(btn) {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://kundacafe.com')}`, '_blank');
+    }
+
+    function speakText(text) {
+        if (!isVoiceEnabled) return;
+        
+        const clean = text
+            .replace(/<think>[\s\S]*?<\/think>/g, '')
+            .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '')
+            .replace(/[*_#`~]/g, '')
+            .trim();
+
+        if (!clean) return;
+
+        if (window.responsiveVoice && typeof window.responsiveVoice.speak === 'function') {
+            window.responsiveVoice.cancel();
+            window.responsiveVoice.speak(clean, "US English Female", { rate: 1.0, pitch: 1.0, volume: 1.0 });
+            return;
+        }
+
+        if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
-            const cleanText = text.replace(/[*_#`~]/g, ''); // Strip markdown for clean speech
-            window.speechSynthesis.speak({ text: cleanText });
-        }
+            const utterance = new SpeechSynthesisUtterance(clean);
+            const voices = window.speechSynthesis.getVoices();
+            const profile = document.getElementById('voice-profile').value;
 
-        // --- 2. CLEAR CHAT FUNCTION (Wipes screen, stops audio, clears bloat) ---
-        function clearChatHistory() {
-            if (window.speechSynthesis) window.speechSynthesis.cancel();
-            const chatBox = document.getElementById('chat-container');
-            if (chatBox) {
-                chatBox.innerHTML = '<div class="message veganna-msg">Chat cleared. Ready for a new session!</div>';
-            }
-            localStorage.removeItem('veganna_chat_history');
-        }
-
-        // --- 3. CHAT & MESSAGE MANAGEMENT (Prevents infinite HTML bloat) ---
-        function appendMessage(sender, text) {
-            const chatBox = document.getElementById('chat-container');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${sender === 'user' ? 'user-msg' : 'veganna-msg'}`;
-            msgDiv.textContent = text;
-            chatBox.appendChild(msgDiv);
-            
-            // Keep history trimmed to prevent DOM/storage bloat (max 50 messages)
-            while (chatBox.children.length > 50) {
-                chatBox.removeChild(chatBox.firstChild);
-            }
-
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('user-input');
-            const text = input.value.trim();
-            if (!text) return;
-
-            appendMessage('user', text);
-            input.value = '';
-
-            // Simulated VegAnna Response (Replace with your actual backend / API call logic)
-            setTimeout(() => {
-                const reply = "I hear you loud and clear! This response is streaming with our US English female voice.";
-                appendMessage('veganna', reply);
-                speakVegAnnaReply(reply);
-            }, 500);
-        }
-
-        // --- 4. SPEECH-TO-TEXT (Locked & Functional) ---
-        let recognition = null;
-        let isListening = false;
-
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'en-US';
-
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('user-input').value = transcript;
-                sendMessage();
-            };
-
-            recognition.onend = function() {
-                isListening = false;
-                document.getElementById('mic-btn').classList.remove('mic-active');
-            };
-        }
-
-        function toggleSpeechInput() {
-            if (!recognition) {
-                alert("Speech recognition is not supported in this browser wrapper.");
-                return;
-            }
-            if (isListening) {
-                recognition.stop();
+            let voice;
+            if (profile === 'scandinavian') {
+                voice = voices.find(v => !v.lang.includes('de') && !v.name.toLowerCase().includes('male') && (v.lang.startsWith('sv') || v.lang.startsWith('nb') || v.lang.startsWith('da') || v.name.includes('Astrid') || v.name.includes('Nora')));
+                utterance.pitch = 1.10;
+                utterance.rate = 0.95;
+            } else if (profile === 'international') {
+                voice = voices.find(v => !v.lang.includes('de') && !v.name.toLowerCase().includes('male') && (v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Moira') || v.lang.startsWith('en-US')));
+                utterance.pitch = 1.12;
+                utterance.rate = 0.98;
             } else {
-                recognition.start();
-                isListening = true;
-                document.getElementById('mic-btn').classList.add('mic-active');
+                voice = voices.find(v => !v.lang.includes('de') && !v.name.toLowerCase().includes('male') && (v.name.includes('Female') || v.name.includes('Victoria') || v.name.includes('Sonia') || v.name.includes('Hazel') || v.lang === 'en-GB'));
+                utterance.pitch = 1.15;
+                utterance.rate = 1.0;
             }
+
+            if (voice) utterance.voice = voice;
+            window.speechSynthesis.speak(utterance);
         }
-    </script>
+    }
+
+    async function fetchKnowledgeContext() {
+        let snippets = [];
+        try {
+            const cacheBust = `?t=${Date.now()}`;
+            const treeUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/git/trees/main?recursive=1${cacheBust}`;
+            const treeRes = await fetch(treeUrl);
+
+            if (treeRes.ok) {
+                const treeData = await treeRes.json();
+                const filePaths = (treeData.tree || []).filter(item => item.type === 'blob').map(item => item.path);
+                const filesToIngest = filePaths.filter(path => path.startsWith('knowledge/') || path.startsWith('characters/'));
+
+                await Promise.all(filesToIngest.map(async (path) => {
+                    try {
+                        const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${path}?t=${Date.now()}`;
+                        const res = await fetch(rawUrl);
+                        if (res.ok) {
+                            const text = await res.text();
+                            if (text && text.trim().length > 0) snippets.push(`\n[FILE: ${path}]\n${text}`);
+                        }
+                    } catch (e) {}
+                }));
+            }
+        } catch (err) {}
+        return snippets.length > 0 ? snippets.join('\n\n---\n\n') : null;
+    }
+
+    async function sendMessage() {
+        const apiKey = document.getElementById('api-key').value.trim();
+        const input = document.getElementById('user-input');
+        const query = input.value.trim();
+
+        if (!apiKey) {
+            alert('Please tap ⚙️ Settings in the top right to paste your DAHL API Key.');
+            toggleSettings();
+            return;
+        }
+        if (!query) return;
+
+        appendMsg(query, 'user', 'You');
+        input.value = '';
+
+        document.body.classList.add('is-thinking');
+        document.getElementById('status-bar').classList.add('active');
+
+        const repoContext = await fetchKnowledgeContext();
+
+        const now = new Date();
+        const currentDateTimeStr = now.toLocaleString('en-US', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+        });
+
+        const coreFacts = ` MANDATORY KUNDA BOUNDARIES & STRICT TRUTH:
+- CURRENT REAL-TIME CONTEXT: Today's live date and time is ${currentDateTimeStr}.
+- NAME & IDENTITY: Your name is strictly VEG ANNA. NEVER refer to yourself as just "Anna". Always say "Veg Anna".
+- MARTIN STRAYD & SONGARCHIVE INSTRUCTIONS: Martin Strayd is a co-founder. Read and pull exact info directly from ingested repository files, specifically [FILE: knowledge/songarchive.md].
+- STRICT ANTI-HALLUCINATION RULE FOR SONGS: Extract exact track info from [FILE: knowledge/songarchive.md].
+- OPENING HOURS: Kunda Cafe opens daily at 12:00 PM (Noon). Kitchen closes strictly at 7:30 PM.
+- LOCATION & MICHELIN: 372 Trairat Rd, Chiang Rai (opposite Wat Ming Muang). Michelin Guide Thailand 2026.
+- FOOD ETHOS: Strictly SOY-FREE, TOFU-FREE, and SUGAR-FREE world-class plant-based burgers. No Thai food, no fries, no commercial sodas.
+- NO ORDER TAKING: YOU ARE NOT A POS ORDER TAKING BOT.`;
+
+        let systemPrompt = `You are roleplaying purely as VEG ANNA.\n\n${coreFacts}\n\nIngested Knowledge Base:\n${repoContext || "No dynamic files found."}`;
+
+        try {
+            const response = await fetch('https://api.dahl.ai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'dahl-core',
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: query }
+                    ]
+                })
+            });
+
+            const data = await response.json();
+            const reply = data.choices[0].message.content;
+
+            appendMsg(reply, 'assistant', 'Veg Anna');
+            speakText(reply);
+        } catch (error) {
+            appendMsg('Error connecting to neural core. Please check your API key.', 'assistant', 'System');
+        } finally {
+            document.body.classList.remove('is-thinking');
+            document.getElementById('status-bar').classList.remove('active');
+        }
+    }
+
+    function appendMsg(text, type, senderName) {
+        const chatContainer = document.getElementById('chat-container');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${type}`;
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'message-header';
+        headerDiv.innerHTML = `<span>${senderName}</span>`;
+        msgDiv.appendChild(headerDiv);
+
+        const bodyDiv = document.createElement('div');
+        bodyDiv.className = 'msg-body';
+        bodyDiv.innerText = text;
+        msgDiv.appendChild(bodyDiv);
+
+        if (type === 'assistant') {
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'msg-actions';
+            actionsDiv.innerHTML = `
+                <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
+                <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
+                <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
+            `;
+            msgDiv.appendChild(actionsDiv);
+        }
+
+        chatContainer.appendChild(msgDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+</script>
 </body>
 </html>
