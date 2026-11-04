@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA // UNIFIED MISSION CONTROL ENGINE (ALL-IN-ONE)
+// AGENT ANNA // RESTORED WORKING MISSION CONTROL ENGINE
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -31,7 +31,7 @@ window.onload = function() {
     initSpeechRecognition();
 };
 
-// MULTI-BROWSER VOICE INPUT ENGINE
+// WORKING SPEECH RECOGNITION
 function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
@@ -95,7 +95,7 @@ function loadVoices() {
     cachedVoices = window.speechSynthesis.getVoices();
 }
 
-// PRELOAD CORE KNOWLEDGE BASE
+// PRELOAD CORE KNOWLEDGE
 async function preloadCoreKnowledge() {
     const corePaths = [
         "agent-anna/character/agent-anna.md",
@@ -116,7 +116,7 @@ async function preloadCoreKnowledge() {
     coreKnowledgeCache = snippets.join('\n\n---\n\n');
 }
 
-// FETCH LIVE TELEMETRY RELAY
+// FETCH TELEMETRY RELAY
 async function fetchLiveTelemetry() {
     try {
         const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/portal-relay.json?t=${Date.now()}`;
@@ -169,7 +169,7 @@ function clearLogs() {
     }
 }
 
-// AUDIO SYNTHESIZER (SOFT FEMALE VOICE PROFILE)
+// AUDIO SYNTHESIZER
 function speakText(text) {
     if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
@@ -189,7 +189,7 @@ function speakText(text) {
     window.speechSynthesis.speak(utterance);
 }
 
-// INFERENCE DISPATCH TO DAHL API
+// INFERENCE DISPATCH
 async function sendMessage() {
     const keyEl = document.getElementById('api-key');
     const input = document.getElementById('user-input');
