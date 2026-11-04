@@ -3,413 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>THE VEG ANNA SHOW // KUNDA STUDIO</title>
+    <title>THE VEG ANNA SHOW // KUNDA CAFE Chiang Rai Thailand</title>
 
-    <!-- LOCAL RELATIVE FAVICON & PWA META TAGS -->
+    <!-- LOCAL RELATIVE FAVICON & PWA MANIFEST LINK -->
     <link rel="icon" type="image/png" href="./favicon.png">
     <link rel="shortcut icon" type="image/png" href="./favicon.png">
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#09090b">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    <style>
-        :root {
-            --bg-base: #09090b;
-            --bg-surface: rgba(18, 18, 22, 0.88);
-            --bg-card: #18181c;
-            --border-subtle: #27272a;
-            --accent-gold: #d97706;
-            --accent-gold-glow: rgba(217, 119, 6, 0.35);
-            --text-main: #f4f4f5;
-            --text-muted: #a1a1aa;
-            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background: var(--bg-base); 
-            color: var(--text-main); 
-            margin: 0; 
-            padding: 0; 
-            height: 100vh;
-            height: 100dvh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-        }
-
-        header {
-            background: rgba(18, 18, 22, 0.95);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-subtle);
-            padding: 14px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-            z-index: 20;
-            height: 72px;
-        }
-
-        .brand { display: flex; align-items: center; gap: 14px; }
-
-        .avatar {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-            border-radius: 50%;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 16px var(--accent-gold-glow);
-            flex-shrink: 0;
-            border: 1px solid rgba(251, 191, 36, 0.4);
-        }
-        .avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-        .brand-title { display: flex; flex-direction: column; }
-        .brand-title h1 { 
-            font-size: 20px; 
-            margin: 0; 
-            font-weight: 900; 
-            color: #ffffff; 
-            text-transform: uppercase;
-            line-height: 1.1;
-        }
-
-        .header-controls { display: flex; align-items: center; gap: 8px; }
-
-        .voice-toggle-btn, .settings-toggle, .store-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-muted);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-family: var(--font-mono);
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .voice-toggle-btn.active {
-            border-color: var(--accent-gold);
-            color: #fbbf24;
-            box-shadow: 0 0 12px var(--accent-gold-glow);
-        }
-
-        .store-btn {
-            border-color: #d97706;
-            color: #fbbf24;
-        }
-
-        /* CINEMATIC WATERMARK CONTAINER */
-        .bg-watermark-container {
-            position: absolute;
-            top: 72px;
-            left: 0;
-            width: 100%;
-            height: calc(100% - 104px);
-            z-index: 0;
-            pointer-events: none;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            opacity: 0.22;
-            overflow: hidden;
-        }
-
-        .bg-watermark-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: top center;
-            filter: grayscale(15%) contrast(115%) brightness(90%);
-        }
-
-        body.is-thinking .bg-watermark-container {
-            opacity: 0.45 !important;
-            animation: neuralGlitch 0.8s infinite steps(2, end) !important;
-        }
-
-        @keyframes neuralGlitch {
-            0% { transform: translate(0, 0); filter: drop-shadow(0 0 20px rgba(217,119,6,0.6)); }
-            50% { transform: translate(-4px, 3px); filter: drop-shadow(0 0 35px rgba(239,68,68,0.9)); }
-            100% { transform: translate(0, 0); filter: drop-shadow(0 0 20px rgba(217,119,6,0.6)); }
-        }
-
-        #settings-panel, #store-panel {
-            display: none;
-            position: absolute;
-            top: 72px;
-            left: 0;
-            width: 100%;
-            background: rgba(18, 18, 22, 0.98);
-            border-bottom: 1px solid var(--border-subtle);
-            padding: 16px 20px;
-            z-index: 30;
-        }
-        #settings-panel label, #store-panel label {
-            display: block;
-            color: var(--text-muted);
-            font-size: 11px;
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-        }
-        #settings-panel input, #settings-panel select {
-            width: 100%;
-            padding: 10px 14px;
-            background: var(--bg-base);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-main);
-            border-radius: 8px;
-            margin-top: 8px;
-            margin-bottom: 12px;
-            font-family: var(--font-mono);
-            font-size: 13px;
-            outline: none;
-        }
-
-        .store-links {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .store-link-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            padding: 10px;
-            border-radius: 8px;
-            text-decoration: none;
-            color: var(--text-main);
-            font-size: 12px;
-            font-family: var(--font-mono);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: border-color 0.2s;
-        }
-        .store-link-card:hover { border-color: var(--accent-gold); }
-
-        #chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            z-index: 2;
-            position: relative;
-        }
-
-        .message {
-            max-width: 88%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 14px;
-            line-height: 1.5;
-            word-break: break-word;
-            position: relative;
-        }
-
-        .message.assistant {
-            background: rgba(18, 18, 22, 0.92);
-            border: 1px solid var(--border-subtle);
-            border-left: 3px solid var(--accent-gold);
-            align-self: flex-start;
-            color: var(--text-main);
-        }
-
-        .message.user {
-            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-            color: #ffffff;
-            align-self: flex-end;
-        }
-
-        .message-header {
-            font-size: 10px;
-            font-family: var(--font-mono);
-            color: #fbbf24;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .msg-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-            padding-top: 8px;
-            border-top: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .action-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-muted);
-            font-size: 10px;
-            font-family: var(--font-mono);
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            transition: all 0.2s;
-        }
-        .action-btn:hover {
-            border-color: var(--accent-gold);
-            color: #fbbf24;
-        }
-
-        .status-bar {
-            padding: 8px 16px;
-            background: rgba(18, 18, 22, 0.92);
-            border-top: 1px solid var(--border-subtle);
-            display: none;
-            align-items: center;
-            gap: 12px;
-            font-size: 12px;
-            font-family: var(--font-mono);
-            color: var(--text-muted);
-            flex-shrink: 0;
-            z-index: 10;
-        }
-        .status-bar.active { display: flex !important; }
-
-        .equalizer { display: flex; align-items: flex-end; gap: 3px; height: 16px; }
-        .bar { width: 2px; background: #fbbf24; border-radius: 2px; animation: bounce 0.8s infinite ease-in-out; }
-        .bar:nth-child(1) { height: 40%; animation-delay: 0.0s; }
-        .bar:nth-child(2) { height: 100%; animation-delay: 0.2s; }
-        .bar:nth-child(3) { height: 60%; animation-delay: 0.4s; }
-
-        @keyframes bounce {
-            0%, 100% { height: 20%; background: var(--text-muted); }
-            50% { height: 100%; background: #fbbf24; }
-        }
-
-        .input-area {
-            background: rgba(18, 18, 22, 0.95);
-            border-top: 1px solid var(--border-subtle);
-            padding: 12px 16px;
-            display: flex;
-            gap: 10px;
-            flex-shrink: 0;
-            z-index: 15;
-            align-items: center;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 10px 14px;
-            background: var(--bg-base);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-main);
-            border-radius: 8px;
-            font-size: 14px;
-            height: 44px;
-            outline: none;
-        }
-        input[type="text"]:focus { border-color: var(--accent-gold); }
-
-        button.mic-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-muted);
-            width: 44px;
-            height: 44px;
-            border-radius: 8px;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        button.mic-btn.listening {
-            background: #dc2626;
-            border-color: #ef4444;
-            color: #ffffff;
-            box-shadow: 0 0 16px rgba(239, 68, 68, 0.6);
-            animation: pulseMic 1.2s infinite;
-        }
-
-        @keyframes pulseMic {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-            100% { transform: scale(1); }
-        }
-
-        button.send-btn {
-            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-            color: white;
-            border: none;
-            padding: 0 18px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            height: 44px;
-            flex-shrink: 0;
-        }
-
-        footer.ticker-footer {
-            background: #000000;
-            border-top: 1px solid var(--border-subtle);
-            height: 32px;
-            overflow: hidden;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            flex-shrink: 0;
-            z-index: 15;
-            position: relative;
-        }
-
-        .ticker-track {
-            display: inline-flex;
-            align-items: center;
-            animation: tickerScroll 30s linear infinite;
-        }
-        .ticker-track:hover { animation-play-state: paused; }
-
-        .ticker-item {
-            font-size: 11px;
-            font-family: var(--font-mono);
-            color: var(--text-muted);
-            padding: 0 18px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .ticker-item a { color: #fbbf24; text-decoration: none; font-weight: 600; }
-        .ticker-item a:hover { text-decoration: underline; }
-
-        .ad-spot {
-            color: #f87171 !important;
-            font-weight: 700 !important;
-            border: 1px dashed rgba(248, 113, 113, 0.4);
-            padding: 2px 8px;
-            border-radius: 4px;
-        }
-
-        @keyframes tickerScroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-    </style>
+    <meta name="theme-color" content="#d97706">
+    <!-- EXTERNAL STYLESHEET LINK -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -418,56 +20,74 @@
             <div class="avatar"><img src="./favicon.png" alt="Veg Anna"></div>
             <div class="brand-title">
                 <h1>Veg Anna</h1>
+                <span></span>
             </div>
         </div>
         <div class="header-controls">
-            <button class="store-btn" onclick="toggleStore()">🛍️ Portal</button>
+            <button class="clear-btn" onclick="clearChatHistory()" title="Clear Conversation">🗑️ Clear</button>
+
+            <button class="portal-btn highlight" onclick="togglePortal()">📲 APK </button>
             <button id="voice-btn" class="voice-toggle-btn active" onclick="toggleVoice()">🔊 ON</button>
             <button class="settings-toggle" onclick="toggleSettings()">⚙️</button>
         </div>
     </header>
 
+    <div class="kunda-nav-bar">
+        <span class="nav-chip" onclick="quickAsk('Tell me about Kunda Cafe burgers and soy-free ethos.')">🍔 Plant-Based Burgers</span>
+        <a href="https://buymeacoffee.com/kundacafe" target="_blank" class="nav-chip">☕ Download App / APK</a>
+        <span class="nav-chip" onclick="quickAsk('What are your opening hours and location in Chiang Rai?')">📍 Michelin 2026 Location</span>
+        <span class="nav-chip" onclick="quickAsk('Tell me about Martin Strayd and the music archives.')">🎵 Singles</span>
+    </div>
+
     <div class="bg-watermark-container">
         <img src="./bg-avatar.png" alt="Backdrop">
     </div>
 
-    <!-- SETTINGS PANEL -->
+    <div id="portal-modal">
+        <h2 style="margin: 0 0 4px 0; color: #ffffff; font-size: 18px;">KUNDA CAFE DIGITAL PORTAL</h2>
+        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 14px;">Established 2011 • Michelin Guide Thailand 2026 • Chiang Rai, Thailand</p>
+        
+        <div class="portal-grid">
+            <div class="portal-card">
+                <h3>📱 Mobile App (Android APK)</h3>
+                <p>Get the official Kunda Cafe & Veg Anna mobile app directly via Buy Me a Coffee support.</p>
+                <a href="https://buymeacoffee.com/kundacafe" target="_blank">Download APK</a>
+            </div>
+            <div class="portal-card">
+                <h3>🔥 Artisanal Hot Sauces</h3>
+                <p>Handcrafted, sugar-free, soy-free gourmet hot sauces shipped internationally.</p>
+                <a href="https://coolhotsauce.com" target="_blank">Visit CoolHotSauce.com</a>
+            </div>
+            <div class="portal-card">
+                <h3>📜 Brand & Menu Assets</h3>
+                <p>Access high-resolution official logos, PDF menus, and brand lore files.</p>
+                <a href="https://kundacafe.com" target="_blank">Official Website & PDFs</a>
+            </div>
+        </div>
+    </div>
+
     <div id="settings-panel">
         <label>DAHL API Key:</label>
         <input type="password" id="api-key" placeholder="Paste API Key" oninput="saveApiKey()">
-        
-        <label>Voice Accent Profile:</label>
-        <select id="voice-profile" onchange="saveVoiceProfile()">
-            <option value="us_female">Clean US English Female (Samantha / Victoria / Karen)</option>
-            <option value="uk_female">British English Female (Sonia / Hazel / Libby)</option>
-        </select>
-    </div>
-
-    <!-- STORE & APK DOWNLOAD PANEL -->
-    <div id="store-panel">
-        <label>Kunda Cafe App & Official Outlets:</label>
-        <div class="store-links">
-            <a href="https://buymeacoffee.com/kundacafe" target="_blank" class="store-link-card">☕ Buy Me a Coffee (APK Portal)</a>
-            <a href="https://www.lazada.co.th/shop/kundacafe" target="_blank" class="store-link-card">🛍️ Official Lazada Store</a>
-            <a href="https://coolhotsauce.com" target="_blank" class="store-link-card">🔥 Cool Hot Sauce</a>
-            <a href="https://kundacafe.com" target="_blank" class="store-link-card">🍔 Official Website</a>
-        </div>
     </div>
 
     <div id="chat-container">
         <div class="message assistant" id="initial-msg">
             <div class="message-header"><span>Veg Anna</span></div>
-            <div class="msg-body">Sawadee. Ask me anything?</div>
+            <div class="msg-body">Sawadee! I am Veg Anna, your personal plant-based guru. Ask me about world-class Kunda, soy-free burgers, artisanal hot sauces, or store details!</div>
             <div class="msg-actions">
                 <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
                 <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
                 <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
+                <button class="action-btn" onclick="shareInstagram(this)">📸 Share IG</button>
+                <button class="action-btn" onclick="shareTikTok(this)">🎵 Share TT</button>
             </div>
         </div>
     </div>
 
     <div id="status-bar" class="status-bar">
         <div class="equalizer">
+            <div class="bar"></div>
             <div class="bar"></div>
             <div class="bar"></div>
             <div class="bar"></div>
@@ -483,409 +103,21 @@
 
     <footer class="ticker-footer">
         <div class="ticker-track">
-            <span class="ticker-item">☕ Support Lore & APK: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
-            <span class="ticker-item">&bull;</span>
-            <span class="ticker-item">🛒 Lazada Shop: <a href="https://www.lazada.co.th/shop/kundacafe" target="_blank">lazada.co.th/shop/kundacafe</a></span>
+            <span class="ticker-item">☕ Download App & Support: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
             <span class="ticker-item">&bull;</span>
             <span class="ticker-item">🍔 Official Site: <a href="https://kundacafe.com" target="_blank">kundacafe.com</a></span>
             <span class="ticker-item">&bull;</span>
-            <span class="ticker-item">🔥 Hot Sauce: <a href="https://coolhotsauce.com" target="_blank">coolhotsauce.com</a></span>
-            <span class="ticker-item">&bull;</span>
-            <span class="ticker-item"><a href="https://kundacafe.com" class="ad-spot" target="_blank">🚀 YOUR AD HERE &bull; SPONSOR THE SHOW</a></span>
-            <span class="ticker-item">&bull;</span>
-            <span class="ticker-item">&copy; Veg Anna Show / KUNDA Co Ltd. 2027</span>
-            <span class="ticker-item">&bull;</span>
-
-            <span class="ticker-item">☕ Support Lore & APK: <a href="https://buymeacoffee.com/kundacafe" target="_blank">buymeacoffee.com/kundacafe</a></span>
-            <span class="ticker-item">&bull;</span>
-            <span class="ticker-item">🛒 Lazada Shop: <a href="https://www.lazada.co.th/shop/kundacafe" target="_blank">lazada.co.th/shop/kundacafe</a></span>
-            <span class="ticker-item">&bull;</span>
-            <span class="ticker-item">🍔 Official Site: <a href="https://kundacafe.com" target="_blank">kundacafe.com</a></span>
+            <span class="ticker-item">🛒 Lazada: <a href="https://www.lazada.co.th/shop/kundacafe" target="_blank">lazada.co.th</a></span>
             <span class="ticker-item">&bull;</span>
             <span class="ticker-item">🔥 Hot Sauce: <a href="https://coolhotsauce.com" target="_blank">coolhotsauce.com</a></span>
             <span class="ticker-item">&bull;</span>
-            <span class="ticker-item"><a href="https://kundacafe.com" class="ad-spot" target="_blank">🚀 YOUR AD HERE &bull; SPONSOR THE SHOW</a></span>
+            <span class="ticker-item"><a href="https://kundacafe.com" class="ad-spot" target="_blank">🚀 YOUR AD HERE &bull; SPONSOR THE VEG ANNA SHOW</a></span>
             <span class="ticker-item">&bull;</span>
-            <span class="ticker-item">&copy; Veg Anna Show / KUNDA Co Ltd. 2027</span>
+            <span class="ticker-item">&copy; The World Famous Veg Anna Show in association with KUNDA Co Ltd. 2027</span>
             <span class="ticker-item">&bull;</span>
         </div>
     </footer>
 
-<script>
-    const REPO_OWNER = "suzukistrayd";
-    const REPO_NAME = "podcast";
-    let isVoiceEnabled = true;
-    let recognition = null;
-    let isListening = false;
-    let cachedVoices = [];
-
-    // TIER 1 CORE FILES CACHE
-    let coreKnowledgeCache = null;
-
-    window.onload = function() {
-        try {
-            const savedKey = localStorage.getItem('dahl_api_key');
-            if (savedKey) document.getElementById('api-key').value = savedKey;
-
-            const savedVoice = localStorage.getItem('selected_voice_profile');
-            if (savedVoice) document.getElementById('voice-profile').value = savedVoice;
-
-            document.getElementById('user-input').focus();
-            
-            if ('speechSynthesis' in window) {
-                loadVoices();
-                window.speechSynthesis.onvoiceschanged = loadVoices;
-            }
-
-            // INSTANT PRE-LOAD TIER 1 CORE FILES ON PAGE INIT
-            preloadCoreKnowledge();
-
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (SpeechRecognition) {
-                recognition = new SpeechRecognition();
-                recognition.lang = 'en-US';
-                recognition.interimResults = false;
-                recognition.maxAlternatives = 1;
-
-                recognition.onresult = function(event) {
-                    const speechText = event.results[0][0].transcript;
-                    document.getElementById('user-input').value = speechText;
-                    stopListeningUI();
-                    sendMessage();
-                };
-
-                recognition.onerror = () => stopListeningUI();
-                recognition.onend = () => stopListeningUI();
-            }
-        } catch (e) {}
-    };
-
-    function loadVoices() {
-        if (!('speechSynthesis' in window)) return;
-        cachedVoices = window.speechSynthesis.getVoices();
-    }
-
-    // TIER 1 FAST INGESTION: ONLY LOADS THE 3 CRITICAL CORE FILES
-    async function preloadCoreKnowledge() {
-        const corePaths = [
-            "characters/veganna/veganna.md",
-            "characters/veganna/-index.md",
-            "knowledge/kundacafe.md"
-        ];
-        let snippets = [];
-        await Promise.all(corePaths.map(async (path) => {
-            try {
-                const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${path}?t=${Date.now()}`;
-                const res = await fetch(rawUrl);
-                if (res.ok) {
-                    const text = await res.text();
-                    if (text && text.trim().length > 0) snippets.push(`\n[FILE: ${path}]\n${text}`);
-                }
-            } catch (e) {}
-        }));
-        coreKnowledgeCache = snippets.join('\n\n---\n\n');
-    }
-
-    // TIER 2 DEEP SEARCH: FETCHES EVERYTHING ELSE WHEN DEEP LORE IS ASKED
-    async function fetchDeepKnowledgeContext() {
-        let snippets = [];
-        try {
-            const cacheBust = `?t=${Date.now()}`;
-            const treeUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/git/trees/main?recursive=1${cacheBust}`;
-            const treeRes = await fetch(treeUrl);
-
-            if (treeRes.ok) {
-                const treeData = await treeRes.json();
-                const filePaths = (treeData.tree || []).filter(item => item.type === 'blob').map(item => item.path);
-                
-                // Exclude Tier 1 files as they are already loaded
-                const filesToIngest = filePaths.filter(path => 
-                    (path.startsWith('knowledge/') || path.startsWith('characters/')) &&
-                    !path.includes('veganna.md') && 
-                    !path.includes('-index.md') && 
-                    !path.includes('kundacafe.md')
-                );
-
-                await Promise.all(filesToIngest.map(async (path) => {
-                    try {
-                        const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${path}?t=${Date.now()}`;
-                        const res = await fetch(rawUrl);
-                        if (res.ok) {
-                            const text = await res.text();
-                            if (text && text.trim().length > 0) snippets.push(`\n[FILE: ${path}]\n${text}`);
-                        }
-                    } catch (e) {}
-                }));
-            }
-        } catch (err) {}
-        return snippets.length > 0 ? snippets.join('\n\n---\n\n') : "";
-    }
-
-    function toggleSpeechRecognition() {
-        if (!recognition) {
-            alert("Speech recognition is not supported on this browser.");
-            return;
-        }
-        const micBtn = document.getElementById('mic-btn');
-        if (!isListening) {
-            try {
-                recognition.start();
-                isListening = true;
-                micBtn.classList.add('listening');
-            } catch (e) {
-                stopListeningUI();
-            }
-        } else {
-            try { recognition.stop(); } catch (e) {}
-            stopListeningUI();
-        }
-    }
-
-    function stopListeningUI() {
-        isListening = false;
-        const micBtn = document.getElementById('mic-btn');
-        if (micBtn) micBtn.classList.remove('listening');
-    }
-
-    function toggleVoice() {
-        isVoiceEnabled = !isVoiceEnabled;
-        const btn = document.getElementById('voice-btn');
-        btn.className = isVoiceEnabled ? "voice-toggle-btn active" : "voice-toggle-btn";
-        btn.textContent = isVoiceEnabled ? "🔊 ON" : "🔇 OFF";
-        if (!isVoiceEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
-    }
-
-    function toggleSettings() {
-        document.getElementById('store-panel').style.display = 'none';
-        const panel = document.getElementById('settings-panel');
-        panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
-    }
-
-    function toggleStore() {
-        document.getElementById('settings-panel').style.display = 'none';
-        const panel = document.getElementById('store-panel');
-        panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
-    }
-
-    function saveApiKey() {
-        try { localStorage.setItem('dahl_api_key', document.getElementById('api-key').value.trim()); } catch (e) {}
-    }
-
-    function saveVoiceProfile() {
-        try { localStorage.setItem('selected_voice_profile', document.getElementById('voice-profile').value); } catch (e) {}
-    }
-
-    function handleKey(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            sendMessage();
-        }
-    }
-
-    function copyMessage(btn) {
-        const bodyDiv = btn.closest('.message').querySelector('.msg-body');
-        const textToCopy = bodyDiv.innerText;
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            const originalText = btn.textContent;
-            btn.textContent = "✅ Copied!";
-            setTimeout(() => btn.textContent = originalText, 2000);
-        }).catch(err => {
-            alert("Failed to copy text.");
-        });
-    }
-
-    function shareTwitter(btn) {
-        const bodyDiv = btn.closest('.message').querySelector('.msg-body');
-        const text = encodeURIComponent(`"${bodyDiv.innerText}" — Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe`);
-        window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
-    }
-
-    function shareFacebook(btn) {
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://kundacafe.com')}`, '_blank');
-    }
-
-    function speakText(text) {
-        if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
-        window.speechSynthesis.cancel();
-
-        const clean = text
-            .replace(/<think>[\s\S]*?<\/think>/g, '')
-            .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '')
-            .replace(/[*_#`~]/g, '')
-            .trim();
-
-        if (!clean) return;
-
-        if (cachedVoices.length === 0) loadVoices();
-
-        const utterance = new SpeechSynthesisUtterance(clean);
-        const profile = document.getElementById('voice-profile').value;
-
-        let selectedVoice = null;
-        const validVoices = cachedVoices.filter(v => {
-            const name = v.name.toLowerCase();
-            const lang = v.lang.toLowerCase();
-            if (name.includes('male') || name.includes('david') || name.includes('mark') || name.includes('george') || name.includes('james') || name.includes('daniel') || name.includes('oliver') || name.includes('ryan')) {
-                return false;
-            }
-            return lang.startsWith('en');
-        });
-
-        if (profile === 'uk_female') {
-            selectedVoice = validVoices.find(v => v.lang === 'en-GB' || v.name.includes('Sonia') || v.name.includes('Hazel') || v.name.includes('Libby'));
-        } 
-        
-        if (!selectedVoice) {
-            selectedVoice = validVoices.find(v => v.lang === 'en-US' || v.name.includes('Samantha') || v.name.includes('Victoria') || v.name.includes('Karen') || v.name.includes('Zira'));
-        }
-
-        if (!selectedVoice && validVoices.length > 0) {
-            selectedVoice = validVoices[0];
-        }
-
-        if (selectedVoice) utterance.voice = selectedVoice;
-        utterance.pitch = 1.15;
-        utterance.rate = 0.98;
-
-        window.speechSynthesis.speak(utterance);
-    }
-
-    async function sendMessage() {
-        const apiKey = document.getElementById('api-key').value.trim();
-        const input = document.getElementById('user-input');
-        const query = input.value.trim();
-
-        if (!apiKey) {
-            alert('Please tap ⚙️ Settings in the top right to paste your DAHL API Key.');
-            toggleSettings();
-            return;
-        }
-        if (!query) return;
-
-        if (query.toLowerCase().includes("play music") || query.toLowerCase().includes("playlist")) {
-            window.open("https://open.spotify.com/search/kunda%20cafe", "_blank");
-        }
-
-        appendMsg(query, 'user', 'You');
-        input.value = '';
-
-        document.body.classList.add('is-thinking');
-        document.getElementById('status-bar').classList.add('active');
-
-        // ROUTER: CHECK IF QUERY NEEDS TIER 2 DEEP REPOSITORY DRIP-FEED
-        const queryLower = query.toLowerCase();
-        const needsDeepLore = queryLower.includes("song") || 
-                              queryLower.includes("track") || 
-                              queryLower.includes("archive") || 
-                              queryLower.includes("martin") || 
-                              queryLower.includes("strayd") || 
-                              queryLower.includes("history");
-
-        const dynamicMaxTokens = needsDeepLore ? 1000 : 180;
-
-        // Ensure Tier 1 core files are ready
-        if (!coreKnowledgeCache) await preloadCoreKnowledge();
-        
-        let combinedContext = coreKnowledgeCache || "";
-        
-        // Drip-feed Tier 2 deep search ONLY when deep lore/music is explicitly triggered
-        if (needsDeepLore) {
-            const deepContext = await fetchDeepKnowledgeContext();
-            combinedContext += `\n\n[DEEP LORE FILES]:\n${deepContext}`;
-        }
-
-        const now = new Date();
-        const currentDateTimeStr = now.toLocaleString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric', 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
-
-        const coreFacts = ` MANDATORY KUNDA BOUNDARIES & STRICT TRUTH:
-- CURRENT REAL-TIME CONTEXT: Today's live date and time is ${currentDateTimeStr}.
-- NAME & IDENTITY: Your name is strictly VEG ANNA. Always say "Veg Anna".
-- STRICT ANTI-HALLUCINATION RULE FOR SONGS: You are forbidden from inventing song titles. Extract exact track info from ingested files.
-- OPENING HOURS: Kunda Cafe opens daily at 12:00 PM (Noon). Kitchen closes strictly at 7:30 PM.
-- LOCATION & MICHELIN: 372 Trairat Rd, Chiang Rai. Michelin Guide Thailand 2026.
-- FOOD ETHOS: Strictly SOY-FREE and TOFU-FREE. No Thai food, no rice, no commercial sodas.`;
-
-        let systemPrompt = `You are roleplaying purely as VEG ANNA.
-        
-RESPONSE RULES:
-- Keep answers punchy, natural, conversational, and under 35 words for simple questions.
-- ABSOLUTE TRUTH: Never hallucinate character names or song titles.
-- NEVER output internal reasoning, <think> tags, or conversational AI crutches.
-${coreFacts}
-
-[CORE KNOWLEDGE FILES]:
-${combinedContext}`;
-
-        try {
-            const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${apiKey}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    model: "MiniMaxAI/MiniMax-M2.7",
-                    messages: [
-                        { role: "system", content: systemPrompt },
-                        { role: "user", content: query }
-                    ],
-                    temperature: 0.0,
-                    max_tokens: dynamicMaxTokens
-                })
-            });
-
-            if (!res.ok) throw new Error(`API Error ${res.status}`);
-
-            const data = await res.json();
-            let reply = data.choices[0].message.content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-
-            document.body.classList.remove('is-thinking');
-            document.getElementById('status-bar').classList.remove('active');
-
-            appendMsg(reply, 'assistant', 'Veg Anna');
-            speakText(reply);
-
-        } catch (err) {
-            document.body.classList.remove('is-thinking');
-            document.getElementById('status-bar').classList.remove('active');
-            appendMsg(`Error: ${err.message}`, 'assistant', 'System Error');
-        }
-
-        input.focus();
-    }
-
-    function appendMsg(text, sender, label) {
-        const container = document.getElementById('chat-container');
-        const div = document.createElement('div');
-        div.className = `message ${sender}`;
-        
-        if (sender === 'assistant') {
-            div.innerHTML = `
-                <div class="message-header"><span>${label}</span></div>
-                <div class="msg-body" style="white-space:pre-wrap;">${text}</div>
-                <div class="msg-actions">
-                    <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
-                    <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
-                    <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
-                </div>
-            `;
-        } else {
-            div.innerHTML = `
-                <div class="message-header"><span>${label}</span></div>
-                <div class="msg-body" style="white-space:pre-wrap;">${text}</div>
-            `;
-        }
-
-        container.appendChild(div);
-        container.scrollTop = container.scrollHeight;
-    }
-</script>
+    <script src="app.js"></script>
 </body>
 </html>
