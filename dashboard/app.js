@@ -9,9 +9,13 @@ let coreKnowledgeCache = null;
 window.onload = function() {
     try {
         const savedKey = localStorage.getItem('dahl_api_key');
-        if (savedKey) document.getElementById('api-key').value = savedKey;
+        if (savedKey) {
+            const keyInput = document.getElementById('api-key');
+            if (keyInput) keyInput.value = savedKey;
+        }
 
-        document.getElementById('user-input').focus();
+        const inputEl = document.getElementById('user-input');
+        if (inputEl) inputEl.focus();
         
         if ('speechSynthesis' in window) {
             loadVoices();
@@ -29,7 +33,8 @@ window.onload = function() {
 
             recognition.onresult = function(event) {
                 const speechText = event.results[0][0].transcript;
-                document.getElementById('user-input').value = speechText;
+                const userInput = document.getElementById('user-input');
+                if (userInput) userInput.value = speechText;
                 stopListeningUI();
                 sendMessage();
             };
@@ -108,7 +113,7 @@ function toggleSpeechRecognition() {
         try {
             recognition.start();
             isListening = true;
-            micBtn.classList.add('listening');
+            if (micBtn) micBtn.classList.add('listening');
         } catch (e) {
             stopListeningUI();
         }
@@ -127,32 +132,42 @@ function stopListeningUI() {
 function toggleVoice() {
     isVoiceEnabled = !isVoiceEnabled;
     const btn = document.getElementById('voice-btn');
-    btn.className = isVoiceEnabled ? "voice-toggle-btn active" : "voice-toggle-btn";
-    btn.textContent = isVoiceEnabled ? "🔊 ON" : "🔇 OFF";
+    if (btn) {
+        btn.className = isVoiceEnabled ? "voice-toggle-btn active" : "voice-toggle-btn";
+        btn.textContent = isVoiceEnabled ? "🔊 ON" : "🔇 OFF";
+    }
     if (!isVoiceEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
 }
 
 function toggleSettings() {
-    document.getElementById('portal-modal').style.display = 'none';
+    const modal = document.getElementById('portal-modal');
+    if (modal) modal.style.display = 'none';
     const panel = document.getElementById('settings-panel');
-    panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+    if (panel) panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
 }
 
 function togglePortal() {
-    document.getElementById('settings-panel').style.display = 'none';
+    const panel = document.getElementById('settings-panel');
+    if (panel) panel.style.display = 'none';
     const modal = document.getElementById('portal-modal');
-    modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+    if (modal) modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
 }
 
 function quickAsk(promptText) {
-    document.getElementById('portal-modal').style.display = 'none';
-    document.getElementById('settings-panel').style.display = 'none';
-    document.getElementById('user-input').value = promptText;
+    const modal = document.getElementById('portal-modal');
+    const panel = document.getElementById('settings-panel');
+    if (modal) modal.style.display = 'none';
+    if (panel) panel.style.display = 'none';
+    const input = document.getElementById('user-input');
+    if (input) input.value = promptText;
     sendMessage();
 }
 
 function saveApiKey() {
-    try { localStorage.setItem('dahl_api_key', document.getElementById('api-key').value.trim()); } catch (e) {}
+    try {
+        const keyInput = document.getElementById('api-key');
+        if (keyInput) localStorage.setItem('dahl_api_key', keyInput.value.trim());
+    } catch (e) {}
 }
 
 function handleKey(event) {
@@ -165,63 +180,87 @@ function handleKey(event) {
 function clearChatHistory() {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     const chatContainer = document.getElementById('chat-container');
-    chatContainer.innerHTML = `
-        <div class="message assistant" id="initial-msg">
-            <div class="message-header"><span>Veg Anna</span></div>
-            <div class="msg-body">Chat session cleared. Sawadee! How can I help you today?</div>
-            <div class="msg-actions">
-                <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
-                <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
-                <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
-                <button class="action-btn" onclick="shareInstagram(this)">📸 Share IG</button>
-                <button class="action-btn" onclick="shareTikTok(this)">🎵 Share TT</button>
+    if (chatContainer) {
+        chatContainer.innerHTML = `
+            <div class="message assistant" id="initial-msg">
+                <div class="message-header"><span>Veg Anna</span></div>
+                <div class="msg-body">Chat session cleared. Sawadee! How can I help you today?</div>
+                <div class="msg-actions">
+                    <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
+                    <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
+                    <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
+                    <button class="action-btn" onclick="shareInstagram(this)">📸 Share IG</button>
+                    <button class="action-btn" onclick="shareTikTok(this)">🎵 Share TT</button>
+                </div>
             </div>
-        </div>
-    `;
+        `;
+    }
     localStorage.removeItem('veganna_chat_history');
     sessionStorage.clear();
 }
 
 function copyMessage(btn) {
     const bodyDiv = btn.closest('.message').querySelector('.msg-body');
+    if (!bodyDiv) return;
     const textToCopy = bodyDiv.innerText;
-    navigator.clipboard.writeText(textToCopy).then(() => {
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalText = btn.textContent;
+            btn.textContent = "✅ Copied!";
+            setTimeout(() => btn.textContent = originalText, 2000);
+        }).catch(() => fallbackCopy(textToCopy, btn));
+    } else {
+        fallbackCopy(textToCopy, btn);
+    }
+}
+
+function fallbackCopy(text, btn) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+        document.execCommand('copy');
         const originalText = btn.textContent;
         btn.textContent = "✅ Copied!";
         setTimeout(() => btn.textContent = originalText, 2000);
-    }).catch(err => {
-        alert("Failed to copy text.");
-    });
+    } catch (err) {}
+    document.body.removeChild(textArea);
 }
 
 function shareTwitter(btn) {
     const bodyDiv = btn.closest('.message').querySelector('.msg-body');
-    const text = encodeURIComponent(`"${bodyDiv.innerText}" — Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe`);
+    if (!bodyDiv) return;
+    const text = encodeURIComponent(`"${bodyDiv.innerText}" — Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`);
     window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
 }
 
 function shareFacebook(btn) {
+    const bodyDiv = btn.closest('.message').querySelector('.msg-body');
+    if (!bodyDiv) return;
+    const shareText = `"${bodyDiv.innerText}" — Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`;
+    fallbackCopy(shareText, btn);
+    alert("Post text and hashtags copied to clipboard! Opening Facebook...");
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://kundacafe.com')}`, '_blank');
 }
 
 function shareInstagram(btn) {
     const bodyDiv = btn.closest('.message').querySelector('.msg-body');
-    navigator.clipboard.writeText(bodyDiv.innerText).then(() => {
-        alert("Quote copied to clipboard! Opening Instagram...");
-        window.open('https://www.instagram.com', '_blank');
-    }).catch(() => {
-        window.open('https://www.instagram.com', '_blank');
-    });
+    if (!bodyDiv) return;
+    const shareText = `"${bodyDiv.innerText}" — Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`;
+    fallbackCopy(shareText, btn);
+    alert("Quote and hashtags copied to clipboard! Opening Instagram...");
+    window.open('https://www.instagram.com', '_blank');
 }
 
 function shareTikTok(btn) {
     const bodyDiv = btn.closest('.message').querySelector('.msg-body');
-    navigator.clipboard.writeText(bodyDiv.innerText).then(() => {
-        alert("Quote copied to clipboard! Opening TikTok...");
-        window.open('https://www.tiktok.com', '_blank');
-    }).catch(() => {
-        window.open('https://www.tiktok.com', '_blank');
-    });
+    if (!bodyDiv) return;
+    const shareText = `"${bodyDiv.innerText}" — Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`;
+    fallbackCopy(shareText, btn);
+    alert("Quote and hashtags copied to clipboard! Opening TikTok...");
+    window.open('https://www.tiktok.com', '_blank');
 }
 
 function speakText(text) {
@@ -240,7 +279,7 @@ function speakText(text) {
 
     const utterance = new SpeechSynthesisUtterance(clean);
 
-    // BACKSTAGE VOICE ENGINE: Priority list matching soft British & International female voices
+    // BACKSTAGE VOICE ENGINE HARDCODED MATCHING
     const preferredVoices = [
         "Google UK English Female",
         "en-GB-Neural2-F",
@@ -265,31 +304,26 @@ function speakText(text) {
                !name.includes('daniel');
     });
 
-    // 1. Preferred British female voice match
     let selectedVoice = femaleVoices.find(v => 
         preferredVoices.some(pv => v.name.includes(pv)) && (v.lang === 'en-GB' || v.lang.startsWith('en'))
     );
 
-    // 2. Generic British female voice fallback
     if (!selectedVoice) {
         selectedVoice = femaleVoices.find(v => v.lang === 'en-GB');
     }
 
-    // 3. Preferred soft English female fallback
     if (!selectedVoice) {
         selectedVoice = femaleVoices.find(v => 
             preferredVoices.some(pv => v.name.includes(pv))
         );
     }
 
-    // 4. Any English female fallback
     if (!selectedVoice && femaleVoices.length > 0) {
         selectedVoice = femaleVoices[0];
     }
 
     if (selectedVoice) utterance.voice = selectedVoice;
     
-    // Backstage audio tuning for a soft, relaxed tone
     utterance.pitch = 1.05;
     utterance.rate = 0.92;
 
@@ -297,9 +331,10 @@ function speakText(text) {
 }
 
 async function sendMessage() {
-    const apiKey = document.getElementById('api-key').value.trim();
+    const keyEl = document.getElementById('api-key');
     const input = document.getElementById('user-input');
-    const query = input.value.trim();
+    const apiKey = keyEl ? keyEl.value.trim() : "";
+    const query = input ? input.value.trim() : "";
 
     if (!apiKey) {
         alert('Please tap ⚙️ Settings in the top right to paste your DAHL API Key.');
@@ -313,10 +348,11 @@ async function sendMessage() {
     }
 
     appendMsg(query, 'user', 'You');
-    input.value = '';
+    if (input) input.value = '';
 
     document.body.classList.add('is-thinking');
-    document.getElementById('status-bar').classList.add('active');
+    const statusBar = document.getElementById('status-bar');
+    if (statusBar) statusBar.classList.add('active');
 
     const queryLower = query.toLowerCase();
     const needsDeepLore = queryLower.includes("song") || 
@@ -349,4 +385,89 @@ async function sendMessage() {
 
     const coreFacts = ` MANDATORY KUNDA BOUNDARIES & STRICT TRUTH:
 - CURRENT REAL-TIME CONTEXT: Today's live date and time is ${currentDateTimeStr}.
-- NAME & IDENTITY
+- NAME & IDENTITY: Your name is strictly VEG ANNA. Always say "Veg Anna".
+- BRAND GREETINGS ONLY: Use "Sawadee!" or professional welcomes. ABSOLUTELY NEVER say "Kia Ora" or non-brand regional greetings.
+- STRICT ANTI-HALLUCINATION RULE FOR SONGS: You are forbidden from inventing song titles. Extract exact track info from ingested files.
+- OPENING HOURS: Kunda Cafe opens daily at 12:00 PM (Noon). Kitchen closes strictly at 7:30 PM.
+- LOCATION & MICHELIN: 372 Trairat Rd, Chiang Rai. Michelin Guide Thailand 2026.
+- FOOD ETHOS: Strictly SOY-FREE and TOFU-FREE. No Thai food, no rice, no commercial sodas.`;
+
+    let systemPrompt = `You are roleplaying purely as VEG ANNA.
+    
+RESPONSE RULES:
+- Keep answers punchy, natural, conversational, and under 35 words for simple questions.
+- ABSOLUTE TRUTH: Never hallucinate character names or song titles.
+- NEVER output internal reasoning, <think> tags, or conversational AI crutches.
+
+${coreFacts}
+
+[CORE KNOWLEDGE FILES]:
+${combinedContext}`;
+
+    try {
+        const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "MiniMaxAI/MiniMax-M2.7",
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: query }
+                ],
+                temperature: 0.0,
+                max_tokens: dynamicMaxTokens
+            })
+        });
+
+        if (!res.ok) throw new Error(`API Error ${res.status}`);
+
+        const data = await res.json();
+        let reply = data.choices[0].message.content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
+        document.body.classList.remove('is-thinking');
+        if (statusBar) statusBar.classList.remove('active');
+
+        appendMsg(reply, 'assistant', 'Veg Anna');
+        speakText(reply);
+
+    } catch (err) {
+        document.body.classList.remove('is-thinking');
+        if (statusBar) statusBar.classList.remove('active');
+        appendMsg(`Error: ${err.message}`, 'assistant', 'System Error');
+    }
+
+    if (input) input.focus();
+}
+
+function appendMsg(text, sender, label) {
+    const container = document.getElementById('chat-container');
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.className = `message ${sender}`;
+    
+    if (sender === 'assistant') {
+        div.innerHTML = `
+            <div class="message-header"><span>${label}</span></div>
+            <div class="msg-body" style="white-space:pre-wrap;">${text}</div>
+            <div class="msg-actions">
+                <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
+                <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
+                <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
+                <button class="action-btn" onclick="shareInstagram(this)">📸 Share IG</button>
+                <button class="action-btn" onclick="shareTikTok(this)">🎵 Share TT</button>
+            </div>
+        `;
+    } else {
+        div.innerHTML = `
+            <div class="message-header"><span>${label}</span></div>
+            <div class="msg-body" style="white-space:pre-wrap;">${text}</div>
+        `;
+    }
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
