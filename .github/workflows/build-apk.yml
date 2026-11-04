@@ -144,7 +144,7 @@ jobs:
                       @Override
                       public void onPageFinished(WebView view, String url) {
                           super.onPageFinished(view, url);
-                          // Injects ResponsiveVoice TTS Polyfill script into the page to bypass Android WebView speech block
+                          // Injects ResponsiveVoice TTS Polyfill script into the page with correct spelling
                           view.evaluateJavascript(
                               "(function() {" +
                               "  if (!document.getElementById('rv-script')) {" +
@@ -154,6 +154,8 @@ jobs:
                               "    document.head.appendChild(script);" +
                               "  }" +
                               "  window.speechSynthesis = window.speechSynthesis || {};" +
+                              "  window.speechSynthesis.cancel = function() { if(window.responsiveVoice) { window.responsiveVoice.cancel(); } };" +
+                              "  window.speechSynthesis.resume = function() {};" +
                               "  window.speechSynthesis.speak = function(utterance) {" +
                               "    if (window.responsiveVoice) {" +
                               "      window.responsiveVoice.speak(utterance.text, 'US English Female');" +
