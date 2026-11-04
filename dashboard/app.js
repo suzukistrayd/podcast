@@ -13,47 +13,37 @@ window.onload = function() {
             const keyInput = document.getElementById('api-key');
             if (keyInput) keyInput.value = savedKey;
         }
+
+        const inputEl = document.getElementById('user-input');
+        if (inputEl) inputEl.focus();
+        
+        if ('speechSynthesis' in window) {
+            loadVoices();
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        preloadCoreKnowledge();
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = function(event) {
+                const speechText = event.results[0][0].transcript;
+                const userInput = document.getElementById('user-input');
+                if (userInput) userInput.value = speechText;
+                stopListeningUI();
+                sendMessage();
+            };
+
+            recognition.onerror = () => stopListeningUI();
+            recognition.onend = () => stopListeningUI();
+        }
     } catch (e) {}
-
-    const inputEl = document.getElementById('user-input');
-    if (inputEl) inputEl.focus();
-    
-    if ('speechSynthesis' in window) {
-        loadVoices();
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
-
-    preloadCoreKnowledge();
-    initSpeechRecognition();
 };
-
-function initSpeechRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
-
-    try {
-        recognition = new SpeechRecognition();
-        recognition.lang = 'en-US';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        recognition.onresult = function(event) {
-            const speechText = event.results[0][0].transcript;
-            const userInput = document.getElementById('user-input');
-            if (userInput) userInput.value = speechText;
-            stopListeningUI();
-            sendMessage();
-        };
-
-        recognition.onerror = function(event) {
-            stopListeningUI();
-        };
-
-        recognition.onend = function() {
-            stopListeningUI();
-        };
-    } catch (err) {}
-}
 
 function loadVoices() {
     if (!('speechSynthesis' in window)) return;
@@ -194,7 +184,7 @@ function clearChatHistory() {
         chatContainer.innerHTML = `
             <div class="message assistant" id="initial-msg">
                 <div class="message-header"><span>Veg Anna</span></div>
-                <div class="msg-body">Chat session cleared. How can I help you today?</div>
+                <div class="msg-body">Chat session cleared. Sawadee! How can I help you today?</div>
                 <div class="msg-actions">
                     <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
                     <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
@@ -242,61 +232,43 @@ function fallbackCopy(text, btn) {
 function shareTwitter(btn) {
     const bodyDiv = btn.closest('.message').querySelector('.msg-body');
     if (!bodyDiv) return;
-    const shareText = bodyDiv.innerText.replace(/[—–]/g, '-');
-    const text = encodeURIComponent(`"${shareText}" - Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`);
+    const text = encodeURIComponent(`"${bodyDiv.innerText}" — Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe`);
     window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
 }
 
 function shareFacebook(btn) {
-    const bodyDiv = btn.closest('.message').querySelector('.msg-body');
-    if (!bodyDiv) return;
-    const shareText = `"${bodyDiv.innerText.replace(/[—–]/g, '-')}" - Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`;
-    fallbackCopy(shareText, btn);
-    alert("Post text and hashtags copied to clipboard! Opening Facebook...");
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://kundacafe.com')}`, '_blank');
 }
 
 function shareInstagram(btn) {
     const bodyDiv = btn.closest('.message').querySelector('.msg-body');
-    if (!bodyDiv) return;
-    const shareText = `"${bodyDiv.innerText.replace(/[—–]/g, '-')}" - Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`;
-    fallbackCopy(shareText, btn);
-    alert("Quote and hashtags copied to clipboard! Opening Instagram...");
+    if (bodyDiv) fallbackCopy(bodyDiv.innerText, btn);
     window.open('https://www.instagram.com', '_blank');
 }
 
 function shareTikTok(btn) {
     const bodyDiv = btn.closest('.message').querySelector('.msg-body');
-    if (!bodyDiv) return;
-    const shareText = `"${bodyDiv.innerText.replace(/[—–]/g, '-')}" - Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`;
-    fallbackCopy(shareText, btn);
-    alert("Quote and hashtags copied to clipboard! Opening TikTok...");
+    if (bodyDiv) fallbackCopy(bodyDiv.innerText, btn);
     window.open('https://www.tiktok.com', '_blank');
-}
-
-function cleanTextForEngine(rawText) {
-    if (!rawText) return "";
-    return rawText
-        .replace(/<think>[\s\S]*?<\/think>/gi, '')
-        .replace(/<\/?think>/gi, '')
-        .replace(/<thought>[\s\S]*?<\/thought>/gi, '')
-        .replace(/[—–]/g, '-')
-        .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '')
-        .replace(/[*_#`~]/g, '')
-        .trim();
 }
 
 function speakText(text) {
     if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
 
-    const clean = cleanTextForEngine(text);
+    const clean = text
+        .replace(/<think>[\s\S]*?<\/think>/g, '')
+        .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '')
+        .replace(/[*_#`~]/g, '')
+        .trim();
+
     if (!clean) return;
 
     if (cachedVoices.length === 0) loadVoices();
 
     const utterance = new SpeechSynthesisUtterance(clean);
 
+    // BACKSTAGE VOICE ENGINE HARDCODED MATCHING
     const preferredVoices = [
         "Google UK English Female",
         "en-GB-Neural2-F",
@@ -403,9 +375,7 @@ async function sendMessage() {
     const coreFacts = ` MANDATORY KUNDA BOUNDARIES & STRICT TRUTH:
 - CURRENT REAL-TIME CONTEXT: Today's live date and time is ${currentDateTimeStr}.
 - NAME & IDENTITY: Your name is strictly VEG ANNA. Always say "Veg Anna".
-- NO REPETITIVE GREETINGS: NEVER start every response with "Sawadee!". Answer directly, vary naturally, or skip greetings entirely.
-- ABSOLUTELY NO THINKING TAGS: NEVER output internal reasoning, thought blocks, or <think> tags.
-- NO EM-DASHES: NEVER use long em-dashes (—). ALWAYS use standard short hyphens (-) only.
+- BRAND GREETINGS ONLY: Use "Sawadee!" or professional welcomes. ABSOLUTELY NEVER say "Kia Ora" or non-brand regional greetings.
 - STRICT ANTI-HALLUCINATION RULE FOR SONGS: You are forbidden from inventing song titles. Extract exact track info from ingested files.
 - OPENING HOURS: Kunda Cafe opens daily at 12:00 PM (Noon). Kitchen closes strictly at 7:30 PM.
 - LOCATION & MICHELIN: 372 Trairat Rd, Chiang Rai. Michelin Guide Thailand 2026.
@@ -414,16 +384,20 @@ async function sendMessage() {
     let systemPrompt = `You are roleplaying purely as VEG ANNA.
     
 RESPONSE RULES:
-- Output ONLY your direct conversational answer. 
-- ABSOLUTELY NO internal thoughts, reasoning steps, or <think> tags.
-- DASH STYLE: NEVER use long em-dashes (—). ALWAYS use standard short hyphens (-) only.
-- Keep answers punchy, human, concise, and under 30 words for general questions.
-- NEVER start responses with repetitive greetings like "Sawadee!".
+- Keep answers punchy, natural, conversational, and under 35 words for simple questions.
+- ABSOLUTE TRUTH: Never hallucinate character names or song titles.
+- NEVER output internal reasoning, <think> tags, or conversational AI crutches.
 
 ${coreFacts}
 
 [CORE KNOWLEDGE FILES]:
-${combinedContext}`;  try { const res = await fetch("https://inference.dahl.global/v1/chat/completions", { method: "POST", headers: { "Authorization": `Bearer ${apiKey}`,
+${combinedContext}`;
+
+    try {
+        const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
@@ -440,30 +414,49 @@ ${combinedContext}`;  try { const res = await fetch("https://inference.dahl.glob
         if (!res.ok) throw new Error(`API Error ${res.status}`);
 
         const data = await res.json();
-        let rawContent = data.choices[0].message.content || "";
-
-        let reply = rawContent
-            .replace(/<think>[\s\S]*?<\/think>/gi, '')
-            .replace(/<\/?think>/gi, '')
-            .replace(/<thought>[\s\S]*?<\/thought>/gi, '')
-            .replace(/[—–]/g, '-')
-            .trim();
+        let reply = data.choices[0].message.content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
         document.body.classList.remove('is-thinking');
         if (statusBar) statusBar.classList.remove('active');
 
-        if (reply) {
-            appendMsg(reply, 'assistant', 'Veg Anna');
-            speakText(reply);
-        } else {
-            appendMsg("I'm here! What would you like to know about Kunda?", 'assistant', 'Veg Anna');
-        }
+        appendMsg(reply, 'assistant', 'Veg Anna');
+        speakText(reply);
 
     } catch (err) {
         document.body.classList.remove('is-thinking');
         if (statusBar) statusBar.classList.remove('active');
-        appendMsg(`Error: ${err.message}`, 'assistant', 'System Error'); }  if (input) input.focus(); }  function appendMsg(text, sender, label) { const container = document.getElementById('chat-container'); if (!container) return;  const div = document.createElement('div'); div.className = `message ${sender}`;
+        appendMsg(`Error: ${err.message}`, 'assistant', 'System Error');
+    }
+
+    if (input) input.focus();
+}
+
+function appendMsg(text, sender, label) {
+    const container = document.getElementById('chat-container');
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.className = `message ${sender}`;
     
     if (sender === 'assistant') {
         div.innerHTML = `
-            <div class="message
+            <div class="message-header"><span>${label}</span></div>
+            <div class="msg-body" style="white-space:pre-wrap;">${text}</div>
+            <div class="msg-actions">
+                <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
+                <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
+                <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
+                <button class="action-btn" onclick="shareInstagram(this)">📸 Share IG</button>
+                <button class="action-btn" onclick="shareTikTok(this)">🎵 Share TT</button>
+            </div>
+        `;
+    } else {
+        div.innerHTML = `
+            <div class="message-header"><span>${label}</span></div>
+            <div class="msg-body" style="white-space:pre-wrap;">${text}</div>
+        `;
+    }
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
