@@ -13,37 +13,47 @@ window.onload = function() {
             const keyInput = document.getElementById('api-key');
             if (keyInput) keyInput.value = savedKey;
         }
-
-        const inputEl = document.getElementById('user-input');
-        if (inputEl) inputEl.focus();
-        
-        if ('speechSynthesis' in window) {
-            loadVoices();
-            window.speechSynthesis.onvoiceschanged = loadVoices;
-        }
-
-        preloadCoreKnowledge();
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.lang = 'en-US';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-
-            recognition.onresult = function(event) {
-                const speechText = event.results[0][0].transcript;
-                const userInput = document.getElementById('user-input');
-                if (userInput) userInput.value = speechText;
-                stopListeningUI();
-                sendMessage();
-            };
-
-            recognition.onerror = () => stopListeningUI();
-            recognition.onend = () => stopListeningUI();
-        }
     } catch (e) {}
+
+    const inputEl = document.getElementById('user-input');
+    if (inputEl) inputEl.focus();
+    
+    if ('speechSynthesis' in window) {
+        loadVoices();
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    preloadCoreKnowledge();
+    initSpeechRecognition();
 };
+
+function initSpeechRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    try {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onresult = function(event) {
+            const speechText = event.results[0][0].transcript;
+            const userInput = document.getElementById('user-input');
+            if (userInput) userInput.value = speechText;
+            stopListeningUI();
+            sendMessage();
+        };
+
+        recognition.onerror = function(event) {
+            stopListeningUI();
+        };
+
+        recognition.onend = function() {
+            stopListeningUI();
+        };
+    } catch (err) {}
+}
 
 function loadVoices() {
     if (!('speechSynthesis' in window)) return;
@@ -413,13 +423,7 @@ RESPONSE RULES:
 ${coreFacts}
 
 [CORE KNOWLEDGE FILES]:
-${combinedContext}`;
-
-    try {
-        const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`,
+${combinedContext}`;  try { const res = await fetch("https://inference.dahl.global/v1/chat/completions", { method: "POST", headers: { "Authorization": `Bearer ${apiKey}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
@@ -438,7 +442,6 @@ ${combinedContext}`;
         const data = await res.json();
         let rawContent = data.choices[0].message.content || "";
 
-        // STRICT REGEX STRIPPING FOR THINK TAGS & LONG DASHES
         let reply = rawContent
             .replace(/<think>[\s\S]*?<\/think>/gi, '')
             .replace(/<\/?think>/gi, '')
@@ -459,38 +462,8 @@ ${combinedContext}`;
     } catch (err) {
         document.body.classList.remove('is-thinking');
         if (statusBar) statusBar.classList.remove('active');
-        appendMsg(`Error: ${err.message}`, 'assistant', 'System Error');
-    }
-
-    if (input) input.focus();
-}
-
-function appendMsg(text, sender, label) {
-    const container = document.getElementById('chat-container');
-    if (!container) return;
-
-    const div = document.createElement('div');
-    div.className = `message ${sender}`;
+        appendMsg(`Error: ${err.message}`, 'assistant', 'System Error'); }  if (input) input.focus(); }  function appendMsg(text, sender, label) { const container = document.getElementById('chat-container'); if (!container) return;  const div = document.createElement('div'); div.className = `message ${sender}`;
     
     if (sender === 'assistant') {
         div.innerHTML = `
-            <div class="message-header"><span>${label}</span></div>
-            <div class="msg-body" style="white-space:pre-wrap;">${text}</div>
-            <div class="msg-actions">
-                <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
-                <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
-                <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
-                <button class="action-btn" onclick="shareInstagram(this)">📸 Share IG</button>
-                <button class="action-btn" onclick="shareTikTok(this)">🎵 Share TT</button>
-            </div>
-        `;
-    } else {
-        div.innerHTML = `
-            <div class="message-header"><span>${label}</span></div>
-            <div class="msg-body" style="white-space:pre-wrap;">${text}</div>
-        `;
-    }
-
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-}
+            <div class="message
