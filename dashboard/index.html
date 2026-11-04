@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>THE VEG ANNA SHOW // KUNDA CAFE Chiang Rai Thailand</title>
+    <title>THE VEG ANNA SHOW // KUNDA CAFE CHIANG RAI</title>
 
     <!-- LOCAL RELATIVE FAVICON & PWA MANIFEST LINK -->
     <link rel="icon" type="image/png" href="./favicon.png">
@@ -24,18 +24,20 @@
             </div>
         </div>
         <div class="header-controls">
-            <button class="clear-btn" onclick="clearChatHistory()" title="Clear Conversation">🗑️ Clear</button>
+            <button class="clear-btn" onclick="clearChatHistory()" title="Clear Conversation">🗑️</button>
 
-            <button class="portal-btn highlight" onclick="togglePortal()">📲 APK </button>
+            <button class="portal-btn highlight" onclick="togglePortal()">📲 Kunda APK</button>
             <button id="voice-btn" class="voice-toggle-btn active" onclick="toggleVoice()">🔊 ON</button>
             <button class="settings-toggle" onclick="toggleSettings()">⚙️</button>
         </div>
     </header>
 
     <div class="kunda-nav-bar">
-        <span class="nav-chip" onclick="quickAsk('Tell me about Kunda Cafe burgers and soy-free ethos.')">🍔 Plant-Based Burgers</span>
-        <a href="https://buymeacoffee.com/kundacafe" target="_blank" class="nav-chip">☕ Download App / APK</a>
-        <span class="nav-chip" onclick="quickAsk('What are your opening hours and location in Chiang Rai?')">📍 Michelin 2026 Location</span>
+        <span class="nav-chip" onclick="quickAsk('Tell me about Kunda Cafe burgers and soy-free ethos.')">🍔 Eat Kunda</span>
+        <span class="nav-chip" onclick="quickAsk('What are your opening hours and location in Chiang Rai?')">📍 Michelin 2026 </span>
+
+        <a href="https://coolhotsauce.com" target="_blank" class="nav-chip">🔥 Cool Hot Sauce</a>
+        <a href="https://buymeacoffee.com/kundacafe" target="_blank" class="nav-chip">☕ Coffee</a>
         <span class="nav-chip" onclick="quickAsk('Tell me about Martin Strayd and the music archives.')">🎵 Singles</span>
     </div>
 
@@ -67,14 +69,14 @@
     </div>
 
     <div id="settings-panel">
-        <label>DAHL API Key:</label>
+        <label>KUNDACAFE API Key:</label>
         <input type="password" id="api-key" placeholder="Paste API Key" oninput="saveApiKey()">
     </div>
 
     <div id="chat-container">
         <div class="message assistant" id="initial-msg">
             <div class="message-header"><span>Veg Anna</span></div>
-            <div class="msg-body">Sawadee! I am Veg Anna, your personal plant-based guru. Ask me about world-class Kunda, soy-free burgers, artisanal hot sauces, or store details!</div>
+            <div class="msg-body">Sawadee! I am Veg Anna, your personal Kunda guru. Ask me anything!</div>
             <div class="msg-actions">
                 <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
                 <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
