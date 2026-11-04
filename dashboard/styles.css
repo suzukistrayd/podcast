@@ -86,23 +86,26 @@ header {
     display: flex;
     align-items: center;
     gap: 5px;
-    text-decoration: none;
-}
-.portal-btn.highlight {
-    border-color: var(--accent-gold);
-    color: #fbbf24;
-    background: rgba(217, 119, 6, 0.15);
+    text-decoration: none;    
 }
 
+.settings-toggle {
+    color: #fbbf24;
+}
+
+.settings-toggle:hover {
+    border-color: var(--accent-gold);
+    color: #fbbf24;
+}
 .voice-toggle-btn.active {
-    border-color: var(--accent-gold);
     color: #fbbf24;
-    box-shadow: 0 0 12px var(--accent-gold-glow);
+    border: 1px solid var(--border-subtle);
+
 }
 
-.clear-btn:hover {
+.portal-btn:hover, .voice-toggle-btn:hover,.settings-toggle:hover, .clear-btn:hover {
     border-color: #ef4444;
-    color: #f87171;
+    color: #ffffff;
     background: rgba(239, 68, 68, 0.15);
 }
 
@@ -192,7 +195,7 @@ body.is-thinking .bg-watermark-container {
     font-family: var(--font-mono);
     text-transform: uppercase;
 }
-#settings-panel input, #settings-panel select {
+#settings-panel input {
     width: 100%;
     padding: 10px 14px;
     background: var(--bg-base);
@@ -360,7 +363,7 @@ input[type="text"]:focus { border-color: var(--accent-gold); }
 
 button.mic-btn {
     background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
+    border: 0px solid var(--border-subtle);
     color: var(--text-muted);
     width: 44px;
     height: 44px;
