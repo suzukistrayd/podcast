@@ -2,104 +2,77 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AGENT ANNA // ENTERPRISE COMMAND CENTER</title>
-    <link rel="icon" type="image/png" href="./favicon.png">
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#00e5ff">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGENT ANNA // MILITARY MISSION CONTROL</title>
+    <!-- EXACT FAVICON PATH -->
+    <link rel="icon" type="image/png" href="./agent-anna/character/agent-anna.png">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
     <header>
         <div class="brand">
-            <div class="avatar"><img src="./favicon.png" alt="Anna Core"></div>
+            <div class="avatar">
+                <img src="./agent-anna/character/agent-anna.png" alt="Agent Anna">
+            </div>
             <div class="brand-title">
                 <h1>AGENT ANNA</h1>
-                <span>ENTERPRISE DAHL SCOUT HUB</span>
+                <span>JEV NEURAL ENGINE & VOICE RELAY</span>
             </div>
         </div>
         <div class="header-controls">
-            <button class="clear-btn" onclick="clearChatHistory()" title="Clear Console">🗑️ CLEAR</button>
-            <button class="portal-btn highlight" onclick="togglePortal()">📲 PORTAL</button>
-            <button id="voice-btn" class="voice-toggle-btn active" onclick="toggleVoice()">🔊 ON</button>
-            <button class="settings-toggle" onclick="toggleSettings()">⚙️ KEYS</button>
+            <button class="ctrl-btn" onclick="clearLogs()">🗑️ CLEAR</button>
+            <button id="voice-btn" class="ctrl-btn active" onclick="toggleVoice()">🔊 ON</button>
+            <button class="ctrl-btn" onclick="toggleSettings()">⚙️ KEYS</button>
         </div>
     </header>
 
-    <div class="kunda-nav-bar">
-        <span class="nav-chip" onclick="quickAsk('Scout GitHub repo open-source workflow configs')">📡 Scout Repos</span>
-        <span class="nav-chip" onclick="quickAsk('Generate Chapter 2 draft outline for book context')">📚 Book Framework</span>
-        <span class="nav-chip" onclick="quickAsk('Verify Analyst 74+ gate score for recent internet drops')">🛡️ Analyst Gate</span>
-        <a href="https://github.com/suzukistrayd/podcast" target="_blank" class="nav-chip">🐙 GitHub Core</a>
-    </div>
-
-    <!-- MAIN SPLIT-SCREEN WORKSPACE -->
+    <!-- 60/40 SPLIT WORKSPACE -->
     <div class="workspace">
-        <!-- LEFT: SPACESHIP ORBITAL RADAR HUD -->
-        <div class="orbit-panel">
-            <div class="panel-header">SUB-AGENT ORBITAL COMMAND</div>
-            <div class="radar-container">
+        
+        <!-- LEFT PANEL: 60% TELEMETRY & NEURAL RADAR HUD -->
+        <div class="panel">
+            <div class="panel-title"><span>System Telemetry & Neural HUD</span><span>ACTIVE</span></div>
+            
+            <div class="telemetry-grid">
+                <div class="tele-card"><span>SOLANA EQUITY</span><strong>$142.85</strong></div>
+                <div class="tele-card"><span>ANALYST GATE</span><strong style="color:var(--accent-cyan)">98 / 100</strong></div>
+                <div class="tele-card"><span>VOICE PROFILE</span><strong style="color:var(--accent-green)">UK / US FEMALE</strong></div>
+                <div class="tele-card"><span>STATE</span><strong style="color:var(--accent-amber)" id="state-text">READY</strong></div>
+            </div>
+
+            <div class="panel-title" style="margin-top: 4px;"><span>Neural Stage // Processing Telemetry</span><span>RADAR</span></div>
+            <div class="radar-box">
                 <div class="orbit-ring"></div>
-                <div class="orbit-ring-fast"></div>
-
-                <div class="orbit-node node-top">
-                    <span style="color:var(--accent-green)">●</span> SCOUT
-                </div>
-                <div class="orbit-node node-right">
-                    <span style="color:var(--accent-cyan)">●</span> GATE
-                </div>
-                <div class="orbit-node node-bottom">
-                    <span style="color:var(--accent-amber)">●</span> DAHL
-                </div>
-                <div class="orbit-node node-left">
-                    <span style="color:var(--accent-green)">●</span> BOOK
-                </div>
-
-                <div class="core-hub">
+                <div style="position:absolute; top:8px; left:8px; font-size:8px; color:var(--accent-green)" id="stage-status">● AGENT ANNA STANDBY</div>
+                <div class="core-node">
                     <span>ANNA</span>
                     <small>1M HUB</small>
                 </div>
             </div>
-            <div class="hud-stats">
-                <div>ANALYST GATE: <strong id="hud-score" style="color:var(--accent-green)">98/100</strong></div>
-                <div>STATE: <strong style="color:var(--accent-cyan)">COMMUNICATION LIVE</strong></div>
-            </div>
         </div>
 
-        <!-- RIGHT: INTERACTIVE CHAT RELAY & EXECUTION FEED -->
-        <div class="right-panel">
-            <div id="settings-panel">
-                <label>DAHL / MINIMAX API KEY:</label>
-                <input type="password" id="api-key" placeholder="Paste DAHL Bearer Key" oninput="saveApiKey()">
-                <label>GITHUB PAT (FOR LIVE REPO READ/WRITE):</label>
-                <input type="password" id="github-pat" placeholder="Paste GitHub Token (Optional)" oninput="saveGithubPat()">
+        <!-- RIGHT PANEL: 40% TALK-BACK AGENT CENTER WITH WATERMARK -->
+        <div class="panel">
+            <div class="bg-watermark">
+                <img src="./agent-anna/character/agent-anna.png" alt="Watermark">
             </div>
 
-            <div id="portal-modal">
-                <h2 style="margin: 0 0 4px 0; color: #ffffff; font-size: 16px;">ENTERPRISE AGENT DIRECTORY</h2>
-                <div class="portal-grid">
-                    <div class="portal-card">
-                        <h3>🤖 Local Scout Bridge</h3>
-                        <p>Pulls live raw markdown payloads via PowerShell to feed Dahl 1M context.</p>
-                    </div>
-                    <div class="portal-card">
-                        <h3>🛡️ Analyst 74+ Filter</h3>
-                        <p>Automatically purges internet payloads scoring below 74 relevance.</p>
-                    </div>
-                </div>
+            <div class="panel-title"><span>Talk-Back Agent Center</span><span>SECURE</span></div>
+            
+            <div id="settings-panel">
+                <label>DAHL / MINIMAX API KEY:</label>
+                <input type="password" id="api-key" placeholder="Paste Dahl Bearer Key" oninput="saveKey()">
             </div>
 
             <div id="chat-container">
-                <div class="message assistant" id="initial-msg">
-                    <div class="message-header"><span>Agent Anna Core</span></div>
-                    <div class="msg-body">Enterprise Execution Engine online. Ready for live web scouting, Dahl context streaming, and protocol execution.</div>
-                    <div class="msg-actions">
-                        <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
-                    </div>
+                <div class="message assistant">
+                    <div class="msg-header">Agent Anna Core</div>
+                    <div class="msg-body">Military command online. Audio voice synthesizer primed with soft female profile. Send query or command.</div>
                 </div>
             </div>
 
+            <!-- AUDIO WAVEFORM THINKING BAR -->
             <div id="status-bar" class="status-bar">
                 <div class="equalizer">
                     <div class="bar"></div>
@@ -107,15 +80,16 @@
                     <div class="bar"></div>
                     <div class="bar"></div>
                 </div>
-                <span id="status-text">Neural transmission active // Ingesting context...</span>
+                <span id="status-text">Dahl is reasoning across 1M token context...</span>
             </div>
 
             <div class="input-area">
-                <input type="text" id="user-input" placeholder="Execute command or send query to Dahl..." onkeydown="handleKey(event)">
-                <button id="mic-btn" class="mic-btn" title="Tap to Speak" onclick="toggleSpeechRecognition()">🎤</button>
-                <button class="send-btn" onclick="sendMessage()">Send</button>
+                <input type="text" id="user-input" placeholder="Execute command or query Dahl..." onkeydown="handleKey(event)">
+                <button id="mic-btn" class="action-btn mic" title="Voice Input" onclick="toggleMic()">🎤</button>
+                <button class="action-btn send" onclick="sendMessage()">SEND</button>
             </div>
         </div>
+
     </div>
 
     <script src="app.js"></script>
