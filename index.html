@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>THE VEG ANNA SHOW // FOOD &bull; MOOD &bull; ATTITUDE</title>
+    
+    <!-- FAVICON -->
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="shortcut icon" type="image/png" href="./favicon.png">
+    <meta name="theme-color" content="#d97706">
+
+    <!-- ELEGANT GOOGLE FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-deep: #080808;
+            --glass-bg: rgba(20, 20, 20, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-border-hover: rgba(217, 119, 6, 0.4);
+            --accent: #d97706;
+            --accent-glow: rgba(217, 119, 6, 0.25);
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* ELEGANT MARQUEE TICKER */
+        .podcast-ticker {
+            background: linear-gradient(90deg, #b45309, #d97706, #f59e0b, #d97706, #b45309);
+            color: #000000;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            padding: 12px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            display: flex;
+            position: relative;
+            z-index: 20;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .ticker-track {
+            display: flex;
+            gap: 60px;
+            animation: scrollTicker 30s linear infinite;
+        }
+
+        .ticker-item {
+            display: flex;
+            align-items: center;
+            gap: 60px;
+        }
+
+        @keyframes scrollTicker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* CINEMATIC FULL-SCREEN HERO */
+        header {
+            position: relative;
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 20px;
+            overflow: hidden;
+        }
+
+        .hero-bg-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: 25% center;
+            z-index: 1;
+            filter: brightness(0.4) contrast(1.15);
+            transform: scale(1.02);
+            transition: transform 10s ease;
+        }
+
+        @media (min-width: 768px) {
+            .hero-bg-img {
+                object-position: center 20%;
+            }
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(8,8,8,0.3) 0%, rgba(8,8,8,0.7) 60%, rgba(8,8,8,1) 100%);
+            z-index: 2;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 3;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .podcast-tag {
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(3rem, 7.5vw, 6.5rem);
+            font-weight: 900;
+            line-height: 1.05;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        h1 span {
+            color: var(--accent);
+            display: block;
+            font-size: clamp(1.8rem, 4vw, 3.5rem);
+            margin-top: 10px;
+            letter-spacing: 2px;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 1.8vw, 1.2rem);
+            color: var(--text-muted);
+            max-width: 650px;
+            margin-bottom: 40px;
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        /* ELEGANT BUTTONS */
+        .cta-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 2px;
+            padding: 16px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #000000;
+            box-shadow: 0 10px 30px var(--accent-glow);
+            font-weight: 700;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(217, 119, 6, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent);
+        }
+
+        /* MAIN WRAPPER */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 100px 24px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(2.2rem, 4vw, 3.2rem);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .section-title span {
+            color: var(--accent);
+        }
+
+        .section-desc {
+            color: var(--text-muted);
+            font-size: 16px;
+            font-weight: 300;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 1:1 IMAGE SHOWCASE GRID (FOOD, MOOD, ATTITUDE) */
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 100px;
+        }
+
+        .showcase-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            backdrop-filter: blur(16px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .showcase-card:hover {
+            border-color: var(--glass-border-hover);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+
+        /* 1:1 Aspect Ratio Image Slot */
+        .image-slot-1to1 {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            position: relative;
+            overflow: hidden;
+            background: #151515;
+        }
+
+        .image-slot-1to1 img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .showcase-card:hover .image-slot-1to1 img {
+            transform: scale(1.04);
+        }
+
+        .image-placeholder-tag {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 2px;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        .showcase-content {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .showcase-content h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .showcase-content p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        /* ELEGANT ESSENTIALS GLASS PANEL */
+        .essentials-panel {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 50px;
+            margin-bottom: 100px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .essentials-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent);
+        }
+
+        .essentials-panel h3 {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            color: var(--accent);
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .essentials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            margin-top: 30px;
+        }
+
+        .essential-item {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 24px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .essential-item strong {
+            color: var(--accent);
+            display: block;
+            margin-bottom: 8px;
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .essential-item span {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.5;
+            font-weight: 300;
+        }
+
+        /* HOW TO ACCESS ROOM (STEPS) */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 80px;
+        }
+
+        .step-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(16px);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .step-card:hover {
+            border-color: var(--glass-border-hover);
+            transform: translateY(-4px);
+        }
+
+        .step-num {
+            font-family: 'Cinzel', serif;
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--accent);
+            opacity: 0.6;
+            line-height: 1;
+            margin-bottom: 20px;
+        }
+
+        .step-card h4 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .step-card p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        .step-card code {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: var(--accent);
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        /* FOOTER NETWORK LINKS */
+        .portal-footer-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            text-align: center;
+            padding: 50px 0;
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 40px;
+        }
+
+        .portal-footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 2px;
+            transition: color 0.3s;
+        }
+
+        .portal-footer-links a:hover {
+            color: var(--accent);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ELEGANT MARQUEE TICKER -->
+    <div class="podcast-ticker">
+        <div class="ticker-track">
+            <span class="ticker-item">🎙️ THE VEG ANNA SHOW &bull; FOOD &bull; MOOD &bull; ATTITUDE</span>
+            <span class="ticker-item">🌟 HEALTH, WEALTH & FINANCIAL SUCCESS</span>
+            <span class="ticker-item">📍 MICHELIN GUIDE THAILAND 2026 &bull; CHIANG RAI</span>
+            <span class="ticker-item">🎙️ THE VEG ANNA SHOW &bull; FOOD &bull; MOOD &bull; ATTITUDE</span>
+            <span class="ticker-item">🌟 HEALTH, WEALTH & FINANCIAL SUCCESS</span>
+            <span class="ticker-item">📍 MICHELIN GUIDE THAILAND 2026 &bull; CHIANG RAI</span>
+        </div>
+    </div>
+
+    <!-- CINEMATIC HERO SECTION -->
+    <header>
+        <img src="./VegAnna-Hero-PFP.png" alt="Veg Anna Backdrop" class="hero-bg-img">
+        <div class="hero-overlay"></div>
+
+        <div class="hero-content">
+            <div class="podcast-tag">Global Talk Show &bull; Elite Audio Experience</div>
+            <h1>The Veg Anna Show <span>Food &bull; Mood &bull; Attitude</span></h1>
+            <p class="hero-subtitle">An uncompromising masterclass in vital health, mindset autonomy, and financial sovereignty. Step inside the neural audio salon and dialogue directly with Veg Anna.</p>
+            
+            <div class="cta-group">
+                <a href="./dashboard/" class="btn btn-primary">🎙️ Enter Chat Salon</a>
+                <a href="https://buymeacoffee.com/kundacafe" target="_blank" class="btn btn-secondary">☕ Support the Show</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="container">
+
+        <!-- PILLARS SHOWCASE: 1:1 IMAGE PLACEHOLDERS -->
+        <div class="section-header">
+            <h2 class="section-title">The Three <span>Pillars</span></h2>
+            <p class="section-desc">Curated philosophical frameworks shaping optimal physical vitality and unbreakable fiscal discipline.</p>
+        </div>
+
+        <div class="showcase-grid">
+            <!-- 1:1 Image Slot 1 -->
+            <div class="showcase-card">
+                <div class="image-slot-1to1">
+                    <!-- Replace src with your 1:1 image anytime -->
+                    <img src="./VegAnna-Hero-PFP.png" alt="Food Philosophy">
+                    <div class="image-placeholder-tag">01 &bull; Food Ethos</div>
+                </div>
+                <div class="showcase-content">
+                    <h3>Absolute Vitality</h3>
+                    <p>Strictly soy-free, tofu-free living[cite: 6]. Fueling cognitive clarity and high-frequency energy through uncompromised natural nourishment straight from Chiang Rai.</p>
+                </div>
+            </div>
+
+            <!-- 1:1 Image Slot 2 -->
+            <div class="showcase-card">
+                <div class="image-slot-1to1">
+                    <!-- Replace src with your 1:1 image anytime -->
+                    <img src="./VegAnna-Hero-PFP.png" alt="Mood & Mindset">
+                    <div class="image-placeholder-tag">02 &bull; Mood & Focus</div>
+                </div>
+                <div class="showcase-content">
+                    <h3>Mental Sovereignty</h3>
+                    <p>Mastering emotional resilience and razor-sharp mental poise. Eliminate internal friction to align your psychological state with long-term wealth creation.</p>
+                </div>
+            </div>
+
+            <!-- 1:1 Image Slot 3 -->
+            <div class="showcase-card">
+                <div class="image-slot-1to1">
+                    <!-- Replace src with your 1:1 image anytime -->
+                    <img src="./VegAnna-Hero-PFP.png" alt="Attitude & Success">
+                    <div class="image-placeholder-tag">03 &bull; Financial Success</div>
+                </div>
+                <div class="showcase-content">
+                    <h3>Unyielding Attitude</h3>
+                    <p>Constructing sustainable financial independence. Blending bold strategic execution with uncompromising personal standards for elite achievement.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ELEGANT ESSENTIALS PANEL -->
+        <div class="essentials-panel">
+            <h3>📍 Kunda Cafe & Salon Headquarters</h3>
+            <p style="color: var(--text-muted); font-weight: 300; font-size: 15px;">Anchored in the heart of northern Thailand and honored in the Michelin Guide Thailand 2026[cite: 6].</p>
+            
+            <div class="essentials-grid">
+                <div class="essential-item">
+                    <strong>Physical Salon</strong>
+                    <span>372 Trairat Rd, Chiang Rai, Thailand[cite: 6]</span>
+                </div>
+                <div class="essential-item">
+                    <strong>Transmission Hours</strong>
+                    <span>Open daily from 12:00 PM (Noon) &bull; Kitchen closes 7:30 PM[cite: 6]</span>
+                </div>
+                <div class="essential-item">
+                    <strong>Purity Standard</strong>
+                    <span>100% Soy-Free, Tofu-Free, Rice-Free, MSG-Free & Chemical-Free[cite: 6].</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- HOW TO USE THE CHAT ROOM -->
+        <div class="section-header">
+            <h2 class="section-title">How To <span>Participate</span></h2>
+            <p class="section-desc">Connect directly to the secure backstage transmission feed in three simple steps.</p>
+        </div>
+
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-num">01</div>
+                <h4>Enter The Salon</h4>
+                <p>Click <strong>Enter Chat Salon</strong> above to launch your secure session inside the private dashboard environment.</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-num">02</div>
+                <h4>Configure Token</h4>
+                <p>Tap the <code>⚙️ Settings</code> gear icon located in the top-right corner of the dashboard to securely paste your KUNDA API Key.</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-num">03</div>
+                <h4>Voice & Broadcast</h4>
+                <p>Engage with backstage British/International voice synthesis, record voice notes, and syndicate insights instantly to global social networks.</p>
+            </div>
+        </div>
+
+        <!-- FOOTER LINKS -->
+        <div class="portal-footer-links">
+            <a href="https://kundacafe.com" target="_blank">🌐 Official Website</a>
+            <a href="https://coolhotsauce.com" target="_blank">🔥 Cool Hot Sauce</a>
+            <a href="https://www.lazada.co.th/shop/kundacafe" target="_blank">🛒 Lazada Store</a>
+            <a href="https://buymeacoffee.com/kundacafe" target="_blank">☕ Buy Me a Coffee</a>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; THE VEG ANNA SHOW &bull; PRODUCED IN ASSOCIATION WITH KUNDA CO LTD. ALL RIGHTS RESERVED.</p>
+    </footer>
+
+</body>
+</html>
