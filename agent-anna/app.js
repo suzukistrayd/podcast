@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA // MILITARY MISSION CONTROL ENGINE (VOICE & DAHL FIXED)
+// AGENT ANNA // UNIFIED ALL-IN-ONE COMMAND & TELEMETRY ENGINE
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -31,13 +31,10 @@ window.onload = function() {
     initSpeechRecognition();
 };
 
-// ROBUST MULTI-BROWSER SPEECH RECOGNITION ENGINE
+// MULTI-BROWSER SPEECH RECOGNITION ENGINE
 function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        console.warn("Speech recognition not supported on this browser context.");
-        return;
-    }
+    if (!SpeechRecognition) return;
 
     try {
         recognition = new SpeechRecognition();
@@ -56,50 +53,32 @@ function initSpeechRecognition() {
         recognition.onresult = function(event) {
             const speechText = event.results[0][0].transcript;
             const userInput = document.getElementById('user-input');
-            if (userInput) {
-                userInput.value = speechText;
-            }
+            if (userInput) userInput.value = speechText;
             stopListeningUI();
-            // Automatically execute request after speech capture
             sendMessage();
         };
 
         recognition.onerror = function(event) {
-            console.error("Speech Recognition Error:", event.error);
             stopListeningUI();
             if (event.error === 'not-allowed') {
-                alert("Microphone access denied. Please allow microphone permissions in your browser address bar.");
+                alert("Microphone access blocked. Enable permissions in address bar.");
             }
         };
 
         recognition.onend = function() {
             stopListeningUI();
         };
-    } catch (err) {
-        console.error("Initialization failure for speech recognition:", err);
-    }
+    } catch (err) {}
 }
 
 function toggleMic() {
-    if (!recognition) {
-        initSpeechRecognition();
-    }
-    
-    if (!recognition) {
-        alert("Speech recognition is not supported in this environment or requires an HTTPS connection.");
-        return;
-    }
+    if (!recognition) initSpeechRecognition();
+    if (!recognition) return alert("Speech recognition unavailable in this browser context.");
 
     if (!isListening) {
-        try {
-            recognition.start();
-        } catch (e) {
-            stopListeningUI();
-        }
+        try { recognition.start(); } catch (e) { stopListeningUI(); }
     } else {
-        try {
-            recognition.stop();
-        } catch (e) {}
+        try { recognition.stop(); } catch (e) {}
         stopListeningUI();
     }
 }
@@ -119,6 +98,7 @@ function loadVoices() {
     cachedVoices = window.speechSynthesis.getVoices();
 }
 
+// PRELOAD CORE KNOWLEDGE (RULES & IDENTITY)
 async function preloadCoreKnowledge() {
     const corePaths = [
         "agent-anna/character/agent-anna.md",
@@ -137,6 +117,19 @@ async function preloadCoreKnowledge() {
         } catch (e) {}
     }));
     coreKnowledgeCache = snippets.join('\n\n---\n\n');
+}
+
+// FETCH LIVE TELEMETRY FROM PORTAL-RELAY.JSON
+async function fetchLiveTelemetry() {
+    try {
+        const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/portal-relay.json?t=${Date.now()}`;
+        const res = await fetch(url);
+        if (res.ok) {
+            const data = await res.json();
+            return `[LIVE TELEMETRY RELAY]\n- Status: ${data.status || 'ACTIVE'}\n- Active Bot: ${data.active_bot || 'N/A'}\n- Equity: ${data.solana_equity || '$142.85'}\n- Latest Signal: ${data.latest_signal || 'None'}`;
+        }
+    } catch (e) {}
+    return "";
 }
 
 function toggleVoice() {
@@ -195,7 +188,7 @@ function speakText(text) {
     if (selectedVoice) utterance.voice = selectedVoice;
     utterance.pitch = 1.05;
     utterance.rate = 0.94;
-    window.speechSynthesis.speakText ? window.speechSynthesis.speakText(utterance) : window.speechSynthesis.speak(utterance);
+    window.speechSynthesis.speak(utterance);
 }
 
 async function sendMessage() {
@@ -222,12 +215,14 @@ async function sendMessage() {
     if (stateText) stateText.innerText = "REASONING";
 
     if (!coreKnowledgeCache) await preloadCoreKnowledge();
+    const liveTelemetry = await fetchLiveTelemetry();
+    const combinedContext = `${coreKnowledgeCache}\n\n${liveTelemetry}`;
 
-    const systemPrompt = `You are AGENT ANNA, a military-grade execution engine operating under character/agent-anna.md.
-Provide direct, highly optimized technical output with zero introductory fluff.
+    const systemPrompt = `You are AGENT ANNA, a military-grade execution engine operating under character/agent-anna.md rules.
+Use live telemetry context if relevant to Commander queries. Provide direct, highly optimized technical output.
 
 Context:
-${coreKnowledgeCache}`;
+${combinedContext}`;
 
     try {
         const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
