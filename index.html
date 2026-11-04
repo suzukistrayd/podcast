@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>THE VEG ANNA SHOW // KUNDA CAFE // CHIANG RAI</title>
     
-    <!-- FAVICON & ASSETS -->
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <!-- FAVICON -->
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="shortcut icon" type="image/png" href="./favicon.png">
     <meta name="theme-color" content="#d97706">
 
     <!-- GOOGLE FONTS: ULTRA FAT SYNE & BLACK INTER -->
@@ -18,7 +18,7 @@
     <style>
         :root {
             --bg-dark: #050505;
-            --surface: rgba(15, 15, 15, 0.85);
+            --surface: rgba(17, 17, 17, 0.85);
             --surface-border: #333333;
             --accent: #d97706;
             --accent-glow: rgba(217, 119, 6, 0.5);
@@ -32,7 +32,9 @@
             padding: 0;
         }
 
-        body {
+        html, body {
+            width: 100%;
+            height: 100%;
             background-color: var(--bg-dark);
             color: var(--text-main);
             font-family: 'Inter', sans-serif;
@@ -44,7 +46,7 @@
         /* INFINITE TICKER TOP BANNER */
         .infinite-ticker {
             background: var(--accent);
-            color: #000;
+            color: #000000;
             font-family: 'Syne', sans-serif;
             font-weight: 800;
             font-size: 15px;
@@ -75,54 +77,57 @@
             100% { transform: translateX(-50%); }
         }
 
-        /* FULL-SCREEN HERO BACKGROUND & ANCHORING */
+        /* FULL-SCREEN HERO CONTAINER */
         header {
-            position: relative;
+            position: relative !important;
             width: 100vw;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 40px 20px;
+            padding: 60px 20px;
             overflow: hidden;
+            background-color: #050505;
         }
 
+        /* FULL-SCREEN BACKGROUND IMAGE (MOBILE LEFT-CENTER / DESKTOP TOP-CENTER) */
         .hero-bg-img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            /* MOBILE: ANCHORED LEFT-CENTER // WIDESCREEN: ANCHORED TOP-CENTER */
-            object-position: 25% center;
-            z-index: 1;
-            filter: brightness(0.45) contrast(1.1);
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            object-position: 25% center !important;
+            z-index: 1 !important;
+            filter: brightness(0.55) contrast(1.1);
+            display: block !important;
         }
 
         @media (min-width: 768px) {
             .hero-bg-img {
-                object-position: center top;
+                object-position: center top !important;
             }
         }
 
-        /* DARK GRADIENT OVERLAY FOR TEXT READABILITY */
+        /* DARK GRADIENT OVERLAY FOR READABILITY */
         .hero-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(to bottom, rgba(5,5,5,0.7) 0%, rgba(5,5,5,0.85) 100%);
+            background: linear-gradient(to bottom, rgba(5,5,5,0.4) 0%, rgba(5,5,5,0.85) 100%);
             z-index: 2;
+            pointer-events: none;
         }
 
         .hero-content {
             position: relative;
             z-index: 3;
-            max-width: 900px;
+            max-width: 950px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -130,13 +135,13 @@
 
         h1 {
             font-family: 'Syne', sans-serif;
-            font-size: clamp(3.2rem, 8vw, 7rem);
+            font-size: clamp(3.2rem, 8vw, 7.5rem);
             font-weight: 800;
-            line-height: 0.95;
+            line-height: 0.92;
             text-transform: uppercase;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             letter-spacing: -2px;
-            text-shadow: 0 4px 30px rgba(0,0,0,0.8);
+            text-shadow: 0 4px 30px rgba(0,0,0,0.9);
         }
 
         h1 span {
@@ -147,13 +152,13 @@
         .hero-subtitle {
             font-size: clamp(1rem, 2.2vw, 1.35rem);
             color: var(--text-muted);
-            max-width: 650px;
-            margin-bottom: 35px;
+            max-width: 700px;
+            margin-bottom: 40px;
             font-weight: 900;
             text-shadow: 0 2px 10px rgba(0,0,0,0.9);
         }
 
-        /* CTA BUTTONS */
+        /* BUTTONS */
         .cta-group {
             display: flex;
             gap: 16px;
@@ -164,9 +169,9 @@
         .btn {
             font-family: 'Syne', sans-serif;
             font-weight: 800;
-            font-size: 16px;
-            padding: 16px 32px;
-            border-radius: 8px;
+            font-size: 17px;
+            padding: 18px 36px;
+            border-radius: 10px;
             text-decoration: none;
             text-transform: uppercase;
             transition: transform 0.2s ease, background 0.2s ease;
@@ -178,7 +183,7 @@
 
         .btn-primary {
             background: var(--accent);
-            color: #000;
+            color: #000000;
             box-shadow: 0 4px 20px var(--accent-glow);
         }
 
@@ -197,11 +202,13 @@
             border-color: var(--accent);
         }
 
-        /* MAIN CONTAINER / KUNDA INFO & GUIDES */
+        /* CONTAINER & KUNDA INFO SECTIONS */
         .container {
             max-width: 1000px;
             margin: 0 auto;
             padding: 80px 20px;
+            position: relative;
+            z-index: 3;
         }
 
         .section-title {
@@ -217,7 +224,6 @@
             color: var(--accent);
         }
 
-        /* KUNDA CAFE INFO HIGHLIGHT BOX */
         .kunda-info-box {
             background: var(--surface);
             border: 2px solid var(--accent);
@@ -244,7 +250,7 @@
         }
 
         .kunda-fact {
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 8px;
             border: 1px solid var(--surface-border);
@@ -264,7 +270,7 @@
             font-weight: 900;
         }
 
-        /* STEP CARDS */
+        /* GUIDES GRID */
         .guide-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -295,132 +301,3 @@
         }
 
         .guide-card h4 {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.4rem;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-        }
-
-        .guide-card p {
-            color: var(--text-muted);
-            font-size: 15px;
-            line-height: 1.5;
-            font-weight: 900;
-        }
-
-        .guide-card code {
-            background: #222;
-            padding: 3px 8px;
-            border-radius: 4px;
-            color: var(--accent);
-            font-family: monospace;
-        }
-
-        /* FOOTER LINKS */
-        .portal-footer-links {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            text-align: center;
-            padding: 40px 0;
-            border-top: 2px solid var(--surface-border);
-            border-bottom: 2px solid var(--surface-border);
-            margin-bottom: 40px;
-        }
-
-        .portal-footer-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-weight: 900;
-            font-size: 16px;
-            transition: color 0.2s;
-        }
-
-        .portal-footer-links a:hover {
-            color: var(--accent);
-        }
-
-        footer {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-muted);
-            font-size: 13px;
-            font-weight: 900;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- INFINITE TICKER BANNER -->
-    <div class="infinite-ticker">
-        <div class="ticker-track">
-            <span class="ticker-item">🔥 MICHELIN GUIDE THAILAND 2026 &bull; CHIANG RAI &bull; 372 TRAIRAT RD</span>
-            <span class="ticker-item">☕ SOY-FREE & TOFU-FREE ETHOS &bull; ESTABLISHED 2011</span>
-            <span class="ticker-item">🚀 LAUNCHING THE VEG ANNA SHOW PODCAST AI</span>
-            <span class="ticker-item">🔥 MICHELIN GUIDE THAILAND 2026 &bull; CHIANG RAI &bull; 372 TRAIRAT RD</span>
-            <span class="ticker-item">☕ SOY-FREE & TOFU-FREE ETHOS &bull; ESTABLISHED 2011</span>
-            <span class="ticker-item">🚀 LAUNCHING THE VEG ANNA SHOW PODCAST AI</span>
-        </div>
-    </div>
-
-    <!-- FULL-SCREEN HERO SECTION -->
-    <header>
-        <!-- Full Screen Background Image with dynamic mobile/widescreen anchoring -->
-        <img src="VegAnna-Hero-PFP.jpg" alt="Veg Anna Backdrop" class="hero-bg-img">
-        <div class="hero-overlay"></div>
-
-        <div class="hero-content">
-            <h1>The Veg Anna Show <span>Live AI Portal</span></h1>
-            <p class="hero-subtitle">Step into Kunda Cafe's neural transmission hub. Experience real-time interactive podcast lore, deep archives, and direct voice synthesis with Veg Anna.</p>
-            
-            <div class="cta-group">
-                <a href="dashboard/" class="btn btn-primary">🚀 Launch Chat Dashboard</a>
-                <a href="https://buymeacoffee.com/kundacafe" target="_blank" class="btn btn-secondary">☕ Support on BuyMeACoffee</a>
-            </div>
-        </div>
-    </header>
-
-    <!-- MAIN CONTAINER -->
-    <main class="container">
-
-        <!-- KUNDA CAFE INFO SECTION -->
-        <div class="kunda-info-box">
-            <h3>📍 Kunda Cafe Essentials</h3>
-            <p style="color: var(--text-muted); font-weight: 900; margin-bottom: 20px;">Established in 2011 and recognized in the Michelin Guide Thailand 2026. Located at the heart of Chiang Rai.</p>
-            
-            <div class="kunda-grid">
-                <div class="kunda-fact">
-                    <strong>Location</strong>
-                    <span>372 Trairat Rd, Chiang Rai, Thailand</span>
-                </div>
-                <div class="kunda-fact">
-                    <strong>Hours</strong>
-                    <span>Open daily 12:00 PM (Noon) &bull; Kitchen closes at 7:30 PM</span>
-                </div>
-                <div class="kunda-fact">
-                    <strong>Food Ethos</strong>
-                    <span>Strictly SOY-FREE and TOFU-FREE. No Thai food, no rice, no commercial sodas.</span>
-                </div>
-            </div>
-        </div>
-
-        <h2 class="section-title">How To <span>Use</span></h2>
-
-        <!-- GUIDES GRID -->
-        <div class="guide-grid">
-            <div class="guide-card">
-                <div class="card-number">01</div>
-                <h4>What Is This?</h4>
-                <p>Your direct line to <strong>Veg Anna</strong>. Ask about legendary Kunda burgers, music archives with Martin Strayd, or local Chiang Rai lore.</p>
-            </div>
-
-            <div class="guide-card">
-                <div class="card-number">02</div>
-                <h4>Add Your Key</h4>
-                <p>Click <strong>Launch Chat Dashboard</strong> above, then tap the <code>⚙️ Settings</code> gear icon in the top right to paste your DAHL API Key.</p>
-            </div>
-
-            <div class="guide-card">
-                <div class="card-number">03</div>
-                <h4>Voice & Share</h4>
-                <p
