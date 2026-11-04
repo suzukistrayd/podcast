@@ -301,3 +301,108 @@
         }
 
         .guide-card h4 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .guide-card p {
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.5;
+            font-weight: 900;
+        }
+
+        .guide-card code {
+            background: #222222;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: var(--accent);
+            font-family: monospace;
+        }
+
+        /* FOOTER & LINKS */
+        .portal-footer-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            text-align: center;
+            padding: 40px 0;
+            border-top: 2px solid var(--surface-border);
+            border-bottom: 2px solid var(--surface-border);
+            margin-bottom: 40px;
+        }
+
+        .portal-footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 900;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+
+        .portal-footer-links a:hover {
+            color: var(--accent);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 900;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- INFINITE MARQUEE TICKER -->
+    <div class="infinite-ticker">
+        <div class="ticker-track">
+            <span class="ticker-item">🔥 MICHELIN GUIDE THAILAND 2026 &bull; CHIANG RAI &bull; 372 TRAIRAT RD</span>
+            <span class="ticker-item">☕ SOY-FREE & TOFU-FREE ETHOS &bull; ESTABLISHED 2011</span>
+            <span class="ticker-item">🚀 LAUNCHING THE VEG ANNA SHOW PODCAST AI</span>
+            <span class="ticker-item">🔥 MICHELIN GUIDE THAILAND 2026 &bull; CHIANG RAI &bull; 372 TRAIRAT RD</span>
+            <span class="ticker-item">☕ SOY-FREE & TOFU-FREE ETHOS &bull; ESTABLISHED 2011</span>
+            <span class="ticker-item">🚀 LAUNCHING THE VEG ANNA SHOW PODCAST AI</span>
+        </div>
+    </div>
+
+    <!-- FULL-SCREEN HERO SECTION -->
+    <header>
+        <img src="./VegAnna-Hero-PFP.png" alt="Veg Anna Backdrop" class="hero-bg-img">
+        <div class="hero-overlay"></div>
+
+        <div class="hero-content">
+            <h1>The Veg Anna Show <span>Live AI Portal</span></h1>
+            <p class="hero-subtitle">Step into Kunda Cafe's neural transmission hub. Experience real-time interactive podcast lore, deep archives, and direct voice synthesis with Veg Anna.</p>
+            
+            <div class="cta-group">
+                <a href="./dashboard/" class="btn btn-primary">🚀 Launch Chat Dashboard</a>
+                <a href="https://buymeacoffee.com/kundacafe" target="_blank" class="btn btn-secondary">☕ Support on BuyMeACoffee</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="container">
+        <div class="kunda-info-box">
+            <h3>📍 Kunda Cafe Essentials</h3>
+            <p style="color: var(--text-muted); font-weight: 900; margin-bottom: 20px;">Established in 2011 and recognized in the Michelin Guide Thailand 2026. Located at the heart of Chiang Rai.</p>
+            
+            <div class="kunda-grid">
+                <div class="kunda-fact">
+                    <strong>Location</strong>
+                    <span>372 Trairat Rd, Chiang Rai, Thailand</span>
+                </div>
+                <div class="kunda-fact">
+                    <strong>Hours</strong>
+                    <span>Open daily 12:00 PM (Noon) &bull; Kitchen closes at 7:30 PM</span>
+                </div>
+                <div class="kunda-fact">
+                    <strong>Food Ethos</strong>
+                    <span>Strictly SOY-FREE and TOFU-FREE. No Thai food, no rice, no commercial sodas.</span>
+                </div>
+            </div>
+        </div>
