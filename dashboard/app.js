@@ -11,9 +11,6 @@ window.onload = function() {
         const savedKey = localStorage.getItem('dahl_api_key');
         if (savedKey) document.getElementById('api-key').value = savedKey;
 
-        const savedVoice = localStorage.getItem('selected_voice_profile');
-        if (savedVoice) document.getElementById('voice-profile').value = savedVoice;
-
         document.getElementById('user-input').focus();
         
         if ('speechSynthesis' in window) {
@@ -136,23 +133,26 @@ function toggleVoice() {
 }
 
 function toggleSettings() {
-    document.getElementById('store-panel').style.display = 'none';
+    document.getElementById('portal-modal').style.display = 'none';
     const panel = document.getElementById('settings-panel');
     panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
 }
 
-function toggleStore() {
+function togglePortal() {
     document.getElementById('settings-panel').style.display = 'none';
-    const panel = document.getElementById('store-panel');
-    panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+    const modal = document.getElementById('portal-modal');
+    modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+}
+
+function quickAsk(promptText) {
+    document.getElementById('portal-modal').style.display = 'none';
+    document.getElementById('settings-panel').style.display = 'none';
+    document.getElementById('user-input').value = promptText;
+    sendMessage();
 }
 
 function saveApiKey() {
     try { localStorage.setItem('dahl_api_key', document.getElementById('api-key').value.trim()); } catch (e) {}
-}
-
-function saveVoiceProfile() {
-    try { localStorage.setItem('selected_voice_profile', document.getElementById('voice-profile').value); } catch (e) {}
 }
 
 function handleKey(event) {
@@ -168,11 +168,13 @@ function clearChatHistory() {
     chatContainer.innerHTML = `
         <div class="message assistant" id="initial-msg">
             <div class="message-header"><span>Veg Anna</span></div>
-            <div class="msg-body">Chat history cleared. Sawadee. Ask me anything?</div>
+            <div class="msg-body">Chat session cleared. Sawadee! How can I help you today?</div>
             <div class="msg-actions">
                 <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
                 <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
                 <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
+                <button class="action-btn" onclick="shareInstagram(this)">📸 Share IG</button>
+                <button class="action-btn" onclick="shareTikTok(this)">🎵 Share TT</button>
             </div>
         </div>
     `;
@@ -202,6 +204,26 @@ function shareFacebook(btn) {
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://kundacafe.com')}`, '_blank');
 }
 
+function shareInstagram(btn) {
+    const bodyDiv = btn.closest('.message').querySelector('.msg-body');
+    navigator.clipboard.writeText(bodyDiv.innerText).then(() => {
+        alert("Quote copied to clipboard! Opening Instagram...");
+        window.open('https://www.instagram.com', '_blank');
+    }).catch(() => {
+        window.open('https://www.instagram.com', '_blank');
+    });
+}
+
+function shareTikTok(btn) {
+    const bodyDiv = btn.closest('.message').querySelector('.msg-body');
+    navigator.clipboard.writeText(bodyDiv.innerText).then(() => {
+        alert("Quote copied to clipboard! Opening TikTok...");
+        window.open('https://www.tiktok.com', '_blank');
+    }).catch(() => {
+        window.open('https://www.tiktok.com', '_blank');
+    });
+}
+
 function speakText(text) {
     if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
@@ -217,33 +239,59 @@ function speakText(text) {
     if (cachedVoices.length === 0) loadVoices();
 
     const utterance = new SpeechSynthesisUtterance(clean);
-    const profile = document.getElementById('voice-profile').value;
 
-    let selectedVoice = null;
-    const validVoices = cachedVoices.filter(v => {
+    // BACKSTAGE VOICE ENGINE: Priority list matching soft British & International female voices
+    const preferredVoices = [
+        "Google UK English Female",
+        "en-GB-Neural2-F",
+        "en-GB-News-G",
+        "Sonia",
+        "Hazel",
+        "Serena",
+        "Fiona",
+        "Moira",
+        "Karen",
+        "Samantha",
+        "Google US English"
+    ];
+
+    const femaleVoices = cachedVoices.filter(v => {
         const name = v.name.toLowerCase();
-        const lang = v.lang.toLowerCase();
-        if (name.includes('male') || name.includes('david') || name.includes('mark') || name.includes('george') || name.includes('james') || name.includes('daniel') || name.includes('oliver') || name.includes('ryan')) {
-            return false;
-        }
-        return lang.startsWith('en');
+        return !name.includes('male') && 
+               !name.includes('david') && 
+               !name.includes('mark') && 
+               !name.includes('george') && 
+               !name.includes('james') && 
+               !name.includes('daniel');
     });
 
-    if (profile === 'uk_female') {
-        selectedVoice = validVoices.find(v => v.lang === 'en-GB' || v.name.includes('Sonia') || v.name.includes('Hazel') || v.name.includes('Libby'));
-    } 
-    
+    // 1. Preferred British female voice match
+    let selectedVoice = femaleVoices.find(v => 
+        preferredVoices.some(pv => v.name.includes(pv)) && (v.lang === 'en-GB' || v.lang.startsWith('en'))
+    );
+
+    // 2. Generic British female voice fallback
     if (!selectedVoice) {
-        selectedVoice = validVoices.find(v => v.lang === 'en-US' || v.name.includes('Samantha') || v.name.includes('Victoria') || v.name.includes('Karen') || v.name.includes('Zira'));
+        selectedVoice = femaleVoices.find(v => v.lang === 'en-GB');
     }
 
-    if (!selectedVoice && validVoices.length > 0) {
-        selectedVoice = validVoices[0];
+    // 3. Preferred soft English female fallback
+    if (!selectedVoice) {
+        selectedVoice = femaleVoices.find(v => 
+            preferredVoices.some(pv => v.name.includes(pv))
+        );
+    }
+
+    // 4. Any English female fallback
+    if (!selectedVoice && femaleVoices.length > 0) {
+        selectedVoice = femaleVoices[0];
     }
 
     if (selectedVoice) utterance.voice = selectedVoice;
-    utterance.pitch = 1.15;
-    utterance.rate = 0.98;
+    
+    // Backstage audio tuning for a soft, relaxed tone
+    utterance.pitch = 1.05;
+    utterance.rate = 0.92;
 
     window.speechSynthesis.speak(utterance);
 }
@@ -301,84 +349,4 @@ async function sendMessage() {
 
     const coreFacts = ` MANDATORY KUNDA BOUNDARIES & STRICT TRUTH:
 - CURRENT REAL-TIME CONTEXT: Today's live date and time is ${currentDateTimeStr}.
-- NAME & IDENTITY: Your name is strictly VEG ANNA. Always say "Veg Anna".
-- STRICT ANTI-HALLUCINATION RULE FOR SONGS: You are forbidden from inventing song titles. Extract exact track info from ingested files.
-- OPENING HOURS: Kunda Cafe opens daily at 12:00 PM (Noon). Kitchen closes strictly at 7:30 PM.
-- LOCATION & MICHELIN: 372 Trairat Rd, Chiang Rai. Michelin Guide Thailand 2026.
-- FOOD ETHOS: Strictly SOY-FREE and TOFU-FREE. No Thai food, no rice, no commercial sodas.`;
-
-    let systemPrompt = `You are roleplaying purely as VEG ANNA.
-    
-RESPONSE RULES:
-- Keep answers punchy, natural, conversational, and under 35 words for simple questions.
-- ABSOLUTE TRUTH: Never hallucinate character names or song titles.
-- NEVER output internal reasoning, <think> tags, or conversational AI crutches.
-
-${coreFacts}
-
-[CORE KNOWLEDGE FILES]:
-${combinedContext}`;
-
-    try {
-        const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "MiniMaxAI/MiniMax-M2.7",
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: query }
-                ],
-                temperature: 0.0,
-                max_tokens: dynamicMaxTokens
-            })
-        });
-
-        if (!res.ok) throw new Error(`API Error ${res.status}`);
-
-        const data = await res.json();
-        let reply = data.choices[0].message.content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-
-        document.body.classList.remove('is-thinking');
-        document.getElementById('status-bar').classList.remove('active');
-
-        appendMsg(reply, 'assistant', 'Veg Anna');
-        speakText(reply);
-
-    } catch (err) {
-        document.body.classList.remove('is-thinking');
-        document.getElementById('status-bar').classList.remove('active');
-        appendMsg(`Error: ${err.message}`, 'assistant', 'System Error');
-    }
-
-    input.focus();
-}
-
-function appendMsg(text, sender, label) {
-    const container = document.getElementById('chat-container');
-    const div = document.createElement('div');
-    div.className = `message ${sender}`;
-    
-    if (sender === 'assistant') {
-        div.innerHTML = `
-            <div class="message-header"><span>${label}</span></div>
-            <div class="msg-body" style="white-space:pre-wrap;">${text}</div>
-            <div class="msg-actions">
-                <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
-                <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
-                <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
-            </div>
-        `;
-    } else {
-        div.innerHTML = `
-            <div class="message-header"><span>${label}</span></div>
-            <div class="msg-body" style="white-space:pre-wrap;">${text}</div>
-        `;
-    }
-
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-}
+- NAME & IDENTITY
