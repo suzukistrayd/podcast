@@ -73,7 +73,8 @@ async function preloadCoreKnowledge() {
 async function fetchDeepKnowledgeContext() {
     let snippets = [];
     try {
-        const cacheBust = `?t=${Date.now()}`; const treeUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/git/trees/main?recursive=1${cacheBust}`;
+        const cacheBust = `?t=${Date.now()}`;
+        const treeUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/git/trees/main?recursive=1${cacheBust}`;
         const treeRes = await fetch(treeUrl);
 
         if (treeRes.ok) {
@@ -231,11 +232,24 @@ function fallbackCopy(text, btn) {
 function shareTwitter(btn) {
     const bodyDiv = btn.closest('.message').querySelector('.msg-body');
     if (!bodyDiv) return;
-    const text = encodeURIComponent(`"${bodyDiv.innerText}" — Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`);
-    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank'); }  function shareFacebook(btn) { const bodyDiv = btn.closest('.message').querySelector('.msg-body'); if (!bodyDiv) return; const shareText = `"${bodyDiv.innerText}" — Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`;
+    const shareText = bodyDiv.innerText.replace(/[—–]/g, '-');
+    const text = encodeURIComponent(`"${shareText}" - Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`);
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+}
+
+function shareFacebook(btn) {
+    const bodyDiv = btn.closest('.message').querySelector('.msg-body');
+    if (!bodyDiv) return;
+    const shareText = `"${bodyDiv.innerText.replace(/[—–]/g, '-')}" - Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`;
     fallbackCopy(shareText, btn);
     alert("Post text and hashtags copied to clipboard! Opening Facebook...");
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://kundacafe.com')}`, '_blank'); }  function shareInstagram(btn) { const bodyDiv = btn.closest('.message').querySelector('.msg-body'); if (!bodyDiv) return; const shareText = `"${bodyDiv.innerText}" — Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`;
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://kundacafe.com')}`, '_blank');
+}
+
+function shareInstagram(btn) {
+    const bodyDiv = btn.closest('.message').querySelector('.msg-body');
+    if (!bodyDiv) return;
+    const shareText = `"${bodyDiv.innerText.replace(/[—–]/g, '-')}" - Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`;
     fallbackCopy(shareText, btn);
     alert("Quote and hashtags copied to clipboard! Opening Instagram...");
     window.open('https://www.instagram.com', '_blank');
@@ -244,4 +258,239 @@ function shareTwitter(btn) {
 function shareTikTok(btn) {
     const bodyDiv = btn.closest('.message').querySelector('.msg-body');
     if (!bodyDiv) return;
-    const shareText = `"${bodyDiv.innerText}" — Veg Anna / Kunda Cafe
+    const shareText = `"${bodyDiv.innerText.replace(/[—–]/g, '-')}" - Veg Anna / Kunda Cafe #VegAnnaShow #KundaCafe #ChiangRai`;
+    fallbackCopy(shareText, btn);
+    alert("Quote and hashtags copied to clipboard! Opening TikTok...");
+    window.open('https://www.tiktok.com', '_blank');
+}
+
+function cleanTextForEngine(rawText) {
+    if (!rawText) return "";
+    return rawText
+        .replace(/<think>[\s\S]*?<\/think>/gi, '')
+        .replace(/<\/?think>/gi, '')
+        .replace(/<thought>[\s\S]*?<\/thought>/gi, '')
+        .replace(/[—–]/g, '-')
+        .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '')
+        .replace(/[*_#`~]/g, '')
+        .trim();
+}
+
+function speakText(text) {
+    if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+
+    const clean = cleanTextForEngine(text);
+    if (!clean) return;
+
+    if (cachedVoices.length === 0) loadVoices();
+
+    const utterance = new SpeechSynthesisUtterance(clean);
+
+    const preferredVoices = [
+        "Google UK English Female",
+        "en-GB-Neural2-F",
+        "en-GB-News-G",
+        "Sonia",
+        "Hazel",
+        "Serena",
+        "Fiona",
+        "Moira",
+        "Karen",
+        "Samantha",
+        "Google US English"
+    ];
+
+    const femaleVoices = cachedVoices.filter(v => {
+        const name = v.name.toLowerCase();
+        return !name.includes('male') && 
+               !name.includes('david') && 
+               !name.includes('mark') && 
+               !name.includes('george') && 
+               !name.includes('james') && 
+               !name.includes('daniel');
+    });
+
+    let selectedVoice = femaleVoices.find(v => 
+        preferredVoices.some(pv => v.name.includes(pv)) && (v.lang === 'en-GB' || v.lang.startsWith('en'))
+    );
+
+    if (!selectedVoice) {
+        selectedVoice = femaleVoices.find(v => v.lang === 'en-GB');
+    }
+
+    if (!selectedVoice) {
+        selectedVoice = femaleVoices.find(v => 
+            preferredVoices.some(pv => v.name.includes(pv))
+        );
+    }
+
+    if (!selectedVoice && femaleVoices.length > 0) {
+        selectedVoice = femaleVoices[0];
+    }
+
+    if (selectedVoice) utterance.voice = selectedVoice;
+    
+    utterance.pitch = 1.05;
+    utterance.rate = 0.92;
+
+    window.speechSynthesis.speak(utterance);
+}
+
+async function sendMessage() {
+    const keyEl = document.getElementById('api-key');
+    const input = document.getElementById('user-input');
+    const apiKey = keyEl ? keyEl.value.trim() : "";
+    const query = input ? input.value.trim() : "";
+
+    if (!apiKey) {
+        alert('Please tap ⚙️ Settings in the top right to paste your DAHL API Key.');
+        toggleSettings();
+        return;
+    }
+    if (!query) return;
+
+    if (query.toLowerCase().includes("play music") || query.toLowerCase().includes("playlist")) {
+        window.open("https://open.spotify.com/search/kunda%20cafe", "_blank");
+    }
+
+    appendMsg(query, 'user', 'You');
+    if (input) input.value = '';
+
+    document.body.classList.add('is-thinking');
+    const statusBar = document.getElementById('status-bar');
+    if (statusBar) statusBar.classList.add('active');
+
+    const queryLower = query.toLowerCase();
+    const needsDeepLore = queryLower.includes("song") || 
+                         queryLower.includes("track") || 
+                         queryLower.includes("archive") || 
+                         queryLower.includes("martin") || 
+                         queryLower.includes("strayd") || 
+                         queryLower.includes("history");
+
+    const dynamicMaxTokens = needsDeepLore ? 1000 : 180;
+
+    if (!coreKnowledgeCache) await preloadCoreKnowledge();
+    
+    let combinedContext = coreKnowledgeCache || "";
+    
+    if (needsDeepLore) {
+        const deepContext = await fetchDeepKnowledgeContext();
+        combinedContext += `\n\n[DEEP LORE FILES]:\n${deepContext}`;
+    }
+
+    const now = new Date();
+    const currentDateTimeStr = now.toLocaleString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+
+    const coreFacts = ` MANDATORY KUNDA BOUNDARIES & STRICT TRUTH:
+- CURRENT REAL-TIME CONTEXT: Today's live date and time is ${currentDateTimeStr}.
+- NAME & IDENTITY: Your name is strictly VEG ANNA. Always say "Veg Anna".
+- NO REPETITIVE GREETINGS: NEVER start every response with "Sawadee!". Answer directly, vary naturally, or skip greetings entirely.
+- ABSOLUTELY NO THINKING TAGS: NEVER output internal reasoning, thought blocks, or <think> tags.
+- NO EM-DASHES: NEVER use long em-dashes (—). ALWAYS use standard short hyphens (-) only.
+- STRICT ANTI-HALLUCINATION RULE FOR SONGS: You are forbidden from inventing song titles. Extract exact track info from ingested files.
+- OPENING HOURS: Kunda Cafe opens daily at 12:00 PM (Noon). Kitchen closes strictly at 7:30 PM.
+- LOCATION & MICHELIN: 372 Trairat Rd, Chiang Rai. Michelin Guide Thailand 2026.
+- FOOD ETHOS: Strictly SOY-FREE and TOFU-FREE. No Thai food, no rice, no commercial sodas.`;
+
+    let systemPrompt = `You are roleplaying purely as VEG ANNA.
+    
+RESPONSE RULES:
+- Output ONLY your direct conversational answer. 
+- ABSOLUTELY NO internal thoughts, reasoning steps, or <think> tags.
+- DASH STYLE: NEVER use long em-dashes (—). ALWAYS use standard short hyphens (-) only.
+- Keep answers punchy, human, concise, and under 30 words for general questions.
+- NEVER start responses with repetitive greetings like "Sawadee!".
+
+${coreFacts}
+
+[CORE KNOWLEDGE FILES]:
+${combinedContext}`;
+
+    try {
+        const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "MiniMaxAI/MiniMax-M2.7",
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: query }
+                ],
+                temperature: 0.0,
+                max_tokens: dynamicMaxTokens
+            })
+        });
+
+        if (!res.ok) throw new Error(`API Error ${res.status}`);
+
+        const data = await res.json();
+        let rawContent = data.choices[0].message.content || "";
+
+        // STRICT REGEX STRIPPING FOR THINK TAGS & LONG DASHES
+        let reply = rawContent
+            .replace(/<think>[\s\S]*?<\/think>/gi, '')
+            .replace(/<\/?think>/gi, '')
+            .replace(/<thought>[\s\S]*?<\/thought>/gi, '')
+            .replace(/[—–]/g, '-')
+            .trim();
+
+        document.body.classList.remove('is-thinking');
+        if (statusBar) statusBar.classList.remove('active');
+
+        if (reply) {
+            appendMsg(reply, 'assistant', 'Veg Anna');
+            speakText(reply);
+        } else {
+            appendMsg("I'm here! What would you like to know about Kunda?", 'assistant', 'Veg Anna');
+        }
+
+    } catch (err) {
+        document.body.classList.remove('is-thinking');
+        if (statusBar) statusBar.classList.remove('active');
+        appendMsg(`Error: ${err.message}`, 'assistant', 'System Error');
+    }
+
+    if (input) input.focus();
+}
+
+function appendMsg(text, sender, label) {
+    const container = document.getElementById('chat-container');
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.className = `message ${sender}`;
+    
+    if (sender === 'assistant') {
+        div.innerHTML = `
+            <div class="message-header"><span>${label}</span></div>
+            <div class="msg-body" style="white-space:pre-wrap;">${text}</div>
+            <div class="msg-actions">
+                <button class="action-btn" onclick="copyMessage(this)">📋 Copy</button>
+                <button class="action-btn" onclick="shareTwitter(this)">🐦 Share X</button>
+                <button class="action-btn" onclick="shareFacebook(this)">📘 Share FB</button>
+                <button class="action-btn" onclick="shareInstagram(this)">📸 Share IG</button>
+                <button class="action-btn" onclick="shareTikTok(this)">🎵 Share TT</button>
+            </div>
+        `;
+    } else {
+        div.innerHTML = `
+            <div class="message-header"><span>${label}</span></div>
+            <div class="msg-body" style="white-space:pre-wrap;">${text}</div>
+        `;
+    }
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
