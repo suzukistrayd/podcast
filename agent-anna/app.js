@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA // MILITARY-GRADE ENGINE + WORKFLOW CLIPBOARD SYNC
+// AGENT ANNA // MILITARY-GRADE BASE ENGINE + WORKFLOW CLIPBOARD SYNC
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -282,7 +282,6 @@ ${liveTelemetry}`;
         const data = await res.json();
         let reply = (data.choices[0].message.content || "").replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
-        document.body.classList.get('is-thinking'); // safe check
         document.body.classList.remove('is-thinking');
         updateHUDState("READY");
 
@@ -377,7 +376,6 @@ function appendMsg(text, sender, label, includeCopy = false) {
     
     let copyBtnHTML = "";
     if (includeCopy) {
-        // Encapsulate text safely for inline execution
         const encodedText = encodeURIComponent(text);
         copyBtnHTML = `<button class="copy-telemetry-btn" onclick="copyToClipboard(decodeURIComponent('${encodedText}'), this)" style="float: right; background: transparent; border: 1px solid #00ffcc; color: #00ffcc; font-size: 10px; padding: 2px 6px; cursor: pointer; border-radius: 3px; font-family: monospace;">[COPY DATA]</button>`;
     }
@@ -390,13 +388,11 @@ function appendMsg(text, sender, label, includeCopy = false) {
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
 
-    // AUTOMATION HOOK: Automatically trigger clipboard copy on assistant messages for data pipeline feeding
     if (includeReflexiveWorkflow(text)) {
         navigator.clipboard.writeText(text).catch(() => {});
     }
 }
 
-// Optional: Filter if you want automated silent copying on specific tickers/signals
 function includeReflexiveWorkflow(text) {
     return text.includes("BTC Price") || text.includes("DOGE Price") || text.includes("LIVE TELEMETRY");
 }
