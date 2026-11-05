@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA // UNIFIED MISSION CONTROL ENGINE (ALL-IN-ONE)
+// AGENT ANNA // MILITARY-GRADE BASE AGENT ENGINE (ALL-IN-ONE)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -31,7 +31,7 @@ window.onload = function() {
     initSpeechRecognition();
 };
 
-// MULTI-BROWSER VOICE INPUT ENGINE
+// AUDIT POINT 1: SPEECH INPUT RECOGNITION ENGINE
 function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
@@ -46,8 +46,7 @@ function initSpeechRecognition() {
             isListening = true;
             const micBtn = document.getElementById('mic-btn');
             if (micBtn) micBtn.classList.add('listening');
-            const stateText = document.getElementById('state-text');
-            if (stateText) stateText.innerText = "LISTENING";
+            updateHUDState("LISTENING");
         };
 
         recognition.onresult = function(event) {
@@ -58,19 +57,14 @@ function initSpeechRecognition() {
             sendMessage();
         };
 
-        recognition.onerror = function(event) {
-            stopListeningUI();
-        };
-
-        recognition.onend = function() {
-            stopListeningUI();
-        };
+        recognition.onerror = function() { stopListeningUI(); };
+        recognition.onend = function() { stopListeningUI(); };
     } catch (err) {}
 }
 
 function toggleMic() {
     if (!recognition) initSpeechRecognition();
-    if (!recognition) return alert("Speech recognition is unavailable in this environment.");
+    if (!recognition) return alert("Speech recognition unavailable in this browser.");
 
     if (!isListening) {
         try { recognition.start(); } catch (e) { stopListeningUI(); }
@@ -84,10 +78,7 @@ function stopListeningUI() {
     isListening = false;
     const micBtn = document.getElementById('mic-btn');
     if (micBtn) micBtn.classList.remove('listening');
-    const stateText = document.getElementById('state-text');
-    if (stateText && stateText.innerText === "LISTENING") {
-        stateText.innerText = "READY";
-    }
+    updateHUDState("READY");
 }
 
 function loadVoices() {
@@ -95,7 +86,7 @@ function loadVoices() {
     cachedVoices = window.speechSynthesis.getVoices();
 }
 
-// PRELOAD CORE KNOWLEDGE BASE
+// AUDIT POINT 2: STATIC KNOWLEDGE PRELOADER
 async function preloadCoreKnowledge() {
     const corePaths = [
         "agent-anna/character/agent-anna.md",
@@ -116,17 +107,143 @@ async function preloadCoreKnowledge() {
     coreKnowledgeCache = snippets.join('\n\n---\n\n');
 }
 
-// FETCH LIVE TELEMETRY RELAY
+// AUDIT POINT 3: DUAL-LAYER TELEMETRY & MARKET HARVESTER
 async function fetchLiveTelemetry() {
+    let btc = "Unavailable", eth = "Unavailable", doge = "Unavailable";
+    
+    // Live Market API Fetch
     try {
-        const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/portal-relay.json?t=${Date.now()}`;
-        const res = await fetch(url);
-        if (res.ok) {
-            const data = await res.json();
-            return `[LIVE TELEMETRY RELAY]\n- Status: ${data.status || 'ACTIVE'}\n- Active Bot: ${data.active_bot || 'N/A'}\n- Equity: ${data.solana_equity || '$142.85'}\n- Signal: ${data.latest_signal || 'None'}`;
+        const cryptoRes = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin&vs_currencies=usd");
+        if (cryptoRes.ok) {
+            const prices = await cryptoRes.json();
+            if (prices.bitcoin) btc = `$${prices.bitcoin.usd.toLocaleString()}`;
+            if (prices.ethereum) eth = `$${prices.ethereum.usd.toLocaleString()}`;
+            if (prices.dogecoin) doge = `$${prices.dogecoin.usd.toFixed(4)}`;
         }
     } catch (e) {}
-    return "";
+
+    // GitHub & Local Relay File Fetch
+    let status = "ONLINE", activeBot = "Grok Scanner", solanaEquity = "$142.85", signal = "Active";
+    try {
+        const localRes = await fetch(`portal-relay.json?t=${Date.now()}`);
+        if (localRes.ok) {
+            const data = await localRes.json();
+            status = data.status || status;
+            activeBot = data.active_bot || activeBot;
+            solanaEquity = data.solana_equity || solanaEquity;
+            signal = data.latest_signal || signal;
+        }
+    } catch (e) {}
+
+    return `[LIVE TELEMETRY & MARKET METRICS]
+- Audit Status: ${status}
+- Active Engine: ${activeBot}
+- Solana Equity: ${solanaEquity}
+- BTC Price: ${btc}
+- ETH Price: ${eth}
+- DOGE Price: ${doge}
+- Signal Metric: ${signal}`;
+}
+
+// AUDIT POINT 4: VOICE SYNTHESIS ENGINE
+function speakText(text) {
+    if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    
+    const cleanText = text.replace(/<[^>]*>/g, '').replace(/[*_#`~]/g, '').trim();
+    if (!cleanText) return;
+
+    if (cachedVoices.length === 0) loadVoices();
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+
+    const preferredVoices = ["Google UK English Female", "en-GB-Neural2-F", "Sonia", "Hazel", "Samantha", "Google US English"];
+    let selectedVoice = cachedVoices.find(v => preferredVoices.some(p => v.name.includes(p)));
+    if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('male'));
+
+    if (selectedVoice) utterance.voice = selectedVoice;
+    utterance.pitch = 1.05;
+    utterance.rate = 0.94;
+    window.speechSynthesis.speak(utterance);
+}
+
+// AUDIT POINT 5: INFERENCE DISPATCH & RESPONSE VALIDATION
+async function sendMessage() {
+    const keyEl = document.getElementById('api-key');
+    const input = document.getElementById('user-input');
+    const apiKey = keyEl ? keyEl.value.trim() : "";
+    const query = input ? input.value.trim() : "";
+
+    if (!apiKey) {
+        alert('Paste your Dahl API Key in settings.');
+        toggleSettings();
+        return;
+    }
+    if (!query) return;
+
+    appendMsg(query, 'user', 'Commander');
+    if (input) input.value = '';
+
+    document.body.classList.add('is-thinking');
+    updateHUDState("REASONING");
+
+    if (!coreKnowledgeCache) await preloadCoreKnowledge();
+    const liveTelemetry = await fetchLiveTelemetry();
+    
+    const systemPrompt = `You are AGENT ANNA, a military-grade execution engine operating under character/agent-anna.md.
+Rules:
+1. Provide precise, executive answers suitable for speech synthesis.
+2. Integrate telemetry statistics directly when asked for system state or market metrics.
+
+System Context:
+${coreKnowledgeCache}
+
+Telemetry & Live Market Data:
+${liveTelemetry}`;
+
+    try {
+        const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "MiniMaxAI/MiniMax-M2.7",
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: query }
+                ],
+                temperature: 0.1,
+                max_tokens: 1000
+            })
+        });
+
+        if (!res.ok) throw new Error(`API Connection Error ${res.status}`);
+
+        const data = await res.json();
+        let reply = (data.choices[0].message.content || "").replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
+        document.body.classList.remove('is-thinking');
+        updateHUDState("READY");
+
+        appendMsg(reply, 'assistant', 'Agent Anna Core');
+        speakText(reply);
+
+    } catch (err) {
+        document.body.classList.remove('is-thinking');
+        updateHUDState("ERROR");
+        appendMsg(`Execution Audit Error: ${err.message}`, 'assistant', 'System Alert');
+    }
+}
+
+function updateHUDState(stateLabel) {
+    const stateText = document.getElementById('state-text');
+    if (stateText) stateText.innerText = stateLabel;
+    const statusBar = document.getElementById('status-bar');
+    if (statusBar) {
+        if (stateLabel === "REASONING") statusBar.classList.add('active');
+        else statusBar.classList.remove('active');
+    }
 }
 
 function toggleVoice() {
@@ -166,98 +283,6 @@ function clearLogs() {
                 <div class="msg-body">Console history cleared. Standby mode.</div>
             </div>
         `;
-    }
-}
-
-// AUDIO SYNTHESIZER (SOFT FEMALE VOICE PROFILE)
-function speakText(text) {
-    if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const clean = text.replace(/<[^>]*>/g, '').replace(/[*_#`~]/g, '').trim();
-    if (!clean) return;
-
-    if (cachedVoices.length === 0) loadVoices();
-    const utterance = new SpeechSynthesisUtterance(clean);
-
-    const preferred = ["Google UK English Female", "en-GB-Neural2-F", "Sonia", "Hazel", "Samantha", "Google US English"];
-    let selectedVoice = cachedVoices.find(v => preferred.some(p => v.name.includes(p)));
-    if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('male'));
-
-    if (selectedVoice) utterance.voice = selectedVoice;
-    utterance.pitch = 1.05;
-    utterance.rate = 0.94;
-    window.speechSynthesis.speak(utterance);
-}
-
-// INFERENCE DISPATCH TO DAHL API
-async function sendMessage() {
-    const keyEl = document.getElementById('api-key');
-    const input = document.getElementById('user-input');
-    const apiKey = keyEl ? keyEl.value.trim() : "";
-    const query = input ? input.value.trim() : "";
-
-    if (!apiKey) {
-        alert('Please tap ⚙️ KEYS and paste your Dahl API Key.');
-        toggleSettings();
-        return;
-    }
-    if (!query) return;
-
-    appendMsg(query, 'user', 'Commander');
-    if (input) input.value = '';
-
-    document.body.classList.add('is-thinking');
-    const statusBar = document.getElementById('status-bar');
-    if (statusBar) statusBar.classList.add('active');
-    
-    const stateText = document.getElementById('state-text');
-    if (stateText) stateText.innerText = "REASONING";
-
-    if (!coreKnowledgeCache) await preloadCoreKnowledge();
-    const liveTelemetry = await fetchLiveTelemetry();
-    const combinedContext = `${coreKnowledgeCache}\n\n${liveTelemetry}`;
-
-    const systemPrompt = `You are AGENT ANNA, a military-grade execution engine operating under character/agent-anna.md.
-Provide direct, single-sentence execution answers suitable for clear voice synthesis readout.
-
-Context:
-${combinedContext}`;
-
-    try {
-        const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "MiniMaxAI/MiniMax-M2.7",
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: query }
-                ],
-                temperature: 0.1,
-                max_tokens: 1000
-            })
-        });
-
-        if (!res.ok) throw new Error(`API Error ${res.status}`);
-
-        const data = await res.json();
-        let reply = (data.choices[0].message.content || "").replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-
-        document.body.classList.remove('is-thinking');
-        if (statusBar) statusBar.classList.remove('active');
-        if (stateText) stateText.innerText = "READY";
-
-        appendMsg(reply, 'assistant', 'Agent Anna Core');
-        speakText(reply);
-
-    } catch (err) {
-        document.body.classList.remove('is-thinking');
-        if (statusBar) statusBar.classList.remove('active');
-        if (stateText) stateText.innerText = "ERROR";
-        appendMsg(`Execution Error: ${err.message}`, 'assistant', 'System Alert');
     }
 }
 
