@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // RESTORED ORIGINAL ENGINE (app.js)
+// AGENT ANNA 01 (AA01) // CORE GITHUB SYNC & EXECUTION ENGINE (app.js)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -262,7 +262,7 @@ ${liveTelemetry}`;
     }
 }
 
-// RESTORED ORIGINAL WORKING SCRAPE ENGINE
+// ORIGINAL FAST SCRAPE ENGINE
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
     let query = input ? input.value.trim() : "";
