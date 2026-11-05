@@ -15,7 +15,6 @@ let analyser = null;
 let micStream = null;
 let animFrameId = null;
 
-// Secure global registry for action button payload mapping
 window.aaRegistry = {};
 
 window.onload = function() {
@@ -189,7 +188,7 @@ async function fetchLiveTelemetry() {
 }
 
 // =================================================================
-// 3. VOICE SYNTHESIZER & REASONING DISPATCH
+// 3. VOICE SYNTHESIZER & UNCOMPROMISING EXECUTION ENGINE
 // =================================================================
 function speakText(text) {
     if (!('speechSynthesis' in window)) return;
@@ -273,7 +272,9 @@ async function sendMessage(forcedQuery = null) {
         liveTelemetry = "[TELEMETRY: Standby]";
     }
     
-    const systemPrompt = `You are AGENT ANNA 01 (AA01). Provide direct, high-speed, professional executive responses. Never ask clarifying questions or stall. Execute immediately.
+    // STRICT UNCOMPROMISING MILITARY SYSTEM PROMPT (No clarifying questions allowed)
+    const systemPrompt = `You are AGENT ANNA 01 (AA01). 
+MANDATE: Execute immediately with 100% compliance. NEVER ask clarifying questions, never state input is ambiguous, and never output meta-commentary or help menus. If a query is provided, synthesize and output factual intelligence immediately.
 
 System Context:
 ${coreKnowledgeCache}
@@ -322,7 +323,7 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// 4. ORIGINAL WORKING SCRAPE ENGINE (DuckDuckGo HTML Proxy)
+// 4. HIGH-SPEED SCOUT ENGINE (DuckDuckGo HTML Proxy)
 // =================================================================
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
