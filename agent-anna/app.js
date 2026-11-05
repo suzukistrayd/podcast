@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // HIGH-SPEED LIGHTNING ENGINE (app.js)
+// AGENT ANNA 01 (AA01) // ALL-IN-ONE MILITARY ENGINE (app.js)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -15,6 +15,7 @@ let analyser = null;
 let micStream = null;
 let animFrameId = null;
 
+// Secure global registry for action button payload mapping
 window.aaRegistry = {};
 
 window.onload = function() {
@@ -173,10 +174,8 @@ async function fetchLiveTelemetry() {
         const cryptoRes = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin,solana&vs_currencies=usd");
         if (cryptoRes.ok) {
             const prices = await cryptoRes.json();
-            if (prices.bitcoin) btc = `$${prices.bitcoin.usd.toLocaleString()}`;
-            if (prices.ethereum) eth = `$${prices.ethereum.usd.toLocaleString()}`;
-            if (prices.dogecoin) doge = `$${prices.dogecoin.usd.toFixed(4)}`;
-            if (prices.solana) sol = `$${prices.solana.usd.toFixed(2)}`;
+            if (prices.bitcoin) btc = `$${prices.bitcoin.usd.toLocaleString()}`; if (prices.ethereum) eth = `$${prices.ethereum.usd.toLocaleString()}`;
+            if (prices.dogecoin) doge = `$${prices.dogecoin.usd.toFixed(4)}`; if (prices.solana) sol = `$${prices.solana.usd.toFixed(2)}`;
         }
     } catch (e) {}
 
@@ -188,7 +187,7 @@ async function fetchLiveTelemetry() {
 }
 
 // =================================================================
-// 3. VOICE SYNTHESIZER
+// 3. VOICE SYNTHESIZER & REASONING DISPATCH
 // =================================================================
 function speakText(text) {
     if (!('speechSynthesis' in window)) return;
@@ -272,7 +271,7 @@ async function sendMessage(forcedQuery = null) {
         liveTelemetry = "[TELEMETRY: Standby]";
     }
     
-    const systemPrompt = `You are AGENT ANNA 01 (AA01). Provide direct, high-speed, professional executive responses. Never ask clarifying questions or stall. Always execute immediately.
+    const systemPrompt = `You are AGENT ANNA 01 (AA01). Provide direct, high-speed, professional executive responses. Never ask clarifying questions or stall. Execute immediately.
 
 System Context:
 ${coreKnowledgeCache}
@@ -321,12 +320,12 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// 4. LIGHTNING-FAST NON-BLOCKING SCOUT ENGINE
+// 4. BULLETPROOF SCOUT ENGINE (SCRAPE + LLM INTELLIGENCE)
 // =================================================================
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
     let query = input ? input.value.trim() : "";
-    if (!query) query = "martin strayd";
+    if (!query) query = "martin strayd kunda cafe";
 
     const startTime = performance.now();
     document.body.classList.add('is-thinking');
@@ -336,51 +335,86 @@ async function scrapeWebPage() {
 
     let extractedSnippets = [];
 
-    // Fast Wikipedia Primary Check (Lightning Speed < 1s)
+    // Step 1: Direct URL Scrape
+    if (query.startsWith('http://') || query.startsWith('https://')) {
+        try {
+            const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(query)}`);
+            if (res.ok) {
+                const htmlContent = await res.text();
+                const cleanText = htmlContent.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
+                const lines = cleanText.split('\n').filter(l => l.trim().length > 15);
+                finishScrape(`[PORTAL HARVEST: ${query}]\n-----------------------------------\n${lines.slice(0, 40).join('\n')}`, startTime, "URL harvested successfully.");
+                return;
+            }
+        } catch (e) {}
+    }
+
+    // Step 2: Wikipedia Direct Check
     try {
         const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`;
         const wRes = await fetch(wikiUrl);
         if (wRes.ok) {
             const wData = await wRes.json();
             if (wData.extract) {
-                extractedSnippets.push(`• [Knowledge Index Match: ${wData.title}] ${wData.extract}`);
+                extractedSnippets.push(`• [Wikipedia]: ${wData.extract}`);
             }
         }
     } catch (e) {}
 
-    // Fast DuckDuckGo Instant Answer API Check
+    // Step 3: DuckDuckGo Instant Answer Check
     if (extractedSnippets.length === 0) {
         try {
-            const ddgApiUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`;
-            const dRes = await fetch(ddgApiUrl);
+            const dRes = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`);
             if (dRes.ok) {
                 const dData = await dRes.json();
                 if (dData.AbstractText) {
-                    extractedSnippets.push(`• [Entity Abstract]: ${dData.AbstractText}`);
-                }
-                if (dData.RelatedTopics && dData.RelatedTopics.length > 0) {
-                    dData.RelatedTopics.slice(0, 3).forEach(rt => {
-                        if (rt.Text) extractedSnippets.push(`• ${rt.Text}`);
-                    });
+                    extractedSnippets.push(`• ${dData.AbstractText}`);
                 }
             }
         } catch (e) {}
     }
 
-    // Fallback Ground Truth Record
-    if (extractedSnippets.length === 0) {
-        extractedSnippets.push(`• Subject: ${query}\n• Status: High-speed index query resolved successfully across decentralized repository nodes. Entity parameters loaded and ready for immediate summarization or ingestion.`);
+    // Output immediately if client-side scrapers yielded snippets
+    if (extractedSnippets.length > 0) {
+        const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${extractedSnippets.join('\n\n')}\n-----------------------------------`;
+        finishScrape(report, startTime, `Scout complete for ${query}.`);
+        return;
     }
 
-    const tripSeconds = ((performance.now() - startTime) / 1000).toFixed(2);
-    const badge = document.getElementById('latency-display');
-    if (badge) badge.innerText = `SCRAPE LATENCY: ${tripSeconds}s`;
+    // Step 4: Intelligent LLM Scout Fallback (Ensures full factual detail every time)
+    const keyEl = document.getElementById('api-key');
+    const apiKey = keyEl ? keyEl.value.trim() : "";
 
-    const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${extractedSnippets.join('\n\n')}\n-----------------------------------`;
-    document.body.classList.remove('is-thinking');
-    updateHUDState("READY");
-    appendMsg(report, 'assistant', `AA01 Scout Link [${tripSeconds}s]`, true);
-    speakText(`Found live web results for ${query}.`);
+    if (apiKey) {
+        try {
+            const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: "MiniMaxAI/MiniMax-M2.7",
+                    messages: [
+                        { role: "system", content: "You are a web intelligence scout. Provide clear, detailed, factual background and operational context for the requested topic." },
+                        { role: "user", content: `Provide detailed background, facts, and operational details for: "${query}"` }
+                    ],
+                    temperature: 0.1,
+                    max_tokens: 1500
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                const reply = (data.choices[0].message.content || "").replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+                const report = `[LIVE SEARCH INTEL: "${query}"]\n-----------------------------------\n${reply}\n-----------------------------------`;
+                finishScrape(report, startTime, `Intel retrieved for ${query}.`);
+                return;
+            }
+        } catch (err) {}
+    }
+
+    finishScrape(`[SEARCH ALERT: "${query}"]\n-----------------------------------\nNo live proxy snippet returned. Tap ⚙️ KEYS to enable LLM Web Scout synthesis.\n-----------------------------------`, startTime, "Scout complete.");
 }
 
 function finishScrape(reportText, startTime, voiceMessage) {
@@ -468,125 +502,4 @@ function handleKey(event) {
 }
 
 function clearLogs() {
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    const chatContainer = document.getElementById('chat-container');
-    if (chatContainer) {
-        chatContainer.innerHTML = `
-            <div class="message assistant">
-                <div class="msg-header">AA01 Core</div>
-                <div class="msg-body">Console history cleared. Standby mode.</div>
-            </div>
-        `;
-    }
-}
-
-function appendMsg(text, sender, label, includeActions = true) {
-    const container = document.getElementById('chat-container');
-    if (!container) return;
-
-    const div = document.createElement('div');
-    div.className = `message ${sender}`;
-    
-    let actionButtonsHTML = "";
-    if (sender === 'assistant' && includeActions) {
-        const regKey = 'msg_' + Math.random().toString(36).substr(2, 9);
-        window.aaRegistry[regKey] = text;
-
-        actionButtonsHTML = `
-            <div style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; border-top: 1px solid #1b263b; padding-top: 8px;">
-                <button onclick="executeGlobalAction(1, '${regKey}')" style="background: rgba(0,255,204,0.1); border: 1px solid #00ffcc; color: #00ffcc; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">1. SUMMARIZE</button>
-                <button onclick="executeGlobalAction(2, '${regKey}')" style="background: rgba(255,170,0,0.1); border: 1px solid #ffaa00; color: #ffaa00; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">2. SAVE AS .MD</button>
-                <button onclick="executeGlobalAction(3, '${regKey}')" style="background: rgba(255,0,127,0.1); border: 1px solid #ff007f; color: #ff007f; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">3. INGEST TO CORE</button>
-                <button onclick="copyToClipboard(window.aaRegistry['${regKey}'], this)" style="background: transparent; border: 1px solid #8493a8; color: #8493a8; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">COPY</button>
-            </div>`;
-    }
-
-    div.innerHTML = `
-        <div class="msg-header">${label}</div>
-        <div style="white-space:pre-wrap; margin-top: 6px;">${text}</div>
-        ${actionButtonsHTML}
-    `;
-
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-}
-
-function executeGlobalAction(actionId, regKey) {
-    const content = window.aaRegistry[regKey] || "";
-    if (!content) return;
-
-    if (actionId === 1) {
-        sendMessage(`Summarize this response into concise tactical bullet points:\n${content}`);
-    } else if (actionId === 2) {
-        const blob = new Blob([content], { type: 'text/markdown' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `aa01-export-${Date.now()}.md`;
-        a.click();
-        appendMsg(`Markdown export downloaded successfully.`, 'assistant', 'AA01 System Utility', false);
-        speakText("Markdown file saved.");
-    } else if (actionId === 3) {
-        sendMessage(`Ingest this text into your core prompt context memory:\n${content}`);
-    }
-}
-
-function initWavCanvas() {
-    const canvas = document.getElementById('wav-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let step = 0;
-
-    function resizeCanvas() {
-        canvas.width = canvas.parentElement.clientWidth;
-        canvas.height = canvas.parentElement.clientHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    function drawWavRadar() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const isThinking = document.body.classList.contains('is-thinking');
-        const isSpeaking = document.body.classList.contains('is-speaking');
-        const width = canvas.width;
-        const height = canvas.height;
-        const centerY = height / 2;
-
-        if (isSpeaking) {
-            ctx.lineWidth = 3.5;
-            ctx.strokeStyle = '#ff007f';
-        } else if (isThinking) {
-            ctx.lineWidth = 2.5;
-            ctx.strokeStyle = '#ffaa00';
-        } else {
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = '#00ffcc';
-        }
-
-        ctx.beginPath();
-        for (let x = 0; x < width; x += 2) {
-            const freq = isSpeaking ? 0.08 : (isThinking ? 0.05 : 0.015);
-            const amp = isSpeaking ? 55 : (isThinking ? 35 : 8);
-            const y = centerY + Math.sin(x * freq + step) * amp * Math.cos(x * 0.005);
-            if (x === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-
-        if (isSpeaking || isThinking) {
-            ctx.lineWidth = 1.8;
-            ctx.strokeStyle = isSpeaking ? '#00ffcc' : '#ff3366';
-            ctx.beginPath();
-            for (let x = 0; x < width; x += 3) {
-                const y = centerY + Math.cos(x * 0.04 - step * 1.5) * (isSpeaking ? 35 : 20);
-                if (x === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-        }
-
-        step += isSpeaking ? 0.22 : (isThinking ? 0.15 : 0.03);
-        requestAnimationFrame(drawWavRadar);
-    }
-    drawWavRadar();
-}
+    if
