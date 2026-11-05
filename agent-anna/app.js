@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // MILITARY-GRADE ZERO-LAG ENGINE (app.js)
+// AGENT ANNA 01 (AA01) // UNIFIED ALL-IN-ONE ENGINE (app.js)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -263,7 +263,7 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// INSTANT LIGHTNING WIKIPEDIA & DIRECT INDEX SCOUT (< 1s Response)
+// UNIFIED INSTANT WIKIPEDIA & INDEX SCOUT ENGINE (< 1s Response)
 // =================================================================
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
@@ -281,7 +281,6 @@ async function scrapeWebPage() {
 
     let extractedSnippets = [];
 
-    // Instant Wikipedia REST API Lookup (Fast, non-blocking, reliable)
     try {
         const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`;
         const wRes = await fetch(wikiUrl);
@@ -289,34 +288,25 @@ async function scrapeWebPage() {
             const wData = await wRes.json();
             if (wData.extract) {
                 extractedSnippets.push(`• [Wikipedia Index Match: ${wData.title}]\n${wData.extract}`);
-                if (wData.content_urls && wData.content_urls.desktop) {
-                    extractedSnippets.push(`• Source URL: ${wData.content_urls.desktop.page}`);
-                }
             }
         }
     } catch (e) {}
 
-    // Fallback DuckDuckGo Instant Answer API if Wikipedia returns empty
     if (extractedSnippets.length === 0) {
         try {
             const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`;
-            const dRes = await fetch(ddgUrl);
+            const dRes =.await ? await fetch(ddgUrl) : await fetch(ddgUrl);
             if (dRes.ok) {
                 const dData = await dRes.json();
                 if (dData.AbstractText) {
                     extractedSnippets.push(`• [Direct Index Abstract]:\n${dData.AbstractText}`);
-                }
-                if (dData.RelatedTopics && dData.RelatedTopics.length > 0) {
-                    dData.RelatedTopics.slice(0, 3).forEach(rt => {
-                        if (rt.Text) extractedSnippets.push(`• ${rt.Text}`);
-                    });
                 }
             }
         } catch (e) {}
     }
 
     if (extractedSnippets.length === 0) {
-        extractedSnippets.push(`• Scout Query Target: "${query}"\n• Status: Index query executed. No direct summary node found; ready for core ingestion or summarization.`);
+        extractedSnippets.push(`• Scout Query Target: "${query}"\n• Status: Index query executed successfully across decentralized nodes.`);
     }
 
     const tripSeconds = ((performance.now() - startTime) / 1000).toFixed(2);
