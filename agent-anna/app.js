@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // LOCKED BASELINE + SERVER ENGINE (app.js)
+// AGENT ANNA 01 (AA01) // UNIFIED RUNTIME & ACTION ENGINE (app.js)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -15,6 +15,7 @@ let analyser = null;
 let micStream = null;
 let animFrameId = null;
 
+// Secure global registry for action button payload mapping
 window.aaRegistry = {};
 
 window.onload = function() {
@@ -39,11 +40,19 @@ window.onload = function() {
     initWavCanvas();
 };
 
+// =================================================================
+// 1. SPEECH RECOGNITION & AUDIO VISUALIZER ENGINE
+// =================================================================
 function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
+
     try {
-        if (recognition) { recognition.abort(); recognition = null; }
+        if (recognition) {
+            recognition.abort();
+            recognition = null;
+        }
+
         recognition = new SpeechRecognition();
         recognition.continuous = false;
         recognition.interimResults = false;
@@ -74,6 +83,7 @@ async function startAudioVisualizer() {
     try {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
         if (micStream) micStream.getTracks().forEach(track => track.stop());
+
         micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         
         const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -85,6 +95,7 @@ async function startAudioVisualizer() {
 
         analyser = audioCtx.createAnalyser();
         analyser.fftSize = 32;
+
         const source = audioCtx.createMediaStreamSource(micStream);
         source.connect(analyser);
 
@@ -114,6 +125,7 @@ function stopAudioVisualizer() {
 function toggleMic() {
     if (!recognition) initSpeechRecognition();
     if (!recognition) return alert("Speech recognition unavailable.");
+
     if (!isListening) {
         try { recognition.start(); } catch (e) { initSpeechRecognition(); try { recognition.start(); } catch (err) { stopListeningUI(); } }
     } else {
@@ -131,6 +143,9 @@ function stopListeningUI() {
     if (stateText && stateText.innerText === "LISTENING") updateHUDState("READY");
 }
 
+// =================================================================
+// 2. KNOWLEDGE & TELEMETRY HARVESTER
+// =================================================================
 function loadVoices() {
     if (!('speechSynthesis' in window)) return;
     cachedVoices = window.speechSynthesis.getVoices();
@@ -173,14 +188,19 @@ async function fetchLiveTelemetry() {
 - Dogecoin (DOGE): ${doge}`;
 }
 
+// =================================================================
+// 3. VOICE SYNTHESIZER
+// =================================================================
 function speakText(text) {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
+    
     const cleanText = text.replace(/<[^>]*>/g, '').replace(/[*_#`~]/g, '').trim();
     if (!cleanText) return;
 
     if (cachedVoices.length === 0) loadVoices();
     const utterance = new SpeechSynthesisUtterance(cleanText);
+
     const preferredVoices = ["Google UK English Female", "en-GB-Neural2-F", "Sonia", "Hazel", "Samantha", "Google US English"];
     let selectedVoice = cachedVoices.find(v => preferredVoices.some(p => v.name.includes(p)));
     if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('male'));
@@ -189,11 +209,25 @@ function speakText(text) {
     utterance.pitch = 1.05;
     utterance.rate = 0.96;
 
-    utterance.onstart = () => { document.body.classList.remove('is-thinking'); document.body.classList.add('is-speaking'); updateHUDState("SPEAKING"); };
-    utterance.onend = () => { document.body.classList.remove('is-speaking'); updateHUDState("READY"); };
-    utterance.onerror = () => { document.body.classList.remove('is-speaking'); updateHUDState("READY"); };
+    utterance.onstart = () => { 
+        document.body.classList.remove('is-thinking');
+        document.body.classList.add('is-speaking'); 
+        updateHUDState("SPEAKING"); 
+    };
 
-    if (isVoiceEnabled) window.speechSynthesis.speak(utterance);
+    utterance.onend = () => { 
+        document.body.classList.remove('is-speaking'); 
+        updateHUDState("READY"); 
+    };
+
+    utterance.onerror = () => { 
+        document.body.classList.remove('is-speaking'); 
+        updateHUDState("READY"); 
+    };
+
+    if (isVoiceEnabled) {
+        window.speechSynthesis.speak(utterance);
+    }
 }
 
 function shouldFetchTelemetry(query) {
@@ -207,7 +241,11 @@ async function sendMessage(forcedQuery = null) {
     const apiKey = keyEl ? keyEl.value.trim() : "";
     const query = forcedQuery || (input ? input.value.trim() : "");
 
-    if (!apiKey) { alert('Please tap ⚙️ KEYS and paste your Dahl API Key.'); toggleSettings(); return; }
+    if (!apiKey) {
+        alert('Please tap ⚙️ KEYS and paste your Dahl API Key.');
+        toggleSettings();
+        return;
+    }
     if (!query) return;
 
     appendMsg(query, 'user', 'Commander', false);
@@ -220,14 +258,26 @@ async function sendMessage(forcedQuery = null) {
     }
 
     const startTime = performance.now();
+
     document.body.classList.remove('is-speaking');
     document.body.classList.add('is-thinking');
     updateHUDState("REASONING");
 
     if (!coreKnowledgeCache) await preloadCoreKnowledge();
-    let liveTelemetry = shouldFetchTelemetry(query) ? await fetchLiveTelemetry() : "[TELEMETRY: Standby]";
 
-    const systemPrompt = `You are AGENT ANNA 01 (AA01). Provide direct, high-speed, professional executive responses. Zero fluff.
+    let liveTelemetry = "";
+    const isCryptoQuery = shouldFetchTelemetry(query);
+    if (isCryptoQuery) {
+        liveTelemetry = await fetchLiveTelemetry();
+    } else {
+        liveTelemetry = "[TELEMETRY: Standby]";
+    }
+    
+    const systemPrompt = `You are AGENT ANNA 01 (AA01). 
+Rules:
+1. Provide precise, executive answers suitable for speech synthesis.
+2. DO NOT inject or mention crypto/market rates unless explicitly asked.
+3. Avoid all negativity and political content.
 
 System Context:
 ${coreKnowledgeCache}
@@ -237,27 +287,37 @@ ${liveTelemetry}`;
     try {
         const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
             method: "POST",
-            headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({
                 model: "MiniMaxAI/MiniMax-M2.7",
-                messages: [{ role: "system", content: systemPrompt }, { role: "user", content: query }],
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: query }
+                ],
                 temperature: 0.1,
                 max_tokens: 2000
             })
         });
 
         if (!res.ok) throw new Error(`API Error ${res.status}`);
+
         const data = await res.json();
         let reply = (data.choices[0].message.content || "").replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
-        const tripSeconds = ((performance.now() - startTime) / 1000).toFixed(2);
+        const endTime = performance.now();
+        const tripSeconds = ((endTime - startTime) / 1000).toFixed(2);
         const latencyBadge = document.getElementById('latency-display');
         if (latencyBadge) latencyBadge.innerText = `TRIP LATENCY: ${tripSeconds}s`;
 
         document.body.classList.remove('is-thinking');
         updateHUDState("READY");
+
         appendMsg(reply, 'assistant', `AA01 Core [${tripSeconds}s]`, true);
         speakText(reply);
+
     } catch (err) {
         document.body.classList.remove('is-thinking');
         updateHUDState("ERROR");
@@ -266,7 +326,7 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// WORKING SCRAPE & SERVER ENGINES
+// 4. ROBUST MULTI-PROXY LIVE SEARCH & SCRAPE ENGINE
 // =================================================================
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
@@ -285,7 +345,8 @@ async function scrapeWebPage() {
         let htmlContent = "";
         const proxies = [
             `https://api.allorigins.win/raw?url=${encodeURIComponent(query)}`,
-            `https://corsproxy.io/?${encodeURIComponent(query)}`
+            `https://corsproxy.io/?${encodeURIComponent(query)}`,
+            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(query)}`
         ];
 
         for (const pUrl of proxies) {
@@ -308,7 +369,7 @@ async function scrapeWebPage() {
             const report = `[PORTAL HARVEST: ${query}]\nTotal Valid Lines: ${lines.length}\n-----------------------------------\n${lines.slice(0, 80).join('\n')}`;
             finishScrape(report, startTime, "Target URL harvested successfully.");
         } else {
-            finishScrape(`[PORTAL HARVEST ERROR: ${query}]\nTarget domain blocked client proxy streams.`, startTime, "Target URL blocked access.");
+            finishScrape(`[PORTAL HARVEST ERROR: ${query}]\nTarget domain actively blocked client proxy streams.`, startTime, "Target URL blocked access.");
         }
     } else {
         try {
@@ -364,7 +425,7 @@ async function scrapeWebPage() {
                 }
             } catch (wErr) {}
 
-            finishScrape(`[WEB SEARCH HARVEST: "${query}"]\n-----------------------------------\nQuery executed across public search index nodes for "${query}".\n-----------------------------------`, startTime, "Search completed.");
+            finishScrape(`[WEB SEARCH HARVEST: "${query}"]\n-----------------------------------\nQuery executed across public search index nodes. No direct snippet returned for "${query}". Try refining search terms.\n-----------------------------------`, startTime, "Search completed.");
         }
     }
 }
@@ -380,11 +441,11 @@ function finishScrape(reportText, startTime, voiceMessage) {
     speakText(voiceMessage);
 }
 
+// =================================================================
+// 5. TACTICAL QUICK LAUNCH & UTILITIES
+// =================================================================
 function launchLocalServer() {
-    const serverUrl = 'http://localhost:8000';
-    try {
-        window.open(serverUrl, '_blank');
-    } catch (e) {}
+    window.open('http://localhost:8000', '_blank');
     const responseText = "Agent Anna AA01 is now launched. Advanced military neural Server Engaged.";
     appendMsg(responseText, 'assistant', 'AA01 Tactical Alert', true);
     speakText(responseText); 
@@ -475,6 +536,7 @@ function appendMsg(text, sender, label, includeActions = true) {
     
     let actionButtonsHTML = "";
     if (sender === 'assistant' && includeActions) {
+        // Unique registry ID mapping to prevent any string truncation/escaping errors
         const regKey = 'msg_' + Math.random().toString(36).substr(2, 9);
         window.aaRegistry[regKey] = text;
 
