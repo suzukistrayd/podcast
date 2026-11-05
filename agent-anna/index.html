@@ -29,10 +29,9 @@
             overflow: hidden;
         }
 
-        /* LEFT HUD PANE (55% Width, fixed flex-shrink) */
+        /* LEFT HUD PANE (55% Width) */
         .agent-hud-pane {
             width: 55%;
-            flex-shrink: 0;
             background-color: var(--bg-surface);
             border-right: 1px solid var(--border-color);
             display: flex;
@@ -218,10 +217,9 @@
             box-shadow: 0 0 12px var(--neural-pulse);
         }
 
-        /* RIGHT CHAT CONSOLE PANE (45% Width / Flexible) */
+        /* RIGHT CHAT CONSOLE PANE (45% Width) */
         .chat-console-pane {
-            flex: 1;
-            min-width: 0;
+            width: 45%;
             display: flex;
             flex-direction: column;
             background-color: var(--bg-primary);
@@ -447,12 +445,12 @@
             </div>
         </div>
 
-        <!-- TACTICAL TASK BAR (Updated to trigger scrapeWebPage properly) -->
+        <!-- TACTICAL TASK BAR (START SERVER RESTORED WITH SILENT LAUNCH) -->
         <div class="quick-launch-bar">
             <span class="quick-launch-label">TACTICAL:</span>
             <button class="ctrl-btn" onclick="launchLocalServer()" title="Launch Python HTTP Server & Open Browser">🚀 START SERVER</button>
             <button class="ctrl-btn" onclick="triggerManualTelemetry()" title="Fetch Live Market Tickers">📊 CRYPTO MARKET</button>
-            <button class="ctrl-btn" onclick="scrapeWebPage()" title="Scrape First 100 Lines from URL or Search Query">🌐 SCRAPE WEB</button>
+            <button class="ctrl-btn" onclick="scrapeWebPage()" title="Scrape First 100 Lines from URL">🌐 SCRAPE WEB</button>
             <button class="ctrl-btn military-btn" onclick="triggerMilitaryProtocol()" title="Advanced Military Trigger">⚡ PROTOCOL</button>
         </div>
 
@@ -467,19 +465,18 @@
         <div id="chat-container">
             <div class="message assistant">
                 <div class="msg-header">AA01 Core</div>
-                <div class="msg-body">Modular decoupled architecture active. Linked to style.css, scrape.js, and app.js. Ready for command.</div>
+                <div class="msg-body">Start server silent launch protocol online. Ready for web scraper testing.</div>
             </div>
         </div>
 
         <div class="input-control-bar">
             <button class="ctrl-btn" id="mic-btn" onclick="toggleMic()" title="Toggle Microphone">🎤</button>
-            <input type="text" id="user-input" placeholder="Enter target URL (e.g., https://strayd.com) or query telemetry..." onkeydown="handleKey(event)">
+            <input type="text" id="user-input" placeholder="Enter command, URL to scrape, or query telemetry..." onkeydown="handleKey(event)">
             <button class="ctrl-btn" onclick="sendMessage()">SEND</button>
         </div>
     </div>
 
-    <!-- LINKED MODULES -->
-    <script src="scrape.js"></script>
+    <!-- LINKED APP.JS ENGINE -->
     <script src="app.js"></script>
 </body>
 </html>
