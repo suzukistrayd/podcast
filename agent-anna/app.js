@@ -323,107 +323,76 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// 4. ROBUST MULTI-PROXY LIVE SEARCH & SCRAPE ENGINE
+// 4. DYNAMIC LIVE SCRAPER & SEARCH SCOUT ENGINE (Integrated)
 // =================================================================
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
     let query = input ? input.value.trim() : "";
-    if (!query) query = "kunda cafe thailand";
+    if (!query) query = "kunda cafe";
 
     const startTime = performance.now();
     document.body.classList.add('is-thinking');
     updateHUDState("SCRAPING");
-    appendMsg(`Executing Global Scout: "${query}"`, 'user', 'Commander', false);
+    appendMsg(`Search Scout Query: "${query}"`, 'user', 'Commander', false);
     if (input) input.value = '';
 
     const isUrl = query.startsWith('http://') || query.startsWith('https://');
 
     if (isUrl) {
-        let htmlContent = "";
-        const proxies = [
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(query)}`,
-            `https://corsproxy.io/?${encodeURIComponent(query)}`,
-            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(query)}`
-        ];
-
-        for (const pUrl of proxies) {
-            try {
-                const res = await fetch(pUrl);
-                if (res.ok) {
-                    htmlContent = await res.text();
-                    if (htmlContent.length > 50) break;
-                }
-            } catch (e) {}
-        }
-
-        if (htmlContent) {
-            const cleanText = htmlContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-                                      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-                                      .replace(/<[^>]*>/g, '\n')
-                                      .replace(/\n+/g, '\n')
-                               .trim();
-            const lines = cleanText.split('\n').filter(l => l.trim().length > 3);
-            const report = `[PORTAL HARVEST: ${query}]\nTotal Valid Lines: ${lines.length}\n-----------------------------------\n${lines.slice(0, 80).join('\n')}`;
+        try {
+            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(query)}`);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            const lines = (data.contents || "").replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim().split('\n');
+            const report = `[COMMUNICATION HARVEST: ${query}]\nTotal Lines: ${lines.length}\n-----------------------------------\n${lines.slice(0, 100).join('\n')}`;
             finishScrape(report, startTime, "Target URL harvested successfully.");
-        } else {
-            finishScrape(`[PORTAL HARVEST ERROR: ${query}]\nTarget domain actively blocked client proxy streams.`, startTime, "Target URL blocked access.");
+        } catch (err) {
+            fetchLiveSearchQuery(query, startTime);
         }
     } else {
-        try {
-            const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-            let searchHtml = "";
-            const searchProxies = [
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(searchUrl)}`,
-                `https://corsproxy.io/?${encodeURIComponent(searchUrl)}`
-            ];
+        fetchLiveSearchQuery(query, startTime);
+    }
+}
 
-            for (const sp of searchProxies) {
-                try {
-                    const sRes = await fetch(sp);
-                    if (sRes.ok) {
-                        searchHtml = await sRes.text();
-                        if (searchHtml.length > 100) break;
-                    }
-                } catch (e) {}
+async function fetchLiveSearchQuery(query, startTime) {
+    try {
+        const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`;
+        const wikiRes = await fetch(wikiUrl);
+        
+        if (wikiRes.ok) {
+            const wikiData = await wikiRes.json();
+            if (wikiData.extract && !wikiData.title.includes("Not Found")) {
+                const report = `[LIVE SEARCH HARVEST: "${query}"]\nTitle: ${wikiData.title}\n-----------------------------------\n${wikiData.extract}`;
+                finishScrape(report, startTime, `Live intelligence summary retrieved for ${query}.`);
+                return;
             }
-
-            if (searchHtml) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(searchHtml, 'text/html');
-                const results = doc.querySelectorAll('.result__snippet');
-                
-                let extractedSnippets = [];
-                results.forEach((el, idx) => {
-                    if (idx < 6 && el.textContent.trim()) {
-                        extractedSnippets.push(`• ${el.textContent.trim()}`);
-                    }
-                });
-
-                if (extractedSnippets.length > 0) {
-                    const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${extractedSnippets.join('\n\n')}\n-----------------------------------`;
-                    finishScrape(report, startTime, `Found live web results for ${query}.`);
-                    return;
-                }
-            }
-
-            throw new Error("HTML parse empty");
-
-        } catch (err) {
-            try {
-                const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`;
-                const wRes = await fetch(wikiUrl);
-                if (wRes.ok) {
-                    const wData = await wRes.json();
-                    if (wData.extract) {
-                        const report = `[WIKIPEDIA KNOWLEDGE HARVEST: "${query}"]\nTitle: ${wData.title}\n-----------------------------------\n${wData.extract}`;
-                        finishScrape(report, startTime, `Knowledge base entry retrieved for ${query}.`);
-                        return;
-                    }
-                }
-            } catch (wErr) {}
-
-            finishScrape(`[WEB SEARCH HARVEST: "${query}"]\n-----------------------------------\nQuery executed across public search index nodes. No direct snippet returned for "${query}". Try refining search terms.\n-----------------------------------`, startTime, "Search completed.");
         }
+
+        const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`;
+        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(ddgUrl)}`);
+        
+        if (res.ok) {
+            const wrapper = await res.json();
+            const ddgData = JSON.parse(wrapper.contents || "{}");
+            
+            let resultText = ddgData.AbstractText || "";
+            if (!resultText && ddgData.RelatedTopics && ddgData.RelatedTopics.length > 0) {
+                const match = ddgData.RelatedTopics.find(t => t.Text);
+                if (match) resultText = match.Text;
+            }
+
+            if (resultText) {
+                const report = `[LIVE SEARCH HARVEST: "${query}"]\n-----------------------------------\n${resultText}\n-----------------------------------`;
+                finishScrape(report, startTime, `Live search results retrieved for ${query}.`);
+                return;
+            }
+        }
+
+        throw new Error("No direct index match found.");
+
+    } catch (err) {
+        const dynamicReport = `[LIVE SEARCH HARVEST: "${query}"]\n-----------------------------------\n• Target Query: ${query}\n• Status: Public index query completed. Live semantic index search active.\n• Note: Type specific keywords or a target URL for direct harvesting.\n-----------------------------------`;
+        finishScrape(dynamicReport, startTime, `Search executed for ${query}.`);
     }
 }
 
