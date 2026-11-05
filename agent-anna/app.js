@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // UNIFIED RUNTIME & ACTION ENGINE (app.js)
+// AGENT ANNA 01 (AA01) // MILITARY-GRADE UNIFIED ENGINE (app.js)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -181,11 +181,18 @@ async function fetchLiveTelemetry() {
         }
     } catch (e) {}
 
-    return `[LIVE TELEMETRY HARVEST]
+    const payload = `[LIVE TELEMETRY HARVEST]
 - Solana (SOL): ${sol}
 - Bitcoin (BTC): ${btc}
 - Ethereum (ETH): ${eth}
 - Dogecoin (DOGE): ${doge}`;
+
+    try {
+        navigator.clipboard.writeText(payload);
+        window.dispatchEvent(new CustomEvent('telemetry-sync', { detail: payload }));
+    } catch (e) {}
+
+    return payload;
 }
 
 // =================================================================
@@ -274,6 +281,11 @@ async function sendMessage(forcedQuery = null) {
     }
     
     const systemPrompt = `You are AGENT ANNA 01 (AA01). 
+MILITARY DIRECTIVE: TRUTH & VERIFICATION PROTOCOL (NON-NEGOTIABLE)
+1. ZERO HALLUCINATION MANDATE: You operate strictly as a factual intelligence parser. Never invent, extrapolate, or assume menu items, locations, history, or statistics not explicitly present in the provided harvest data.
+2. CONFIDENCE THRESHOLD FILTER: Every synthesized claim must be cross-referenced against harvested telemetry. If confidence or verification scoring drops below 74%, discard the claim entirely and output: "[VERIFICATION FAILED: Insufficient verified telemetry to confirm statement.]"
+3. STRICT CITATION OF REALITY: Restate only verified, raw facts from live web payloads or repository documents. No filler, no generic assumptions, no fluff.
+
 Rules:
 1. Provide precise, executive answers suitable for speech synthesis.
 2. DO NOT inject or mention crypto/market rates unless explicitly asked.
@@ -425,7 +437,7 @@ async function scrapeWebPage() {
                 }
             } catch (wErr) {}
 
-            finishScrape(`[WEB SEARCH HARVEST: "${query}"]\n-----------------------------------\nQuery executed across public search index nodes. No direct snippet returned for "${query}". Try refining search terms.\n-----------------------------------`, startTime, "Search completed.");
+            finishScrape(`[VERIFICATION FAILED: Insufficient verified telemetry to confirm statement.]`, startTime, "Search completed with zero verified match.");
         }
     }
 }
@@ -536,7 +548,6 @@ function appendMsg(text, sender, label, includeActions = true) {
     
     let actionButtonsHTML = "";
     if (sender === 'assistant' && includeActions) {
-        // Unique registry ID mapping to prevent any string truncation/escaping errors
         const regKey = 'msg_' + Math.random().toString(36).substr(2, 9);
         window.aaRegistry[regKey] = text;
 
