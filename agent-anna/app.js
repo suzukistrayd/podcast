@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // LOCKED MILITARY-GRADE UNIFIED ENGINE
+// AGENT ANNA 01 (AA01) // FULL UNIFIED ENGINE (app.js)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
