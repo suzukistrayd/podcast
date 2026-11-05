@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // DECOUPLED RUNTIME ENGINE (app.js)
+// AGENT ANNA 01 (AA01) // MILITARY-GRADE ZERO-LAG ENGINE (app.js)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -39,9 +39,6 @@ window.onload = function() {
     initWavCanvas();
 };
 
-// =================================================================
-// 1. SPEECH RECOGNITION & AUDIO VISUALIZER ENGINE
-// =================================================================
 function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
@@ -134,9 +131,6 @@ function stopListeningUI() {
     if (stateText && stateText.innerText === "LISTENING") updateHUDState("READY");
 }
 
-// =================================================================
-// 2. KNOWLEDGE & TELEMETRY HARVESTER
-// =================================================================
 function loadVoices() {
     if (!('speechSynthesis' in window)) return;
     cachedVoices = window.speechSynthesis.getVoices();
@@ -179,9 +173,6 @@ async function fetchLiveTelemetry() {
 - Dogecoin (DOGE): ${doge}`;
 }
 
-// =================================================================
-// 3. VOICE SYNTHESIZER & REASONING DISPATCH
-// =================================================================
 function speakText(text) {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
@@ -272,7 +263,7 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// 4. DECOUPLED SCRAPE ROUTER (Delegates to scrape.js module)
+// INSTANT LIGHTNING WIKIPEDIA & DIRECT INDEX SCOUT (< 1s Response)
 // =================================================================
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
@@ -288,54 +279,58 @@ async function scrapeWebPage() {
     appendMsg(`Executing Global Scout: "${query}"`, 'user', 'Commander', false);
     if (input) input.value = '';
 
+    let extractedSnippets = [];
+
+    // Instant Wikipedia REST API Lookup (Fast, non-blocking, reliable)
     try {
-        // Delegates directly to scrape.js global interface if loaded, or executes fast fetch fallback
-        if (typeof window.executeScrapeModule === 'function') {
-            await window.executeScrapeModule(query, startTime);
-            return;
-        }
-
-        // Fast fallback direct fetch matching scrape.js architecture
-        let snippets = [];
-        const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-        const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(searchUrl)}`);
-        if (res.ok) {
-            const html = await res.text();
-            const doc = new DOMParser().parseFromString(html, 'text/html');
-            doc.querySelectorAll('.result__snippet').forEach((el, idx) => {
-                if (idx < 6 && el.textContent.trim()) snippets.push(`• ${el.textContent.trim()}`);
-            });
-        }
-
-        if (snippets.length === 0) {
-            const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`);
-            if (wikiRes.ok) {
-                const wData = await wikiRes.json();
-                if (wData.extract) snippets.push(`• [Wikipedia Index]: ${wData.extract}`);
+        const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`;
+        const wRes = await fetch(wikiUrl);
+        if (wRes.ok) {
+            const wData = await wRes.json();
+            if (wData.extract) {
+                extractedSnippets.push(`• [Wikipedia Index Match: ${wData.title}]\n${wData.extract}`);
+                if (wData.content_urls && wData.content_urls.desktop) {
+                    extractedSnippets.push(`• Source URL: ${wData.content_urls.desktop.page}`);
+                }
             }
         }
+    } catch (e) {}
 
-        if (snippets.length === 0) {
-            snippets.push(`• Target Query: ${query}\n• Status: Public index query executed successfully.`);
-        }
-
-        const tripSeconds = ((performance.now() - startTime) / 1000).toFixed(2);
-        const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${snippets.join('\n\n')}\n-----------------------------------`;
-
-        document.body.classList.remove('is-thinking');
-        updateHUDState("READY");
-        appendMsg(report, 'assistant', `AA01 Scout Link [${tripSeconds}s]`, true);
-        speakText(`Scout completed for ${query}.`);
-    } catch (err) {
-        document.body.classList.remove('is-thinking');
-        updateHUDState("ERROR");
-        appendMsg(`Scout Error: ${err.message}`, 'assistant', 'System Alert', false);
+    // Fallback DuckDuckGo Instant Answer API if Wikipedia returns empty
+    if (extractedSnippets.length === 0) {
+        try {
+            const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`;
+            const dRes = await fetch(ddgUrl);
+            if (dRes.ok) {
+                const dData = await dRes.json();
+                if (dData.AbstractText) {
+                    extractedSnippets.push(`• [Direct Index Abstract]:\n${dData.AbstractText}`);
+                }
+                if (dData.RelatedTopics && dData.RelatedTopics.length > 0) {
+                    dData.RelatedTopics.slice(0, 3).forEach(rt => {
+                        if (rt.Text) extractedSnippets.push(`• ${rt.Text}`);
+                    });
+                }
+            }
+        } catch (e) {}
     }
+
+    if (extractedSnippets.length === 0) {
+        extractedSnippets.push(`• Scout Query Target: "${query}"\n• Status: Index query executed. No direct summary node found; ready for core ingestion or summarization.`);
+    }
+
+    const tripSeconds = ((performance.now() - startTime) / 1000).toFixed(2);
+    const badge = document.getElementById('latency-display');
+    if (badge) badge.innerText = `SCRAPE LATENCY: ${tripSeconds}s`;
+
+    const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${extractedSnippets.join('\n\n')}\n-----------------------------------`;
+
+    document.body.classList.remove('is-thinking');
+    updateHUDState("READY");
+    appendMsg(report, 'assistant', `AA01 Scout Link [${tripSeconds}s]`, true);
+    speakText(`Scout completed for ${query}. Information ready.`);
 }
 
-// =================================================================
-// 5. TACTICAL UTILITIES
-// =================================================================
 function launchLocalServer() {
     window.open('http://localhost:8000', '_blank');
     const responseText = "Agent Anna AA01 is now launched. Advanced military neural Server Engaged.";
