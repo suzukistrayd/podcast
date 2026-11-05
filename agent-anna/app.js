@@ -1,5 +1,6 @@
 // =================================================================
 // AGENT ANNA 01 (AA01) // UNIFIED RUNTIME ENGINE (app.js)
+// Modular Architecture / Single-File Efficiency Standard
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -38,7 +39,7 @@ window.onload = function() {
 };
 
 // =================================================================
-// 1. SPEECH RECOGNITION & AUDIO VISUALIZER ENGINE
+// SECTION 1: SPEECH RECOGNITION & AUDIO VISUALIZER ENGINE
 // =================================================================
 function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -141,7 +142,7 @@ function stopListeningUI() {
 }
 
 // =================================================================
-// 2. KNOWLEDGE & TELEMETRY HARVESTER (WITH CORS FALLBACKS)
+// SECTION 2: KNOWLEDGE & TELEMETRY HARVESTER
 // =================================================================
 function loadVoices() {
     if (!('speechSynthesis' in window)) return;
@@ -154,23 +155,21 @@ async function preloadCoreKnowledge() {
     await Promise.all(corePaths.map(async (path) => {
         try {
             const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${path}?t=${Date.now()}`;
-            const res = await fetch(rawUrl).catch(() => fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(rawUrl)}`));
-            if (res && res.ok) {
+            const res = await fetch(rawUrl);
+            if (res.ok) {
                 const text = await res.text();
                 const cleanText = text.replace(/<[^>]*>/g, '').trim();
                 if (cleanText) snippets.push(`[DIRECTIVE: ${path}]\n${cleanText}`);
             }
         } catch (e) {}
     }));
-    coreKnowledgeCache = snippets.length > 0 ? snippets.join('\n\n---\n\n') : "[DIRECTIVE: Core Operational Standby]";
+    coreKnowledgeCache = snippets.join('\n\n---\n\n');
 }
 
 async function fetchLiveTelemetry() {
     let btc = "Unavailable", eth = "Unavailable", doge = "Unavailable", sol = "Unavailable";
     try {
-        const cryptoRes = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin,solana&vs_currencies=usd", {
-            headers: { "Accept": "application/json" }
-        });
+        const cryptoRes = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin,solana&vs_currencies=usd");
         if (cryptoRes.ok) {
             const prices = await cryptoRes.json();
             if (prices.bitcoin) btc = `$${prices.bitcoin.usd.toLocaleString()}`;
@@ -188,10 +187,21 @@ async function fetchLiveTelemetry() {
 }
 
 // =================================================================
-// 3. VOICE SYNTHESIZER & PERMANENT VISUAL LOCK
+// SECTION 3: VOICE SYNTHESIZER & INFERENCE LOOP
 // =================================================================
 function speakText(text) {
-    if (!('speechSynthesis' in window)) return;
+    document.body.classList.remove('is-thinking');
+    document.body.classList.add('is-speaking');
+    updateHUDState("SPEAKING");
+
+    if (!isVoiceEnabled || !('speechSynthesis' in window)) {
+        setTimeout(() => {
+            document.body.classList.remove('is-speaking');
+            updateHUDState("READY");
+        }, 2500);
+        return;
+    }
+
     window.speechSynthesis.cancel();
     
     const cleanText = text.replace(/<[^>]*>/g, '').replace(/[*_#`~]/g, '').trim();
@@ -208,36 +218,21 @@ function speakText(text) {
     utterance.pitch = 1.05;
     utterance.rate = 0.96;
 
-    setTimeout(() => {
-        document.body.classList.remove('is-thinking');
-        document.body.classList.add('is-speaking');
-        updateHUDState("SPEAKING");
-    }, 10);
-
     utterance.onstart = () => { 
         document.body.classList.remove('is-thinking');
         document.body.classList.add('is-speaking'); 
         updateHUDState("SPEAKING"); 
     };
-
     utterance.onend = () => { 
         document.body.classList.remove('is-speaking'); 
         updateHUDState("READY"); 
     };
-
     utterance.onerror = () => { 
         document.body.classList.remove('is-speaking'); 
         updateHUDState("READY"); 
     };
 
-    if (isVoiceEnabled) {
-        window.speechSynthesis.speak(utterance);
-    } else {
-        setTimeout(() => {
-            document.body.classList.remove('is-speaking');
-            updateHUDState("READY");
-        }, 3000);
-    }
+    window.speechSynthesis.speak(utterance);
 }
 
 function shouldFetchTelemetry(query) {
@@ -319,7 +314,7 @@ ${liveTelemetry}`;
         document.body.classList.remove('is-thinking');
         updateHUDState("READY");
 
-        appendMsg(reply, 'assistant', `AA01 Core [${tripSeconds}s]`, true);
+        appendMsg(reply, 'assistant', `AA01 Core [${tripSeconds}s]`, isCryptoQuery);
         speakText(reply);
 
     } catch (err) {
@@ -330,8 +325,15 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// 4. TACTICAL QUICK LAUNCH & ROBUST WEB SCRAPER
+// SECTION 4: TACTICAL QUICK LAUNCH & WEB SCRAPER TRIGGERS
 // =================================================================
+function launchLocalServer() {
+    window.open('http://localhost:8000', '_blank');
+    const responseText = "Local server portal opened. Run 'python -m http.server 8000' in PowerShell.";
+    appendMsg(responseText, 'assistant', 'AA01 Tactical Alert', true);
+    speakText(responseText); // Fires neural canvas animation instantly
+}
+
 function triggerManualTelemetry() {
     const input = document.getElementById('user-input');
     if (input) input.value = "Provide live crypto market telemetry and report rates.";
@@ -340,16 +342,12 @@ function triggerManualTelemetry() {
 
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
-    let targetUrl = input ? input.value.trim() : "";
+    const targetUrl = input ? input.value.trim() : "";
     
     if (!targetUrl || (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://'))) {
-        if (targetUrl.includes('.')) {
-            targetUrl = 'https://' + targetUrl;
-        } else {
-            alert("Enter a valid target URL in the input box first (e.g., https://kundacafe.com)");
-            if (input) input.focus();
-            return;
-        }
+        alert("Enter a valid target URL in the input box first (e.g., https://example.com)");
+        if (input) input.focus();
+        return;
     }
 
     const startTime = performance.now();
@@ -359,32 +357,18 @@ async function scrapeWebPage() {
     if (input) input.value = '';
 
     try {
-        let cleanText = "";
-        let res = null;
-
-        // Strategy 1: Try Jina Reader API (bypass CORS entirely)
-        res = await fetch(`https://r.jina.ai/${targetUrl}`, {
-            headers: { "Accept": "text/plain" }
-        }).catch(() => null);
-
-        if (res && res.ok) {
-            cleanText = await res.text();
-        } else {
-            // Strategy 2: Try AllOrigins Raw endpoint
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-            res = await fetch(proxyUrl).catch(() => null);
-            
-            if (res && res.ok) {
-                const rawHtml = await res.text();
-                cleanText = rawHtml.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
-            } else {
-                throw new Error("All proxy routes blocked or target domain is unreachable.");
-            }
-        }
-
-        const lines = cleanText.split('\n').filter(l => l.trim().length > 0);
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+        const res = await fetch(proxyUrl);
+        if (!res.ok) throw new Error(`Scraper HTTP Error ${res.status}`);
+        
+        const data = await res.json();
+        const rawHtml = data.contents || "";
+        
+        const cleanText = rawHtml.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
+        const lines = cleanText.split('\n');
+        
         const first100Lines = lines.slice(0, 100).join('\n');
-        const truncatedReport = `[WEB SCRAPER: FIRST 100 LINES EXTRACTED]\nTarget: ${targetUrl}\nTotal Clean Lines: ${lines.length}\n\n${first100Lines}`;
+        const truncatedReport = `[WEB SCRAPER: FIRST 100 LINES EXTRACTED]\nTarget: ${targetUrl}\nTotal Lines: ${lines.length}\n\n${first100Lines}`;
 
         const endTime = performance.now();
         const tripSeconds = ((endTime - startTime) / 1000).toFixed(2);
@@ -421,7 +405,7 @@ function triggerMilitaryProtocol() {
 }
 
 // =================================================================
-// 5. UTILITIES, CLIPBOARD & WAV CANVAS MATRIX
+// SECTION 5: UTILITIES, CLIPBOARD & WAV CANVAS MATRIX
 // =================================================================
 function copyToClipboard(text, btnElement) {
     navigator.clipboard.writeText(text).then(() => {
