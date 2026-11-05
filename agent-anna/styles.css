@@ -1,5 +1,5 @@
 /* =================================================================
-   AGENT ANNA // MILITARY-GRADE STYLESHEET (THEMED SCROLLBARS LOCKED)
+   AGENT ANNA // MILITARY-GRADE STYLESHEET (DUAL NEURAL CANVAS & SCROLLBARS)
    ================================================================ */
 
 :root {
@@ -183,6 +183,7 @@ body.is-speaking .agent-portrait-frame {
     display: block;
 }
 
+/* DUAL NEURAL CANVAS ANIMATION LAYER */
 #wav-canvas {
     position: absolute;
     top: 0;
@@ -190,18 +191,19 @@ body.is-speaking .agent-portrait-frame {
     width: 100%;
     height: 100%;
     pointer-events: none;
-    opacity: 0.35;
+    opacity: 0.45;
     transition: opacity 0.3s ease;
+    z-index: 1;
 }
 
 body.is-thinking #wav-canvas {
-    opacity: 0.9;
-    filter: drop-shadow(0 0 6px var(--amber-warn));
+    opacity: 0.95;
+    filter: drop-shadow(0 0 8px var(--amber-warn));
 }
 
 body.is-speaking #wav-canvas {
-    opacity: 1;
-    filter: drop-shadow(0 0 8px var(--neural-pulse));
+    opacity: 0.95;
+    filter: drop-shadow(0 0 10px var(--neural-pulse));
 }
 
 .agent-nameplate {
