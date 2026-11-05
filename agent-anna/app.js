@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // UNIFIED RUNTIME & ACTION ENGINE (app.js)
+// AGENT ANNA 01 (AA01) // UNIFIED RUNTIME & SCRAPER ENGINE (app.js)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -323,7 +323,7 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// 4. STABLE LIVE SEARCH & SCOUT ENGINE
+// 4. ROBUST MULTI-PROXY LIVE SEARCH & SCRAPE ENGINE
 // =================================================================
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
@@ -339,42 +339,74 @@ async function scrapeWebPage() {
     const isUrl = query.startsWith('http://') || query.startsWith('https://');
 
     if (isUrl) {
-        try {
-            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(query)}`);
-            if (!res.ok) throw new Error();
-            const data = await res.json();
-            const lines = (data.contents || "").replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim().split('\n');
+        let htmlContent = "";
+        const proxies = [
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(query)}`,
+            `https://corsproxy.io/?${encodeURIComponent(query)}`,
+            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(query)}`
+        ];
+
+        for (const pUrl of proxies) {
+            try {
+                const res = await fetch(pUrl);
+                if (res.ok) {
+                    htmlContent = await res.text();
+                    if (htmlContent.length > 50) break;
+                }
+            } catch (e) {}
+        }
+
+        if (htmlContent) {
+            const cleanText = htmlContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                                      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+                                      .replace(/<[^>]*>/g, '\n')
+                                      .replace(/\n+/g, '\n')
+                               .trim();
+            const lines = cleanText.split('\n').filter(l => l.trim().length > 3);
             const report = `[PORTAL HARVEST: ${query}]\nTotal Valid Lines: ${lines.length}\n-----------------------------------\n${lines.slice(0, 80).join('\n')}`;
             finishScrape(report, startTime, "Target URL harvested successfully.");
-        } catch (err) {
-            finishScrape(`[PORTAL HARVEST ERROR: ${query}]\nTarget domain blocked client proxy streams.`, startTime, "Target URL access restricted.");
+        } else {
+            finishScrape(`[PORTAL HARVEST ERROR: ${query}]\nTarget domain actively blocked client proxy streams.`, startTime, "Target URL blocked access.");
         }
     } else {
         try {
             const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`);
-            if (!res.ok) throw new Error();
-            const wrapper = await res.json();
-            const searchHtml = wrapper.contents || "";
+            let searchHtml = "";
+            const searchProxies = [
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(searchUrl)}`,
+                `https://corsproxy.io/?${encodeURIComponent(searchUrl)}`
+            ];
 
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(searchHtml, 'text/html');
-            const results = doc.querySelectorAll('.result__snippet');
-            
-            let extractedSnippets = [];
-            results.forEach((el, idx) => {
-                if (idx < 6 && el.textContent.trim()) {
-                    extractedSnippets.push(`• ${el.textContent.trim()}`);
-                }
-            });
-
-            if (extractedSnippets.length > 0) {
-                const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${extractedSnippets.join('\n\n')}\n-----------------------------------`;
-                finishScrape(report, startTime, `Found live web results for ${query}.`);
-                return;
+            for (const sp of searchProxies) {
+                try {
+                    const sRes = await fetch(sp);
+                    if (sRes.ok) {
+                        searchHtml = await sRes.text();
+                        if (searchHtml.length > 100) break;
+                    }
+                } catch (e) {}
             }
 
-            throw new Error("Empty snippets");
+            if (searchHtml) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(searchHtml, 'text/html');
+                const results = doc.querySelectorAll('.result__snippet');
+                
+                let extractedSnippets = [];
+                results.forEach((el, idx) => {
+                    if (idx < 6 && el.textContent.trim()) {
+                        extractedSnippets.push(`• ${el.textContent.trim()}`);
+                    }
+                });
+
+                if (extractedSnippets.length > 0) {
+                    const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${extractedSnippets.join('\n\n')}\n-----------------------------------`;
+                    finishScrape(report, startTime, `Found live web results for ${query}.`);
+                    return;
+                }
+            }
+
+            throw new Error("HTML parse empty");
 
         } catch (err) {
             try {
@@ -390,7 +422,7 @@ async function scrapeWebPage() {
                 }
             } catch (wErr) {}
 
-            finishScrape(`[WEB SEARCH HARVEST: "${query}"]\n-----------------------------------\nQuery executed across public search index nodes. Target: "${query}".\n-----------------------------------`, startTime, "Search completed.");
+            finishScrape(`[WEB SEARCH HARVEST: "${query}"]\n-----------------------------------\nQuery executed across public search index nodes. No direct snippet returned for "${query}". Try refining search terms.\n-----------------------------------`, startTime, "Search completed.");
         }
     }
 }
@@ -407,7 +439,7 @@ function finishScrape(reportText, startTime, voiceMessage) {
 }
 
 // =================================================================
-// 5. TACTICAL QUICK LAUNCH & UNIVERSAL ACTIONS
+// 5. TACTICAL QUICK LAUNCH & UTILITIES
 // =================================================================
 function launchLocalServer() {
     window.open('http://localhost:8000', '_blank');
@@ -501,15 +533,13 @@ function appendMsg(text, sender, label, includeActions = true) {
     
     let actionButtonsHTML = "";
     if (sender === 'assistant' && includeActions) {
-        const actionId = 'act_' + Math.random().toString(36).substr(2, 9);
-        window[actionId] = text;
-
+        const encodedText = encodeURIComponent(text);
         actionButtonsHTML = `
             <div style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; border-top: 1px solid #1b263b; padding-top: 8px;">
-                <button onclick="executeGlobalAction(1, '${actionId}')" style="background: rgba(0,255,204,0.1); border: 1px solid #00ffcc; color: #00ffcc; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">1. SUMMARIZE</button>
-                <button onclick="executeGlobalAction(2, '${actionId}')" style="background: rgba(255,170,0,0.1); border: 1px solid #ffaa00; color: #ffaa00; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">2. SAVE AS .MD</button>
-                <button onclick="executeGlobalAction(3, '${actionId}')" style="background: rgba(255,0,127,0.1); border: 1px solid #ff007f; color: #ff007f; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">3. INGEST TO CORE</button>
-                <button onclick="copyToClipboard(window['${actionId}'], this)" style="background: transparent; border: 1px solid #8493a8; color: #8493a8; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">COPY</button>
+                <button onclick="executeGlobalAction(1, '${encodedText}')" style="background: rgba(0,255,204,0.1); border: 1px solid #00ffcc; color: #00ffcc; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">1. SUMMARIZE</button>
+                <button onclick="executeGlobalAction(2, '${encodedText}')" style="background: rgba(255,170,0,0.1); border: 1px solid #ffaa00; color: #ffaa00; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">2. SAVE AS .MD</button>
+                <button onclick="executeGlobalAction(3, '${encodedText}')" style="background: rgba(255,0,127,0.1); border: 1px solid #ff007f; color: #ff007f; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">3. INGEST TO CORE</button>
+                <button onclick="copyToClipboard(decodeURIComponent('${encodedText}'), this)" style="background: transparent; border: 1px solid #8493a8; color: #8493a8; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">COPY</button>
             </div>`;
     }
 
@@ -523,10 +553,8 @@ function appendMsg(text, sender, label, includeActions = true) {
     container.scrollTop = container.scrollHeight;
 }
 
-function executeGlobalAction(actionId, regKey) {
-    const content = window[regKey] || "";
-    if (!content) return;
-
+function executeGlobalAction(actionId, encodedContent) {
+    const content = decodeURIComponent(encodedContent);
     if (actionId === 1) {
         sendMessage(`Summarize this response into concise tactical bullet points:\n${content}`);
     } else if (actionId === 2) {
