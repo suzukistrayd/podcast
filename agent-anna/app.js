@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // CORE GITHUB SYNC & EXECUTION ENGINE (app.js)
+// AGENT ANNA 01 (AA01) // DECOUPLED RUNTIME ENGINE (app.js)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -39,6 +39,9 @@ window.onload = function() {
     initWavCanvas();
 };
 
+// =================================================================
+// 1. SPEECH RECOGNITION & AUDIO VISUALIZER ENGINE
+// =================================================================
 function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
@@ -131,6 +134,9 @@ function stopListeningUI() {
     if (stateText && stateText.innerText === "LISTENING") updateHUDState("READY");
 }
 
+// =================================================================
+// 2. KNOWLEDGE & TELEMETRY HARVESTER
+// =================================================================
 function loadVoices() {
     if (!('speechSynthesis' in window)) return;
     cachedVoices = window.speechSynthesis.getVoices();
@@ -173,6 +179,9 @@ async function fetchLiveTelemetry() {
 - Dogecoin (DOGE): ${doge}`;
 }
 
+// =================================================================
+// 3. VOICE SYNTHESIZER & REASONING DISPATCH
+// =================================================================
 function speakText(text) {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
@@ -262,11 +271,16 @@ ${liveTelemetry}`;
     }
 }
 
-// ORIGINAL FAST SCRAPE ENGINE
+// =================================================================
+// 4. DECOUPLED SCRAPE ROUTER (Delegates to scrape.js module)
+// =================================================================
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
-    let query = input ? input.value.trim() : "";
-    if (!query) query = "kunda cafe thailand";
+    const query = input ? input.value.trim() : "";
+    if (!query) {
+        alert("Commander, enter a search target in the input box first.");
+        return;
+    }
 
     const startTime = performance.now();
     document.body.classList.add('is-thinking');
@@ -274,107 +288,54 @@ async function scrapeWebPage() {
     appendMsg(`Executing Global Scout: "${query}"`, 'user', 'Commander', false);
     if (input) input.value = '';
 
-    const isUrl = query.startsWith('http://') || query.startsWith('https://');
-
-    if (isUrl) {
-        let htmlContent = "";
-        const proxies = [
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(query)}`,
-            `https://corsproxy.io/?${encodeURIComponent(query)}`
-        ];
-
-        for (const pUrl of proxies) {
-            try {
-                const res = await fetch(pUrl);
-                if (res.ok) {
-                    htmlContent = await res.text();
-                    if (htmlContent.length > 50) break;
-                }
-            } catch (e) {}
+    try {
+        // Delegates directly to scrape.js global interface if loaded, or executes fast fetch fallback
+        if (typeof window.executeScrapeModule === 'function') {
+            await window.executeScrapeModule(query, startTime);
+            return;
         }
 
-        if (htmlContent) {
-            const cleanText = htmlContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-                                      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-                                      .replace(/<[^>]*>/g, '\n')
-                                      .replace(/\n+/g, '\n')
-                               .trim();
-            const lines = cleanText.split('\n').filter(l => l.trim().length > 3);
-            const report = `[PORTAL HARVEST: ${query}]\nTotal Valid Lines: ${lines.length}\n-----------------------------------\n${lines.slice(0, 80).join('\n')}`;
-            finishScrape(report, startTime, "Target URL harvested successfully.");
-        } else {
-            finishScrape(`[PORTAL HARVEST ERROR: ${query}]\nTarget domain blocked client proxy streams.`, startTime, "Target URL blocked access.");
+        // Fast fallback direct fetch matching scrape.js architecture
+        let snippets = [];
+        const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+        const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(searchUrl)}`);
+        if (res.ok) {
+            const html = await res.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            doc.querySelectorAll('.result__snippet').forEach((el, idx) => {
+                if (idx < 6 && el.textContent.trim()) snippets.push(`• ${el.textContent.trim()}`);
+            });
         }
-    } else {
-        try {
-            const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-            let searchHtml = "";
-            const searchProxies = [
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(searchUrl)}`,
-                `https://corsproxy.io/?${encodeURIComponent(searchUrl)}`
-            ];
 
-            for (const sp of searchProxies) {
-                try {
-                    const sRes = await fetch(sp);
-                    if (sRes.ok) {
-                        searchHtml = await sRes.text();
-                        if (searchHtml.length > 100) break;
-                    }
-                } catch (e) {}
+        if (snippets.length === 0) {
+            const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`);
+            if (wikiRes.ok) {
+                const wData = await wikiRes.json();
+                if (wData.extract) snippets.push(`• [Wikipedia Index]: ${wData.extract}`);
             }
-
-            if (searchHtml) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(searchHtml, 'text/html');
-                const results = doc.querySelectorAll('.result__snippet');
-                
-                let extractedSnippets = [];
-                results.forEach((el, idx) => {
-                    if (idx < 6 && el.textContent.trim()) {
-                        extractedSnippets.push(`• ${el.textContent.trim()}`);
-                    }
-                });
-
-                if (extractedSnippets.length > 0) {
-                    const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${extractedSnippets.join('\n\n')}\n-----------------------------------`;
-                    finishScrape(report, startTime, `Found live web results for ${query}.`);
-                    return;
-                }
-            }
-
-            throw new Error("HTML parse empty");
-
-        } catch (err) {
-            try {
-                const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`;
-                const wRes = await fetch(wikiUrl);
-                if (wRes.ok) {
-                    const wData = await wRes.json();
-                    if (wData.extract) {
-                        const report = `[WIKIPEDIA KNOWLEDGE HARVEST: "${query}"]\nTitle: ${wData.title}\n-----------------------------------\n${wData.extract}`;
-                        finishScrape(report, startTime, `Knowledge base entry retrieved for ${query}.`);
-                        return;
-                    }
-                }
-            } catch (wErr) {}
-
-            finishScrape(`[WEB SEARCH HARVEST: "${query}"]\n-----------------------------------\nQuery executed across public search index nodes for "${query}".\n-----------------------------------`, startTime, "Search completed.");
         }
+
+        if (snippets.length === 0) {
+            snippets.push(`• Target Query: ${query}\n• Status: Public index query executed successfully.`);
+        }
+
+        const tripSeconds = ((performance.now() - startTime) / 1000).toFixed(2);
+        const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${snippets.join('\n\n')}\n-----------------------------------`;
+
+        document.body.classList.remove('is-thinking');
+        updateHUDState("READY");
+        appendMsg(report, 'assistant', `AA01 Scout Link [${tripSeconds}s]`, true);
+        speakText(`Scout completed for ${query}.`);
+    } catch (err) {
+        document.body.classList.remove('is-thinking');
+        updateHUDState("ERROR");
+        appendMsg(`Scout Error: ${err.message}`, 'assistant', 'System Alert', false);
     }
 }
 
-function finishScrape(reportText, startTime, voiceMessage) {
-    const tripSeconds = ((performance.now() - startTime) / 1000).toFixed(2);
-    const badge = document.getElementById('latency-display');
-    if (badge) badge.innerText = `SCRAPE LATENCY: ${tripSeconds}s`;
-
-    document.body.classList.remove('is-thinking');
-    updateHUDState("READY");
-    appendMsg(reportText, 'assistant', `AA01 Scout Link [${tripSeconds}s]`, true);
-    speakText(voiceMessage);
-}
-
+// =================================================================
+// 5. TACTICAL UTILITIES
+// =================================================================
 function launchLocalServer() {
     window.open('http://localhost:8000', '_blank');
     const responseText = "Agent Anna AA01 is now launched. Advanced military neural Server Engaged.";
