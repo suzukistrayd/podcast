@@ -365,6 +365,29 @@ body.is-speaking .message.assistant:last-child {
     align-items: center;
 }
 
+.action-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.action-chip {
+    background: var(--bg-primary);
+    border: 1px solid var(--accent-cyan);
+    color: var(--accent-cyan);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: monospace;
+    transition: all 0.2s;
+}
+
+.action-chip:hover {
+    background: var(--accent-glow);
+    box-shadow: 0 0 8px var(--accent-glow);
+}
+
 .input-control-bar {
     padding: 16px;
     border-top: 1px solid var(--border-color);
