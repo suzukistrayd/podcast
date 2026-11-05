@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // LOCKED BASELINE ENGINE (app.js)
+// AGENT ANNA 01 (AA01) // LOCKED BASELINE + SERVER ENGINE (app.js)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -214,7 +214,10 @@ async function sendMessage(forcedQuery = null) {
     if (input && !forcedQuery) input.value = '';
 
     const qLower = query.toLowerCase();
-    if (qLower.includes('start server') || qLower.includes('launch server')) { launchLocalServer(); return; }
+    if (qLower.includes('start server') || qLower.includes('launch server') || qLower.includes('start teh sever') || qLower.includes('start the server')) {
+        launchLocalServer();
+        return;
+    }
 
     const startTime = performance.now();
     document.body.classList.remove('is-speaking');
@@ -263,7 +266,7 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// LOCKED WORKING SCRAPE ENGINE (DuckDuckGo HTML Proxy + Wikipedia)
+// WORKING SCRAPE & SERVER ENGINES
 // =================================================================
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
@@ -355,7 +358,7 @@ async function scrapeWebPage() {
                     const wData = await wRes.json();
                     if (wData.extract) {
                         const report = `[WIKIPEDIA KNOWLEDGE HARVEST: "${query}"]\nTitle: ${wData.title}\n-----------------------------------\n${wData.extract}`;
-                        finishScrapingReport(report, startTime, `Knowledge base entry retrieved for ${query}.`);
+                        finishScrape(report, startTime, `Knowledge base entry retrieved for ${query}.`);
                         return;
                     }
                 }
@@ -377,12 +380,11 @@ function finishScrape(reportText, startTime, voiceMessage) {
     speakText(voiceMessage);
 }
 
-function finishScrapingReport(reportText, startTime, voiceMessage) {
-    finishScrape(reportText, startTime, voiceMessage);
-}
-
 function launchLocalServer() {
-    window.open('http://localhost:8000', '_blank');
+    const serverUrl = 'http://localhost:8000';
+    try {
+        window.open(serverUrl, '_blank');
+    } catch (e) {}
     const responseText = "Agent Anna AA01 is now launched. Advanced military neural Server Engaged.";
     appendMsg(responseText, 'assistant', 'AA01 Tactical Alert', true);
     speakText(responseText); 
