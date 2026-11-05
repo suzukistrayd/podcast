@@ -1,0 +1,11 @@
+﻿{
+    "ethereum_price":  "$2,422.83",
+    "latest_signal":  "BTC: $80,431.00 | ETH: $2,422.83 | DOGE: $0.0770",
+    "bitcoin_price":  "$80,431.00",
+    "analyst_gate":  "98/100",
+    "solana_equity":  ".85",
+    "dogecoin_price":  "$0.0770",
+    "status":  "SYNCHRONIZED",
+    "active_bot":  "Grok Multi-Asset Crypto Scanner",
+    "timestamp":  "2026-11-05 07:00:53"
+}
