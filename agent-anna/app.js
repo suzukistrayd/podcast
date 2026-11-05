@@ -1,5 +1,6 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // UNIFIED RUNTIME ENGINE (app.js)
+// AGENT ANNA // MILITARY-GRADE BASE ENGINE + WORKFLOW CLIPBOARD SYNC
+// AGENT ANNA 01 (AA01) // UNIFIED RUNTIME & ACTION ENGINE (app.js)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -10,79 +11,85 @@ let isListening = false;
 let cachedVoices = [];
 let coreKnowledgeCache = null;
 
+// Audio Visualizer Context
 let audioCtx = null;
 let analyser = null;
 let micStream = null;
 let animFrameId = null;
 
+// Secure global registry for action button payload mapping
+window.aaRegistry = {};
+
 window.onload = function() {
-    try {
-        const savedKey = localStorage.getItem('dahl_key');
-        if (savedKey) {
-            const keyInput = document.getElementById('api-key');
-            if (keyInput) keyInput.value = savedKey;
-        }
-    } catch (e) {}
+try {
+const savedKey = localStorage.getItem('dahl_key');
+if (savedKey) {
+const keyInput = document.getElementById('api-key');
+if (keyInput) keyInput.value = savedKey;
+}
+} catch (e) {}
 
-    const inputEl = document.getElementById('user-input');
-    if (inputEl) inputEl.focus();
-    
-    if ('speechSynthesis' in window) {
-        loadVoices();
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
+const inputEl = document.getElementById('user-input');
+if (inputEl) inputEl.focus();
 
-    preloadCoreKnowledge();
-    initSpeechRecognition();
+if ('speechSynthesis' in window) {
+loadVoices();
+window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+preloadCoreKnowledge();
+initSpeechRecognition();
     initWavCanvas();
 };
 
 // =================================================================
+// 1. SPEECH RECOGNITION & VISUALIZER ENGINE
 // 1. SPEECH RECOGNITION & AUDIO VISUALIZER ENGINE
 // =================================================================
 function initSpeechRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!SpeechRecognition) return;
 
-    try {
+try {
         if (recognition) {
             recognition.abort();
             recognition = null;
         }
 
-        recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = 'en-US';
+recognition = new SpeechRecognition();
+recognition.continuous = false;
+recognition.interimResults = false;
+recognition.lang = 'en-US';
 
-        recognition.onstart = function() {
-            isListening = true;
-            const micBtn = document.getElementById('mic-btn');
-            if (micBtn) micBtn.classList.add('listening');
-            updateHUDState("LISTENING");
-            startAudioVisualizer();
-        };
+recognition.onstart = function() {
+isListening = true;
+const micBtn = document.getElementById('mic-btn');
+if (micBtn) micBtn.classList.add('listening');
+updateHUDState("LISTENING");
+startAudioVisualizer();
+};
 
-        recognition.onresult = function(event) {
-            const speechText = event.results[0][0].transcript;
-            const userInput = document.getElementById('user-input');
-            if (userInput) userInput.value = speechText;
-            stopListeningUI();
-            sendMessage();
-        };
+recognition.onresult = function(event) {
+const speechText = event.results[0][0].transcript;
+const userInput = document.getElementById('user-input');
+if (userInput) userInput.value = speechText;
+stopListeningUI();
+sendMessage();
+};
 
-        recognition.onerror = function() { stopListeningUI(); };
-        recognition.onend = function() { stopListeningUI(); };
-    } catch (err) {}
+recognition.onerror = function() { stopListeningUI(); };
+recognition.onend = function() { stopListeningUI(); };
+} catch (err) {}
 }
 
 async function startAudioVisualizer() {
-    try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+try {
+if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
         if (micStream) micStream.getTracks().forEach(track => track.stop());
 
-        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        
+micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!audioCtx || audioCtx.state === 'closed') {
             audioCtx = new AudioContext();
@@ -90,29 +97,45 @@ async function startAudioVisualizer() {
             await audioCtx.resume();
         }
 
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 32;
+analyser = audioCtx.createAnalyser();
+analyser.fftSize = 32;
 
-        const source = audioCtx.createMediaStreamSource(micStream);
-        source.connect(analyser);
+const source = audioCtx.createMediaStreamSource(micStream);
+source.connect(analyser);
 
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        const eqBars = document.querySelectorAll('.eq-bar');
+const dataArray = new Uint8Array(analyser.frequencyBinCount);
+const eqBars = document.querySelectorAll('.eq-bar');
 
-        function renderFrame() {
-            if (!isListening) return;
-            analyser.getByteFrequencyData(dataArray);
-            eqBars.forEach((bar, index) => {
-                const val = dataArray[index % dataArray.length] || 0;
+function renderFrame() {
+if (!isListening) return;
+analyser.getByteFrequencyData(dataArray);
+
+eqBars.forEach((bar, index) => {
+const val = dataArray[index % dataArray.length] || 0;
+                const heightPercent = Math.max(15, Math.min(100, (val / 255) * 100));
+                bar.style.height = `${heightPercent}%`;
                 bar.style.height = `${Math.max(15, Math.min(100, (val / 255) * 100))}%`;
-            });
-            animFrameId = requestAnimationFrame(renderFrame);
-        }
-        renderFrame();
-    } catch (e) {}
+});
+
+animFrameId = requestAnimationFrame(renderFrame);
+}
+
+renderFrame();
+} catch (e) {}
 }
 
 function stopAudioVisualizer() {
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+    if (micStream) {
+        micStream.getTracks().forEach(track => track.stop());
+        micStream = null;
+    }
+    if (audioCtx) {
+        audioCtx.close();
+        audioCtx = null;
+    }
+    const eqBars = document.querySelectorAll('.eq-bar');
+    eqBars.forEach(bar => bar.style.height = '20%');
     if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
     if (micStream) { micStream.getTracks().forEach(track => track.stop()); micStream = null; }
     if (audioCtx && audioCtx.state !== 'closed') { audioCtx.close().catch(() => {}); audioCtx = null; }
@@ -120,64 +143,97 @@ function stopAudioVisualizer() {
 }
 
 function toggleMic() {
-    if (!recognition) initSpeechRecognition();
-    if (!recognition) return alert("Speech recognition unavailable.");
+if (!recognition) initSpeechRecognition();
+if (!recognition) return alert("Speech recognition unavailable.");
 
-    if (!isListening) {
+if (!isListening) {
+        try { recognition.start(); } catch (e) { stopListeningUI(); }
         try { recognition.start(); } catch (e) { initSpeechRecognition(); try { recognition.start(); } catch (err) { stopListeningUI(); } }
-    } else {
-        try { recognition.stop(); } catch (e) {}
-        stopListeningUI();
-    }
+} else {
+try { recognition.stop(); } catch (e) {}
+stopListeningUI();
+}
 }
 
 function stopListeningUI() {
-    isListening = false;
-    stopAudioVisualizer();
-    const micBtn = document.getElementById('mic-btn');
-    if (micBtn) micBtn.classList.remove('listening');
-    const stateText = document.getElementById('state-text');
+isListening = false;
+stopAudioVisualizer();
+const micBtn = document.getElementById('mic-btn');
+if (micBtn) micBtn.classList.remove('listening');
+const stateText = document.getElementById('state-text');
+    if (stateText && stateText.innerText === "LISTENING") {
+        updateHUDState("READY");
+    }
     if (stateText && stateText.innerText === "LISTENING") updateHUDState("READY");
 }
 
 // =================================================================
+// 2. CORE KNOWLEDGE & TELEMETRY HARVESTER
 // 2. KNOWLEDGE & TELEMETRY HARVESTER
 // =================================================================
 function loadVoices() {
-    if (!('speechSynthesis' in window)) return;
-    cachedVoices = window.speechSynthesis.getVoices();
+if (!('speechSynthesis' in window)) return;
+cachedVoices = window.speechSynthesis.getVoices();
 }
 
 async function preloadCoreKnowledge() {
+    const corePaths = [
+        "agent-anna/character/agent-anna.md",
+        "agent-anna/knowledge/rules.md"
+    ];
     const corePaths = ["agent-anna/character/agent-anna.md", "agent-anna/knowledge/rules.md", "agent-anna/knowledge/lessons.md"];
-    let snippets = [];
-    await Promise.all(corePaths.map(async (path) => {
-        try {
-            const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${path}?t=${Date.now()}`;
-            const res = await fetch(rawUrl);
-            if (res.ok) {
-                const text = await res.text();
-                const cleanText = text.replace(/<[^>]*>/g, '').trim();
+let snippets = [];
+await Promise.all(corePaths.map(async (path) => {
+try {
+const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${path}?t=${Date.now()}`;
+const res = await fetch(rawUrl);
+if (res.ok) {
+const text = await res.text();
+const cleanText = text.replace(/<[^>]*>/g, '').trim();
+                if (cleanText) snippets.push(`[CORE DIRECTIVE: ${path}]\n${cleanText}`);
                 if (cleanText) snippets.push(`[DIRECTIVE: ${path}]\n${cleanText}`);
-            }
-        } catch (e) {}
-    }));
-    coreKnowledgeCache = snippets.join('\n\n---\n\n');
+}
+} catch (e) {}
+}));
+coreKnowledgeCache = snippets.join('\n\n---\n\n');
 }
 
 async function fetchLiveTelemetry() {
+    let btc = "Unavailable", eth = "Unavailable", doge = "Unavailable";
+    
     let btc = "Unavailable", eth = "Unavailable", doge = "Unavailable", sol = "Unavailable";
-    try {
+try {
+        const cryptoRes = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin&vs_currencies=usd");
         const cryptoRes = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin,solana&vs_currencies=usd");
-        if (cryptoRes.ok) {
-            const prices = await cryptoRes.json();
-            if (prices.bitcoin) btc = `$${prices.bitcoin.usd.toLocaleString()}`;
-            if (prices.ethereum) eth = `$${prices.ethereum.usd.toLocaleString()}`;
-            if (prices.dogecoin) doge = `$${prices.dogecoin.usd.toFixed(4)}`;
+if (cryptoRes.ok) {
+const prices = await cryptoRes.json();
+if (prices.bitcoin) btc = `$${prices.bitcoin.usd.toLocaleString()}`;
+if (prices.ethereum) eth = `$${prices.ethereum.usd.toLocaleString()}`;
+if (prices.dogecoin) doge = `$${prices.dogecoin.usd.toFixed(4)}`;
             if (prices.solana) sol = `$${prices.solana.usd.toFixed(2)}`;
+}
+} catch (e) {}
+
+    let status = "ONLINE", activeBot = "Grok Scanner", solanaEquity = "$142.85", signal = "Active";
+    try {
+        const localRes = await fetch(`portal-relay.json?t=${Date.now()}`);
+        if (localRes.ok) {
+            const data = await localRes.json();
+            status = data.status || status;
+            activeBot = data.active_bot || activeBot;
+            solanaEquity = data.solana_equity || solanaEquity;
+            signal = data.latest_signal || signal;
         }
     } catch (e) {}
 
+    return `[LIVE TELEMETRY & MARKET METRICS]
+- Audit Status: ${status}
+- Active Engine: ${activeBot}
+- Solana Equity: ${solanaEquity}
+- BTC Price: ${btc}
+- ETH Price: ${eth}
+- DOGE Price: ${doge}
+- Signal Metric: ${signal}`;
     return `[LIVE TELEMETRY HARVEST]
 - Solana (SOL): ${sol}
 - Bitcoin (BTC): ${btc}
@@ -186,24 +242,28 @@ async function fetchLiveTelemetry() {
 }
 
 // =================================================================
+// 3. VOICE SYNTHESIZER & INFERENCE LOOP
 // 3. VOICE SYNTHESIZER
 // =================================================================
 function speakText(text) {
+    if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
     if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    
-    const cleanText = text.replace(/<[^>]*>/g, '').replace(/[*_#`~]/g, '').trim();
-    if (!cleanText) return;
+window.speechSynthesis.cancel();
 
-    if (cachedVoices.length === 0) loadVoices();
-    const utterance = new SpeechSynthesisUtterance(cleanText);
+const cleanText = text.replace(/<[^>]*>/g, '').replace(/[*_#`~]/g, '').trim();
+if (!cleanText) return;
 
-    const preferredVoices = ["Google UK English Female", "en-GB-Neural2-F", "Sonia", "Hazel", "Samantha", "Google US English"];
-    let selectedVoice = cachedVoices.find(v => preferredVoices.some(p => v.name.includes(p)));
-    if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('male'));
+if (cachedVoices.length === 0) loadVoices();
+const utterance = new SpeechSynthesisUtterance(cleanText);
 
-    if (selectedVoice) utterance.voice = selectedVoice;
-    utterance.pitch = 1.05;
+const preferredVoices = ["Google UK English Female", "en-GB-Neural2-F", "Sonia", "Hazel", "Samantha", "Google US English"];
+let selectedVoice = cachedVoices.find(v => preferredVoices.some(p => v.name.includes(p)));
+if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('male'));
+
+if (selectedVoice) utterance.voice = selectedVoice;
+utterance.pitch = 1.05;
+    utterance.rate = 0.94;
+    window.speechSynthesis.speak(utterance);
     utterance.rate = 0.96;
 
     utterance.onstart = () => { 
@@ -227,28 +287,31 @@ function speakText(text) {
     }
 }
 
+async function sendMessage() {
 function shouldFetchTelemetry(query) {
     const q = query.toLowerCase();
     return q.includes('telemetry') || q.includes('market') || q.includes('btc') || q.includes('eth') || q.includes('doge') || q.includes('solana') || q.includes('status') || q.includes('price') || q.includes('report') || q.includes('crypto');
 }
 
 async function sendMessage(forcedQuery = null) {
-    const keyEl = document.getElementById('api-key');
-    const input = document.getElementById('user-input');
-    const apiKey = keyEl ? keyEl.value.trim() : "";
+const keyEl = document.getElementById('api-key');
+const input = document.getElementById('user-input');
+const apiKey = keyEl ? keyEl.value.trim() : "";
+    const query = input ? input.value.trim() : "";
     const query = forcedQuery || (input ? input.value.trim() : "");
 
-    if (!apiKey) {
-        alert('Please tap ⚙️ KEYS and paste your Dahl API Key.');
-        toggleSettings();
-        return;
-    }
-    if (!query) return;
+if (!apiKey) {
+alert('Please tap ⚙️ KEYS and paste your Dahl API Key.');
+toggleSettings();
+return;
+}
+if (!query) return;
 
     appendMsg(query, 'user', 'Commander');
+    if (input) input.value = '';
+    appendMsg(query, 'user', 'Commander', false);
     if (input && !forcedQuery) input.value = '';
 
-    // INTELLIGENT COMMAND INTERCEPTION: If Commander asks to start server via chat, execute server launch directly!
     const qLower = query.toLowerCase();
     if (qLower.includes('start server') || qLower.includes('launch server') || qLower.includes('start teh sever') || qLower.includes('start the server')) {
         launchLocalServer();
@@ -258,10 +321,11 @@ async function sendMessage(forcedQuery = null) {
     const startTime = performance.now();
 
     document.body.classList.remove('is-speaking');
-    document.body.classList.add('is-thinking');
-    updateHUDState("REASONING");
+document.body.classList.add('is-thinking');
+updateHUDState("REASONING");
 
-    if (!coreKnowledgeCache) await preloadCoreKnowledge();
+if (!coreKnowledgeCache) await preloadCoreKnowledge();
+    const liveTelemetry = await fetchLiveTelemetry();
 
     let liveTelemetry = "";
     const isCryptoQuery = shouldFetchTelemetry(query);
@@ -270,66 +334,188 @@ async function sendMessage(forcedQuery = null) {
     } else {
         liveTelemetry = "[TELEMETRY: Standby]";
     }
-    
+
+    const systemPrompt = `You are AGENT ANNA, a military-grade execution engine operating under character/agent-anna.md.
     const systemPrompt = `You are AGENT ANNA 01 (AA01). 
 Rules:
 1. Provide precise, executive answers suitable for speech synthesis.
+2. Integrate telemetry statistics directly when asked for system state or market metrics.
 2. DO NOT inject or mention crypto/market rates unless explicitly asked.
 3. Avoid all negativity and political content.
 
 System Context:
 ${coreKnowledgeCache}
+
+Telemetry & Live Market Data:
 Telemetry Status:
 ${liveTelemetry}`;
 
-    try {
-        const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "MiniMaxAI/MiniMax-M2.7",
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: query }
-                ],
-                temperature: 0.1,
+try {
+const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
+method: "POST",
+headers: {
+"Authorization": `Bearer ${apiKey}`,
+"Content-Type": "application/json"
+},
+body: JSON.stringify({
+model: "MiniMaxAI/MiniMax-M2.7",
+messages: [
+{ role: "system", content: systemPrompt },
+{ role: "user", content: query }
+],
+temperature: 0.1,
                 max_tokens: 1000
-            })
-        });
+                max_tokens: 2000
+})
+});
 
-        if (!res.ok) throw new Error(`API Error ${res.status}`);
+if (!res.ok) throw new Error(`API Error ${res.status}`);
 
-        const data = await res.json();
-        let reply = (data.choices[0].message.content || "").replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+const data = await res.json();
+let reply = (data.choices[0].message.content || "").replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
         const endTime = performance.now();
         const tripSeconds = ((endTime - startTime) / 1000).toFixed(2);
         const latencyBadge = document.getElementById('latency-display');
         if (latencyBadge) latencyBadge.innerText = `TRIP LATENCY: ${tripSeconds}s`;
 
-        document.body.classList.remove('is-thinking');
-        updateHUDState("READY");
+document.body.classList.remove('is-thinking');
+updateHUDState("READY");
 
-        appendMsg(reply, 'assistant', `AA01 Core [${tripSeconds}s]`, isCryptoQuery);
-        speakText(reply);
+        appendMsg(reply, 'assistant', 'Agent Anna Core', true);
+        appendMsg(reply, 'assistant', `AA01 Core [${tripSeconds}s]`, true);
+speakText(reply);
 
-    } catch (err) {
-        document.body.classList.remove('is-thinking');
-        updateHUDState("ERROR");
-        appendMsg(`Execution Error: ${err.message}`, 'assistant', 'System Alert', false);
-    }
+} catch (err) {
+document.body.classList.remove('is-thinking');
+updateHUDState("ERROR");
+appendMsg(`Execution Error: ${err.message}`, 'assistant', 'System Alert', false);
+}
 }
 
 // =================================================================
-// 4. TACTICAL QUICK LAUNCH (SILENT SERVER LAUNCH)
+// 4. WORKFLOW CLIPBOARD AUTOMATION & UTILITIES
+// 4. ROBUST MULTI-PROXY LIVE SEARCH & SCRAPE ENGINE
+// =================================================================
+async function scrapeWebPage() {
+    const input = document.getElementById('user-input');
+    let query = input ? input.value.trim() : "";
+    if (!query) query = "kunda cafe thailand";
+
+    const startTime = performance.now();
+    document.body.classList.add('is-thinking');
+    updateHUDState("SCRAPING");
+    appendMsg(`Executing Global Scout: "${query}"`, 'user', 'Commander', false);
+    if (input) input.value = '';
+
+    const isUrl = query.startsWith('http://') || query.startsWith('https://');
+
+    if (isUrl) {
+        let htmlContent = "";
+        const proxies = [
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(query)}`,
+            `https://corsproxy.io/?${encodeURIComponent(query)}`,
+            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(query)}`
+        ];
+
+        for (const pUrl of proxies) {
+            try {
+                const res = await fetch(pUrl);
+                if (res.ok) {
+                    htmlContent = await res.text();
+                    if (htmlContent.length > 50) break;
+                }
+            } catch (e) {}
+        }
+
+        if (htmlContent) {
+            const cleanText = htmlContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                                      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+                                      .replace(/<[^>]*>/g, '\n')
+                                      .replace(/\n+/g, '\n')
+                               .trim();
+            const lines = cleanText.split('\n').filter(l => l.trim().length > 3);
+            const report = `[PORTAL HARVEST: ${query}]\nTotal Valid Lines: ${lines.length}\n-----------------------------------\n${lines.slice(0, 80).join('\n')}`;
+            finishScrape(report, startTime, "Target URL harvested successfully.");
+        } else {
+            finishScrape(`[PORTAL HARVEST ERROR: ${query}]\nTarget domain actively blocked client proxy streams.`, startTime, "Target URL blocked access.");
+        }
+    } else {
+        try {
+            const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+            let searchHtml = "";
+            const searchProxies = [
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(searchUrl)}`,
+                `https://corsproxy.io/?${encodeURIComponent(searchUrl)}`
+            ];
+
+            for (const sp of searchProxies) {
+                try {
+                    const sRes = await fetch(sp);
+                    if (sRes.ok) {
+                        searchHtml = await sRes.text();
+                        if (searchHtml.length > 100) break;
+                    }
+                } catch (e) {}
+            }
+
+            if (searchHtml) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(searchHtml, 'text/html');
+                const results = doc.querySelectorAll('.result__snippet');
+                
+                let extractedSnippets = [];
+                results.forEach((el, idx) => {
+                    if (idx < 6 && el.textContent.trim()) {
+                        extractedSnippets.push(`• ${el.textContent.trim()}`);
+                    }
+                });
+
+                if (extractedSnippets.length > 0) {
+                    const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${extractedSnippets.join('\n\n')}\n-----------------------------------`;
+                    finishScrape(report, startTime, `Found live web results for ${query}.`);
+                    return;
+                }
+            }
+
+            throw new Error("HTML parse empty");
+
+        } catch (err) {
+            try {
+                const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`;
+                const wRes = await fetch(wikiUrl);
+                if (wRes.ok) {
+                    const wData = await wRes.json();
+                    if (wData.extract) {
+                        const report = `[WIKIPEDIA KNOWLEDGE HARVEST: "${query}"]\nTitle: ${wData.title}\n-----------------------------------\n${wData.extract}`;
+                        finishScrape(report, startTime, `Knowledge base entry retrieved for ${query}.`);
+                        return;
+                    }
+                }
+            } catch (wErr) {}
+
+            finishScrape(`[WEB SEARCH HARVEST: "${query}"]\n-----------------------------------\nQuery executed across public search index nodes. No direct snippet returned for "${query}". Try refining search terms.\n-----------------------------------`, startTime, "Search completed.");
+        }
+    }
+}
+
+function finishScrape(reportText, startTime, voiceMessage) {
+    const tripSeconds = ((performance.now() - startTime) / 1000).toFixed(2);
+    const badge = document.getElementById('latency-display');
+    if (badge) badge.innerText = `SCRAPE LATENCY: ${tripSeconds}s`;
+
+    document.body.classList.remove('is-thinking');
+    updateHUDState("READY");
+    appendMsg(reportText, 'assistant', `AA01 Scout Link [${tripSeconds}s]`, true);
+    speakText(voiceMessage);
+}
+
+// =================================================================
+// 5. TACTICAL QUICK LAUNCH & UTILITIES
 // =================================================================
 function launchLocalServer() {
     window.open('http://localhost:8000', '_blank');
     const responseText = "Agent Anna AA01 is now launched. Advanced military neural Server Engaged.";
-    
     appendMsg(responseText, 'assistant', 'AA01 Tactical Alert', true);
     speakText(responseText); 
 }
@@ -340,110 +526,148 @@ function triggerManualTelemetry() {
     sendMessage("Provide live crypto market telemetry and report rates.");
 }
 
-function copyBatchScriptInstructions() {
-    const batCode = `@echo off\ntitle Agent Anna Portal Launcher\ncd /d %~dp0\nstart powershell -NoExit -Command "python -m http.server 8000"\nstart http://localhost:8000\nexit`;
-    navigator.clipboard.writeText(batCode).then(() => {
-        const responseText = "Automated startup batch script copied to system clipboard.";
-        appendMsg(responseText, 'assistant', 'AA01 System Utility', true);
-        speakText(responseText);
-    });
-}
-
 function triggerMilitaryProtocol() {
     const protocolMsg = "MILITARY PROTOCOL ENGAGED: Executing deep diagnostic sweep and telemetry verification.";
     appendMsg(protocolMsg, 'assistant', 'AA01 TACTICAL COMMAND', true);
     speakText(protocolMsg);
 }
 
-// =================================================================
-// 5. UTILITIES, CLIPBOARD & WAV CANVAS MATRIX
-// =================================================================
 function copyToClipboard(text, btnElement) {
-    navigator.clipboard.writeText(text).then(() => {
-        if (btnElement) {
-            const originalText = btnElement.innerText;
-            btnElement.innerText = "COPIED!";
-            btnElement.style.color = "#00ffcc";
+navigator.clipboard.writeText(text).then(() => {
+if (btnElement) {
+const originalText = btnElement.innerText;
+btnElement.innerText = "COPIED!";
+btnElement.style.color = "#00ffcc";
+            setTimeout(() => {
+                btnElement.innerText = originalText;
+                btnElement.style.color = "";
+            }, 1500);
             setTimeout(() => { btnElement.innerText = originalText; btnElement.style.color = ""; }, 1500);
-        }
+}
+    }).catch(err => {
+        console.error("Clipboard copy failed:", err);
+    });
     }).catch(err => {});
 }
 
 function updateHUDState(stateLabel) {
-    const stateText = document.getElementById('state-text');
-    if (stateText) stateText.innerText = stateLabel;
-    const statusBar = document.getElementById('status-bar');
-    if (statusBar) {
+const stateText = document.getElementById('state-text');
+if (stateText) stateText.innerText = stateLabel;
+const statusBar = document.getElementById('status-bar');
+if (statusBar) {
+        if (stateLabel === "REASONING" || stateLabel === "LISTENING") {
         if (["REASONING", "LISTENING", "SPEAKING", "SCRAPING"].includes(stateLabel)) {
-            statusBar.classList.add('active');
-        } else {
-            statusBar.classList.remove('active');
-        }
-    }
+statusBar.classList.add('active');
+} else {
+statusBar.classList.remove('active');
+}
+}
 }
 
 function toggleVoice() {
-    isVoiceEnabled = !isVoiceEnabled;
-    const btn = document.getElementById('voice-btn');
-    if (btn) {
-        btn.className = isVoiceEnabled ? "ctrl-btn active" : "ctrl-btn";
-        btn.textContent = isVoiceEnabled ? "🔊 ON" : "🔇 OFF";
-    }
-    if (!isVoiceEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+isVoiceEnabled = !isVoiceEnabled;
+const btn = document.getElementById('voice-btn');
+if (btn) {
+btn.className = isVoiceEnabled ? "ctrl-btn active" : "ctrl-btn";
+btn.textContent = isVoiceEnabled ? "🔊 ON" : "🔇 OFF";
+}
+if (!isVoiceEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
 }
 
 function toggleSettings() {
-    const panel = document.getElementById('settings-panel');
-    if (panel) panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+const panel = document.getElementById('settings-panel');
+if (panel) panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
 }
 
 function saveKey() {
-    const el = document.getElementById('api-key');
-    if (el) localStorage.setItem('dahl_key', el.value.trim());
+const el = document.getElementById('api-key');
+if (el) localStorage.setItem('dahl_key', el.value.trim());
 }
 
 function handleKey(event) {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        sendMessage();
-    }
+if (event.key === 'Enter') {
+event.preventDefault();
+sendMessage();
+}
 }
 
 function clearLogs() {
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    const chatContainer = document.getElementById('chat-container');
-    if (chatContainer) {
-        chatContainer.innerHTML = `
-            <div class="message assistant">
+if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+const chatContainer = document.getElementById('chat-container');
+if (chatContainer) {
+chatContainer.innerHTML = `
+           <div class="message assistant">
+                <div class="msg-header">Agent Anna Core</div>
                 <div class="msg-header">AA01 Core</div>
-                <div class="msg-body">Console history cleared. Standby mode.</div>
-            </div>
-        `;
-    }
+               <div class="msg-body">Console history cleared. Standby mode.</div>
+           </div>
+       `;
+}
 }
 
 function appendMsg(text, sender, label, includeCopy = false) {
-    const container = document.getElementById('chat-container');
-    if (!container) return;
+function appendMsg(text, sender, label, includeActions = true) {
+const container = document.getElementById('chat-container');
+if (!container) return;
 
-    const div = document.createElement('div');
-    div.className = `message ${sender}`;
-    
+const div = document.createElement('div');
+div.className = `message ${sender}`;
+
     let copyBtnHTML = "";
     if (includeCopy) {
         const encodedText = encodeURIComponent(text);
         copyBtnHTML = `<button class="copy-telemetry-btn" onclick="copyToClipboard(decodeURIComponent('${encodedText}'), this)" style="float: right; background: transparent; border: 1px solid #00ffcc; color: #00ffcc; font-size: 10px; padding: 2px 6px; cursor: pointer; border-radius: 3px; font-family: monospace;">[COPY DATA]</button>`;
-    }
+    let actionButtonsHTML = "";
+    if (sender === 'assistant' && includeActions) {
+        // Unique registry ID mapping to prevent any string truncation/escaping errors
+        const regKey = 'msg_' + Math.random().toString(36).substr(2, 9);
+        window.aaRegistry[regKey] = text;
 
-    div.innerHTML = `
-        <div class="msg-header">${label} ${copyBtnHTML}</div>
-        <div style="white-space:pre-wrap; margin-top: 6px;">${text}</div>
-    `;
-
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
+        actionButtonsHTML = `
+            <div style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; border-top: 1px solid #1b263b; padding-top: 8px;">
+                <button onclick="executeGlobalAction(1, '${regKey}')" style="background: rgba(0,255,204,0.1); border: 1px solid #00ffcc; color: #00ffcc; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">1. SUMMARIZE</button>
+                <button onclick="executeGlobalAction(2, '${regKey}')" style="background: rgba(255,170,0,0.1); border: 1px solid #ffaa00; color: #ffaa00; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">2. SAVE AS .MD</button>
+                <button onclick="executeGlobalAction(3, '${regKey}')" style="background: rgba(255,0,127,0.1); border: 1px solid #ff007f; color: #ff007f; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">3. INGEST TO CORE</button>
+                <button onclick="copyToClipboard(window.aaRegistry['${regKey}'], this)" style="background: transparent; border: 1px solid #8493a8; color: #8493a8; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">COPY</button>
+            </div>`;
 }
 
+div.innerHTML = `
+        <div class="msg-header">${label} ${copyBtnHTML}</div>
+        <div class="msg-header">${label}</div>
+       <div style="white-space:pre-wrap; margin-top: 6px;">${text}</div>
+        ${actionButtonsHTML}
+   `;
+
+container.appendChild(div);
+container.scrollTop = container.scrollHeight;
+}
+
+    if (includeReflexiveWorkflow(text)) {
+        navigator.clipboard.writeText(text).catch(() => {});
+function executeGlobalAction(actionId, regKey) {
+    const content = window.aaRegistry[regKey] || "";
+    if (!content) return;
+
+    if (actionId === 1) {
+        sendMessage(`Summarize this response into concise tactical bullet points:\n${content}`);
+    } else if (actionId === 2) {
+        const blob = new Blob([content], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `aa01-export-${Date.now()}.md`;
+        a.click();
+        appendMsg(`Markdown export downloaded successfully.`, 'assistant', 'AA01 System Utility', false);
+        speakText("Markdown file saved.");
+    } else if (actionId === 3) {
+        sendMessage(`Ingest this text into your core prompt context memory:\n${content}`);
+}
+}
+
+function includeReflexiveWorkflow(text) {
+    return text.includes("BTC Price") || text.includes("DOGE Price") || text.includes("LIVE TELEMETRY");
+}
 function initWavCanvas() {
     const canvas = document.getElementById('wav-canvas');
     if (!canvas) return;
