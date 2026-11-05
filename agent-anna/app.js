@@ -141,7 +141,7 @@ function stopListeningUI() {
 }
 
 // =================================================================
-// 2. KNOWLEDGE & TELEMETRY HARVESTER
+// 2. KNOWLEDGE & TELEMETRY HARVESTER (WITH CORS FALLBACKS)
 // =================================================================
 function loadVoices() {
     if (!('speechSynthesis' in window)) return;
@@ -154,21 +154,24 @@ async function preloadCoreKnowledge() {
     await Promise.all(corePaths.map(async (path) => {
         try {
             const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${path}?t=${Date.now()}`;
-            const res = await fetch(rawUrl);
-            if (res.ok) {
+            // Use CORS proxy fallback if direct fetch encounters network restrictions
+            const res = await fetch(rawUrl).catch(() => fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(rawUrl)}`));
+            if (res && res.ok) {
                 const text = await res.text();
                 const cleanText = text.replace(/<[^>]*>/g, '').trim();
                 if (cleanText) snippets.push(`[DIRECTIVE: ${path}]\n${cleanText}`);
             }
         } catch (e) {}
     }));
-    coreKnowledgeCache = snippets.join('\n\n---\n\n');
+    coreKnowledgeCache = snippets.length > 0 ? snippets.join('\n\n---\n\n') : "[DIRECTIVE: Core Operational Standby]";
 }
 
 async function fetchLiveTelemetry() {
     let btc = "Unavailable", eth = "Unavailable", doge = "Unavailable", sol = "Unavailable";
     try {
-        const cryptoRes = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin,solana&vs_currencies=usd");
+        const cryptoRes = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin,solana&vs_currencies=usd", {
+            headers: { "Accept": "application/json" }
+        });
         if (cryptoRes.ok) {
             const prices = await cryptoRes.json();
             if (prices.bitcoin) btc = `$${prices.bitcoin.usd.toLocaleString()}`;
@@ -206,7 +209,6 @@ function speakText(text) {
     utterance.pitch = 1.05;
     utterance.rate = 0.96;
 
-    // LOCKED SPEAKING TRIGGER (Micro-tick protected against cancellation flicker)
     setTimeout(() => {
         document.body.classList.remove('is-thinking');
         document.body.classList.add('is-speaking');
@@ -329,21 +331,8 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// 4. TACTICAL QUICK LAUNCH & WEB SCRAPER TRIGGERS
+// 4. TACTICAL QUICK LAUNCH & ROBUST WEB SCRAPER
 // =================================================================
-function launchLocalServer() {
-    window.open('http://localhost:8000', '_blank');
-    const responseText = "Local server portal opened. Run 'python -m http.server 8000' in PowerShell.";
-    
-    // Force persistent speaking state instantly to prevent flicker
-    document.body.classList.remove('is-thinking');
-    document.body.classList.add('is-speaking');
-    updateHUDState("SPEAKING");
-
-    appendMsg(responseText, 'assistant', 'AA01 Tactical Alert', true);
-    speakText(responseText); 
-}
-
 function triggerManualTelemetry() {
     const input = document.getElementById('user-input');
     if (input) input.value = "Provide live crypto market telemetry and report rates.";
@@ -367,18 +356,32 @@ async function scrapeWebPage() {
     if (input) input.value = '';
 
     try {
+        // Fallback proxy chain to prevent network restrictions
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-        const res = await fetch(proxyUrl);
-        if (!res.ok) throw new Error(`Scraper HTTP Error ${res.status}`);
+        let res = await fetch(proxyUrl).catch(() => null);
         
-        const data = await res.json();
-        const rawHtml = data.contents || "";
+        if (!res || !res.ok) {
+            // Secondary fallback proxy
+            res = await fetch(`https://r.jina.ai/${targetUrl}`).catch(() => null);
+        }
+
+        if (!res || !res.ok) throw new Error("All proxy scrapers blocked or unreachable.");
         
-        const cleanText = rawHtml.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
-        const lines = cleanText.split('\n');
+        let cleanText = "";
+        const contentType = res.headers.get("content-type") || "";
         
+        if (contentType.includes("json")) {
+            const data = await res.json();
+            const rawHtml = data.contents || data.data || "";
+            cleanText = rawHtml.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
+        } else {
+            const rawText = await res.text();
+            cleanText = rawText.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
+        }
+
+        const lines = cleanText.split('\n').filter(l => l.trim().length > 0);
         const first100Lines = lines.slice(0, 100).join('\n');
-        const truncatedReport = `[WEB SCRAPER: FIRST 100 LINES EXTRACTED]\nTarget: ${targetUrl}\nTotal Lines: ${lines.length}\n\n${first100Lines}`;
+        const truncatedReport = `[WEB SCRAPER: FIRST 100 LINES EXTRACTED]\nTarget: ${targetUrl}\nTotal Clean Lines: ${lines.length}\n\n${first100Lines}`;
 
         const endTime = performance.now();
         const tripSeconds = ((endTime - startTime) / 1000).toFixed(2);
