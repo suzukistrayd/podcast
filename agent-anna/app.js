@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA // MILITARY-GRADE BASE ENGINE + SECURE PROXY SCOUT
+// AGENT ANNA // MILITARY-GRADE BASE ENGINE + DUAL NEURON CANVAS
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -344,7 +344,6 @@ async function scrapeWebPage(forcedUrl = null) {
     const isUrl = targetQuery.startsWith('http://') || targetQuery.startsWith('https://');
     const scoutUrl = isUrl ? targetQuery : `https://html.duckduckgo.com/html/?q=${encodeURIComponent(targetQuery)}`;
 
-    // Multi-tier proxy rotation to prevent connection drops
     const proxyUrls = [
         `https://r.jina.ai/${scoutUrl}`,
         `https://api.allorigins.win/get?url=${encodeURIComponent(scoutUrl)}`,
@@ -372,7 +371,6 @@ async function scrapeWebPage(forcedUrl = null) {
         } catch (e) {}
     }
 
-    // Fallback direct generation if proxies are throttled
     if (!success) {
         rawData = `[FALLBACK SCOUT HARVEST REPORT FOR: "${targetQuery}"]\n- Target query successfully processed through local inference fallback matrix.\n- Context verified against active knowledge directives.\n- Status: Operational intelligence ready for executive summarization.`;
     }
@@ -519,6 +517,9 @@ function appendMsg(text, sender, label, includeActions = false) {
     container.scrollTop = container.scrollHeight;
 }
 
+// =================================================================
+// 5. DUAL NEURON CANVAS RENDERER (DUAL WAVE TRACES)
+// =================================================================
 function initWavCanvas() {
     const canvas = document.getElementById('wav-canvas');
     if (!canvas) return;
@@ -526,28 +527,51 @@ function initWavCanvas() {
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
 
-    let step = 0;
-    function drawWave() {
+    let step1 = 0;
+    let step2 = 0;
+
+    function drawDualWaves() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.beginPath();
-        ctx.lineWidth = 1.5;
-        
+
         const isThinking = document.body.classList.contains('is-thinking');
         const isSpeaking = document.body.classList.contains('is-speaking');
 
-        ctx.strokeStyle = isThinking ? '#ffaa00' : (isSpeaking ? '#ff007f' : '#00ffcc');
+        // Primary Wave Color (Cyan when ready, Amber when thinking, Magenta when speaking)
+        const primaryColor = isThinking ? '#ffaa00' : (isSpeaking ? '#ff007f' : '#00ffcc');
+        // Secondary Wave Color (Faded accent trace)
+        const secondaryColor = isThinking ? 'rgba(255, 170, 0, 0.4)' : (isSpeaking ? 'rgba(255, 0, 127, 0.4)' : 'rgba(0, 255, 204, 0.3)');
 
-        const amplitude = (isThinking || isSpeaking) ? 28 : 8;
-        const frequency = (isThinking || isSpeaking) ? 0.035 : 0.015;
+        const amplitude = (isThinking || isSpeaking) ? 30 : 10;
+        const frequency = (isThinking || isSpeaking) ? 0.04 : 0.02;
+
+        // --- TRACE 1: PRIMARY NEURON WAVE ---
+        ctx.beginPath();
+        ctx.lineWidth = 1.8;
+        ctx.strokeStyle = primaryColor;
 
         for (let x = 0; x < canvas.width; x++) {
-            const y = canvas.height / 2 + Math.sin(x * frequency + step) * amplitude * Math.sin(x / 100);
+            const y = canvas.height / 2 + Math.sin(x * frequency + step1) * amplitude * Math.sin(x / 90);
             if (x === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
         }
         ctx.stroke();
-        step += (isThinking || isSpeaking) ? 0.09 : 0.02;
-        requestAnimationFrame(drawWave);
+
+        // --- TRACE 2: SECONDARY PHASE-SHIFTED NEURON WAVE ---
+        ctx.beginPath();
+        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = secondaryColor;
+
+        for (let x = 0; x < canvas.width; x++) {
+            const y = canvas.height / 2 + Math.cos(x * (frequency * 0.8) + step2) * (amplitude * 0.7) * Math.cos(x / 110);
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        step1 += (isThinking || isSpeaking) ? 0.1 : 0.025;
+        step2 += (isThinking || isSpeaking) ? 0.07 : 0.018;
+
+        requestAnimationFrame(drawDualWaves);
     }
-    drawWave();
+    drawDualWaves();
 }
