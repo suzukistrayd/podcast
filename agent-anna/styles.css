@@ -22,6 +22,27 @@ body {
     overflow: hidden;
 }
 
+/* THEMED MILITARY SCROLLBARS (VERTICAL ONLY, ZERO HORIZONTAL OVERFLOW) */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 0px; /* Disable horizontal scrollbar */
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+    border: 1px solid var(--accent-cyan);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px var(--accent-cyan);
+}
+
 /* LEFT HUD PANE (55% Width) */
 .agent-hud-pane {
     width: 55%;
@@ -31,6 +52,7 @@ body {
     flex-direction: column;
     padding: 24px;
     position: relative;
+    overflow: hidden;
     background-image: linear-gradient(rgba(13, 19, 34, 0.90), rgba(13, 19, 34, 0.90)), url('character/agent-anna.png');
     background-size: cover;
     background-position: center;
@@ -228,6 +250,7 @@ body.is-speaking .eq-bar {
     flex-direction: column;
     background-color: var(--bg-primary);
     position: relative;
+    overflow: hidden;
 }
 
 .chat-header {
@@ -316,6 +339,7 @@ body.is-speaking .thinking-banner {
 #chat-container {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden; /* LOCK HORIZONTAL SCROLL */
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -339,6 +363,7 @@ body.is-speaking .thinking-banner {
     backdrop-filter: blur(8px);
     z-index: 2;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    word-break: break-word; /* PREVENT HORIZONTAL STRETCHING */
 }
 
 .message.assistant {
@@ -369,6 +394,7 @@ body.is-speaking .message.assistant:last-child {
     display: flex;
     gap: 6px;
     margin-top: 10px;
+    flex-wrap: wrap; /* WRAP CHIPS TO PREVENT HORIZONTAL SCROLL */
 }
 
 .action-chip {
