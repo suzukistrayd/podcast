@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // UNIFIED RUNTIME & SCRAPER ENGINE (app.js)
+// AGENT ANNA 01 (AA01) // UNIFIED RUNTIME ENGINE (app.js)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -245,14 +245,8 @@ async function sendMessage(forcedQuery = null) {
     }
     if (!query) return;
 
-    appendMsg(query, 'user', 'Commander', false);
+    appendMsg(query, 'user', 'Commander');
     if (input && !forcedQuery) input.value = '';
-
-    const qLower = query.toLowerCase();
-    if (qLower.includes('start server') || qLower.includes('launch server') || qLower.includes('start teh sever') || qLower.includes('start the server')) {
-        launchLocalServer();
-        return;
-    }
 
     const startTime = performance.now();
 
@@ -295,7 +289,7 @@ ${liveTelemetry}`;
                     { role: "user", content: query }
                 ],
                 temperature: 0.1,
-                max_tokens: 2000
+                max_tokens: 1000
             })
         });
 
@@ -312,7 +306,7 @@ ${liveTelemetry}`;
         document.body.classList.remove('is-thinking');
         updateHUDState("READY");
 
-        appendMsg(reply, 'assistant', `AA01 Core [${tripSeconds}s]`, true);
+        appendMsg(reply, 'assistant', `AA01 Core [${tripSeconds}s]`, isCryptoQuery);
         speakText(reply);
 
     } catch (err) {
@@ -323,96 +317,13 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// 4. DYNAMIC LIVE SCRAPER & SEARCH SCOUT ENGINE (Integrated)
-// =================================================================
-async function scrapeWebPage() {
-    const input = document.getElementById('user-input');
-    let query = input ? input.value.trim() : "";
-    if (!query) query = "kunda cafe";
-
-    const startTime = performance.now();
-    document.body.classList.add('is-thinking');
-    updateHUDState("SCRAPING");
-    appendMsg(`Search Scout Query: "${query}"`, 'user', 'Commander', false);
-    if (input) input.value = '';
-
-    const isUrl = query.startsWith('http://') || query.startsWith('https://');
-
-    if (isUrl) {
-        try {
-            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(query)}`);
-            if (!res.ok) throw new Error();
-            const data = await res.json();
-            const lines = (data.contents || "").replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim().split('\n');
-            const report = `[COMMUNICATION HARVEST: ${query}]\nTotal Lines: ${lines.length}\n-----------------------------------\n${lines.slice(0, 100).join('\n')}`;
-            finishScrape(report, startTime, "Target URL harvested successfully.");
-        } catch (err) {
-            fetchLiveSearchQuery(query, startTime);
-        }
-    } else {
-        fetchLiveSearchQuery(query, startTime);
-    }
-}
-
-async function fetchLiveSearchQuery(query, startTime) {
-    try {
-        const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`;
-        const wikiRes = await fetch(wikiUrl);
-        
-        if (wikiRes.ok) {
-            const wikiData = await wikiRes.json();
-            if (wikiData.extract && !wikiData.title.includes("Not Found")) {
-                const report = `[LIVE SEARCH HARVEST: "${query}"]\nTitle: ${wikiData.title}\n-----------------------------------\n${wikiData.extract}`;
-                finishScrape(report, startTime, `Live intelligence summary retrieved for ${query}.`);
-                return;
-            }
-        }
-
-        const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`;
-        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(ddgUrl)}`);
-        
-        if (res.ok) {
-            const wrapper = await res.json();
-            const ddgData = JSON.parse(wrapper.contents || "{}");
-            
-            let resultText = ddgData.AbstractText || "";
-            if (!resultText && ddgData.RelatedTopics && ddgData.RelatedTopics.length > 0) {
-                const match = ddgData.RelatedTopics.find(t => t.Text);
-                if (match) resultText = match.Text;
-            }
-
-            if (resultText) {
-                const report = `[LIVE SEARCH HARVEST: "${query}"]\n-----------------------------------\n${resultText}\n-----------------------------------`;
-                finishScrape(report, startTime, `Live search results retrieved for ${query}.`);
-                return;
-            }
-        }
-
-        throw new Error("No direct index match found.");
-
-    } catch (err) {
-        const dynamicReport = `[LIVE SEARCH HARVEST: "${query}"]\n-----------------------------------\n• Target Query: ${query}\n• Status: Public index query completed. Live semantic index search active.\n• Note: Type specific keywords or a target URL for direct harvesting.\n-----------------------------------`;
-        finishScrape(dynamicReport, startTime, `Search executed for ${query}.`);
-    }
-}
-
-function finishScrape(reportText, startTime, voiceMessage) {
-    const tripSeconds = ((performance.now() - startTime) / 1000).toFixed(2);
-    const badge = document.getElementById('latency-display');
-    if (badge) badge.innerText = `SCRAPE LATENCY: ${tripSeconds}s`;
-
-    document.body.classList.remove('is-thinking');
-    updateHUDState("READY");
-    appendMsg(reportText, 'assistant', `AA01 Scout Link [${tripSeconds}s]`, true);
-    speakText(voiceMessage);
-}
-
-// =================================================================
-// 5. TACTICAL QUICK LAUNCH & UTILITIES
+// 4. TACTICAL QUICK LAUNCH (SILENT SERVER LAUNCH) & WEB SCRAPER
 // =================================================================
 function launchLocalServer() {
     window.open('http://localhost:8000', '_blank');
     const responseText = "Agent Anna AA01 is now launched. Advanced military neural Server Engaged.";
+    
+    // Completely bypasses visual HUD state changes (no flash glitch, purely audio execution)
     appendMsg(responseText, 'assistant', 'AA01 Tactical Alert', true);
     speakText(responseText); 
 }
@@ -423,12 +334,73 @@ function triggerManualTelemetry() {
     sendMessage("Provide live crypto market telemetry and report rates.");
 }
 
+async function scrapeWebPage() {
+    const input = document.getElementById('user-input');
+    const targetUrl = input ? input.value.trim() : "";
+    
+    if (!targetUrl || (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://'))) {
+        alert("Enter a valid target URL in the input box first (e.g., https://example.com)");
+        if (input) input.focus();
+        return;
+    }
+
+    const startTime = performance.now();
+    document.body.classList.add('is-thinking');
+    updateHUDState("SCRAPING");
+    appendMsg(`Initiating secure proxy scout pass for URL: ${targetUrl}`, 'user', 'Commander');
+    if (input) input.value = '';
+
+    try {
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+        const res = await fetch(proxyUrl);
+        if (!res.ok) throw new Error(`Scraper HTTP Error ${res.status}`);
+        
+        const data = await res.json();
+        const rawHtml = data.contents || "";
+        
+        const cleanText = rawHtml.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
+        const lines = cleanText.split('\n');
+        
+        const first100Lines = lines.slice(0, 100).join('\n');
+        const truncatedReport = `[WEB SCRAPER: FIRST 100 LINES EXTRACTED]\nTarget: ${targetUrl}\nTotal Lines: ${lines.length}\n\n${first100Lines}`;
+
+        const endTime = performance.now();
+        const tripSeconds = ((endTime - startTime) / 1000).toFixed(2);
+        const latencyBadge = document.getElementById('latency-display');
+        if (latencyBadge) latencyBadge.innerText = `SCRAPE LATENCY: ${tripSeconds}s`;
+
+        document.body.classList.remove('is-thinking');
+        updateHUDState("READY");
+
+        appendMsg(truncatedReport, 'assistant', `AA01 Scraper [${tripSeconds}s]`, true);
+        speakText(`Web scrape complete. First 100 lines extracted from target domain.`);
+
+    } catch (err) {
+        document.body.classList.remove('is-thinking');
+        updateHUDState("ERROR");
+        appendMsg(`Web Scraper Execution Error: ${err.message}.`, 'assistant', 'System Alert', false);
+        speakText("Warning. Web scraper encountered a network restriction.");
+    }
+}
+
+function copyBatchScriptInstructions() {
+    const batCode = `@echo off\ntitle Agent Anna Portal Launcher\ncd /d %~dp0\nstart powershell -NoExit -Command "python -m http.server 8000"\nstart http://localhost:8000\nexit`;
+    navigator.clipboard.writeText(batCode).then(() => {
+        const responseText = "Automated startup batch script copied to system clipboard.";
+        appendMsg(responseText, 'assistant', 'AA01 System Utility', true);
+        speakText(responseText);
+    });
+}
+
 function triggerMilitaryProtocol() {
     const protocolMsg = "MILITARY PROTOCOL ENGAGED: Executing deep diagnostic sweep and telemetry verification.";
     appendMsg(protocolMsg, 'assistant', 'AA01 TACTICAL COMMAND', true);
     speakText(protocolMsg);
 }
 
+// =================================================================
+// 5. UTILITIES, CLIPBOARD & WAV CANVAS MATRIX
+// =================================================================
 function copyToClipboard(text, btnElement) {
     navigator.clipboard.writeText(text).then(() => {
         if (btnElement) {
@@ -493,51 +465,26 @@ function clearLogs() {
     }
 }
 
-function appendMsg(text, sender, label, includeActions = true) {
+function appendMsg(text, sender, label, includeCopy = false) {
     const container = document.getElementById('chat-container');
     if (!container) return;
 
     const div = document.createElement('div');
     div.className = `message ${sender}`;
     
-    let actionButtonsHTML = "";
-    if (sender === 'assistant' && includeActions) {
+    let copyBtnHTML = "";
+    if (includeCopy) {
         const encodedText = encodeURIComponent(text);
-        actionButtonsHTML = `
-            <div style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; border-top: 1px solid #1b263b; padding-top: 8px;">
-                <button onclick="executeGlobalAction(1, '${encodedText}')" style="background: rgba(0,255,204,0.1); border: 1px solid #00ffcc; color: #00ffcc; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">1. SUMMARIZE</button>
-                <button onclick="executeGlobalAction(2, '${encodedText}')" style="background: rgba(255,170,0,0.1); border: 1px solid #ffaa00; color: #ffaa00; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">2. SAVE AS .MD</button>
-                <button onclick="executeGlobalAction(3, '${encodedText}')" style="background: rgba(255,0,127,0.1); border: 1px solid #ff007f; color: #ff007f; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">3. INGEST TO CORE</button>
-                <button onclick="copyToClipboard(decodeURIComponent('${encodedText}'), this)" style="background: transparent; border: 1px solid #8493a8; color: #8493a8; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">COPY</button>
-            </div>`;
+        copyBtnHTML = `<button class="copy-telemetry-btn" onclick="copyToClipboard(decodeURIComponent('${encodedText}'), this)" style="float: right; background: transparent; border: 1px solid #00ffcc; color: #00ffcc; font-size: 10px; padding: 2px 6px; cursor: pointer; border-radius: 3px; font-family: monospace;">[COPY DATA]</button>`;
     }
 
     div.innerHTML = `
-        <div class="msg-header">${label}</div>
+        <div class="msg-header">${label} ${copyBtnHTML}</div>
         <div style="white-space:pre-wrap; margin-top: 6px;">${text}</div>
-        ${actionButtonsHTML}
     `;
 
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
-}
-
-function executeGlobalAction(actionId, encodedContent) {
-    const content = decodeURIComponent(encodedContent);
-    if (actionId === 1) {
-        sendMessage(`Summarize this response into concise tactical bullet points:\n${content}`);
-    } else if (actionId === 2) {
-        const blob = new Blob([content], { type: 'text/markdown' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `aa01-export-${Date.now()}.md`;
-        a.click();
-        appendMsg(`Markdown export downloaded successfully.`, 'assistant', 'AA01 System Utility', false);
-        speakText("Markdown file saved.");
-    } else if (actionId === 3) {
-        sendMessage(`Ingest this text into your core prompt context memory:\n${content}`);
-    }
 }
 
 function initWavCanvas() {
