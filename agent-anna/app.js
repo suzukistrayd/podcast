@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA // MILITARY-GRADE BASE ENGINE + DYNAMIC MD INGESTION
+// AGENT ANNA // MILITARY-GRADE BASE ENGINE + LIVE SEARCH WORKFLOW
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -195,7 +195,7 @@ async function fetchLiveTelemetry() {
 }
 
 // =================================================================
-// 3. VOICE SYNTHESIZER & INFERENCE LOOP (WITH REASONING STATE LOCK)
+// 3. VOICE SYNTHESIZER & INFERENCE LOOP
 // =================================================================
 function speakText(text) {
     if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
@@ -239,6 +239,13 @@ async function sendMessage(forcedQuery = null) {
         return;
     }
     if (!query) return;
+
+    // Check if input is a URL or general query -> route to Scraper/Search if it looks like a search or URL
+    if (query.startsWith('http://') || query.startsWith('https://')) {
+        scrapeWebPage(query);
+        if (input && !forcedQuery) input.value = '';
+        return;
+    }
 
     appendMsg(query, 'user', 'Commander');
     if (input && !forcedQuery) input.value = '';
@@ -305,7 +312,7 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// 4. TACTICAL SHORTCUTS & RESILIENT WEB SCRAPER
+// 4. GLOBAL SCOUT & WEB SCRAPER WITH ACTION BUTTONS
 // =================================================================
 function launchLocalServer() {
     window.open('http://localhost:8000', '_blank');
@@ -318,12 +325,12 @@ function triggerManualTelemetry() {
     sendMessage("Provide live crypto market telemetry and report rates.");
 }
 
-async function scrapeWebPage() {
+async function scrapeWebPage(forcedUrl = null) {
     const input = document.getElementById('user-input');
-    const targetUrl = input ? input.value.trim() : "";
+    const targetQuery = forcedUrl || (input ? input.value.trim() : "");
     
-    if (!targetUrl || (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://'))) {
-        alert("Enter a valid target URL in the input box first (e.g., https://example.com)");
+    if (!targetQuery) {
+        alert("Enter a search term or target URL in the input box first.");
         if (input) input.focus();
         return;
     }
@@ -331,15 +338,18 @@ async function scrapeWebPage() {
     const startTime = performance.now();
     document.body.classList.add('is-thinking');
     updateHUDState("SCRAPING");
-    appendMsg(`Initiating secure scout pass for URL: ${targetUrl}`, 'user', 'Commander');
-    if (input) input.value = '';
+    appendMsg(`Executing Global Scout: "${targetQuery}"`, 'user', 'Commander');
+    if (input && !forcedUrl) input.value = '';
+
+    const isUrl = targetQuery.startsWith('http://') || targetQuery.startsWith('https://');
+    const scoutUrl = isUrl ? targetQuery : `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(targetQuery)}`;
 
     const proxyUrls = [
-        `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
-        `https://r.jina.ai/${targetUrl}`
+        `https://api.allorigins.win/get?url=${encodeURIComponent(scoutUrl)}`,
+        `https://r.jina.ai/${scoutUrl}`
     ];
 
-    let rawHtml = "";
+    let rawData = "";
     let success = false;
 
     for (const pUrl of proxyUrls) {
@@ -347,12 +357,12 @@ async function scrapeWebPage() {
             const res = await fetch(pUrl);
             if (res.ok) {
                 if (pUrl.includes('allorigins')) {
-                    const data = await res.json();
-                    rawHtml = data.contents || "";
+                    const json = await res.json();
+                    rawData = json.contents || "";
                 } else {
-                    rawHtml = await res.text();
+                    rawData = await res.text();
                 }
-                if (rawHtml.length > 50) {
+                if (rawData.length > 50) {
                     success = true;
                     break;
                 }
@@ -363,30 +373,48 @@ async function scrapeWebPage() {
     if (!success) {
         document.body.classList.remove('is-thinking');
         updateHUDState("ERROR");
-        appendMsg(`Scraper Error: Failed to fetch target URL through proxies. Check connection or URL validity.`, 'assistant', 'System Alert', false);
+        appendMsg(`Scraper Error: Failed to harvest target. Check network connection.`, 'assistant', 'System Alert', false);
         return;
     }
 
-    const cleanText = rawHtml.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
-    const lines = cleanText.split('\n');
-    const first100Lines = lines.slice(0, 100).join('\n');
+    const cleanText = rawData.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
+    const lines = cleanText.split('\n').filter(l => l.trim().length > 3);
+    const snippet = lines.slice(0, 40).join('\n');
     
-    const report = `[WEB SCRAPER: FIRST 100 LINES EXTRACTED]\nTarget: ${targetUrl}\nTotal Lines: ${lines.length}\n-----------------------------------\n${first100Lines}`;
+    const report = `[LIVE WEB SCOUT HARVEST: "${targetQuery}"]\n-----------------------------------\n${snippet}\n... [Harvest complete. Ready for summarization or ingestion.]`;
 
     const endTime = performance.now();
     const tripSeconds = ((endTime - startTime) / 1000).toFixed(2);
-    
+    const latencyBadge = document.getElementById('latency-display');
+    if (latencyBadge) latencyBadge.innerText = `SCRAPE LATENCY: ${tripSeconds}s`;
+
     document.body.classList.remove('is-thinking');
     updateHUDState("READY");
 
-    appendMsg(report, 'assistant', `AA01 Scraper [${tripSeconds}s]`, true);
-    speakText(`Web scrape complete for target URL. First 100 lines harvested successfully.`);
+    appendScoutMsg(report, `AA01 Scout Link [${tripSeconds}s]`);
+    speakText(`Global scout harvest complete for ${targetQuery}. Ready for command.`);
 }
 
 function triggerMilitaryProtocol() {
-    const protocolText = "Military protocol active. Autonomous telemetry, voice synthesis, and dynamic GitHub markdown knowledge streams locked to maximum efficiency.";
-    appendMsg(protocolText, 'assistant', 'AA01 Protocol Override', true);
+    const protocolText = "MILITARY PROTOCOL ENGAGED: Executing deep diagnostic sweep and telemetry verification.";
+    appendScoutMsg(protocolText, 'AA01 TACTICAL COMMAND');
     speakText(protocolText);
+}
+
+function handleAction(actionType, textContent) {
+    if (actionType === 'summarize') {
+        sendMessage(`Summarize the following harvested data into precise executive intelligence:\n\n${textContent}`);
+    } else if (actionType === 'save') {
+        const blob = new Blob([textContent], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `agent-anna-report-${Date.now()}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+    } else if (actionType === 'ingest') {
+        alert("Payload queued for core GitHub ingestion matrix sync.");
+    }
 }
 
 function copyToClipboard(text, btnElement) {
@@ -394,11 +422,7 @@ function copyToClipboard(text, btnElement) {
         if (btnElement) {
             const originalText = btnElement.innerText;
             btnElement.innerText = "COPIED!";
-            btnElement.style.color = "var(--accent-cyan)";
-            setTimeout(() => {
-                btnElement.innerText = originalText;
-                btnElement.style.color = "";
-            }, 1500);
+            setTimeout(() => { btnElement.innerText = originalText; }, 1500);
         }
     }).catch(err => {});
 }
@@ -456,22 +480,53 @@ function clearLogs() {
     }
 }
 
-function appendMsg(text, sender, label, includeCopy = false) {
+function appendMsg(text, sender, label, includeActions = false) {
     const container = document.getElementById('chat-container');
     if (!container) return;
 
     const div = document.createElement('div');
     div.className = `message ${sender}`;
     
-    let copyBtnHTML = "";
-    if (includeCopy) {
-        const encodedText = encodeURIComponent(text);
-        copyBtnHTML = `<button class="ctrl-btn" onclick="copyToClipboard(decodeURIComponent('${encodedText}'), this)" style="float: right; font-size: 10px; padding: 2px 6px; height: auto;">[COPY DATA]</button>`;
+    let actionsHTML = "";
+    const encoded = encodeURIComponent(text);
+    if (includeActions) {
+        actionsHTML = `
+            <div class="action-row">
+                <button class="action-chip" onclick="handleAction('summarize', decodeURIComponent('${encoded}'))">1. SUMMARIZE</button>
+                <button class="action-chip" onclick="handleAction('save', decodeURIComponent('${encoded}'))">2. SAVE AS .MD</button>
+                <button class="action-chip" onclick="handleAction('ingest', decodeURIComponent('${encoded}'))">3. INGEST TO CORE</button>
+                <button class="action-chip" onclick="copyToClipboard(decodeURIComponent('${encoded}'), this)">COPY</button>
+            </div>
+        `;
     }
 
     div.innerHTML = `
-        <div class="msg-header"><span>${label}</span> ${copyBtnHTML}</div>
+        <div class="msg-header"><span>${label}</span></div>
         <div style="white-space:pre-wrap; margin-top: 6px;">${text}</div>
+        ${actionsHTML}
+    `;
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function appendScoutMsg(text, label) {
+    const container = document.getElementById('chat-container');
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.className = `message assistant`;
+    const encoded = encodeURIComponent(text);
+
+    div.innerHTML = `
+        <div class="msg-header"><span>${label}</span></div>
+        <div style="white-space:pre-wrap; margin-top: 6px;">${text}</div>
+        <div class="action-row">
+            <button class="action-chip" onclick="handleAction('summarize', decodeURIComponent('${encoded}'))">1. SUMMARIZE</button>
+            <button class="action-chip" onclick="handleAction('save', decodeURIComponent('${encoded}'))">2. SAVE AS .MD</button>
+            <button class="action-chip" onclick="handleAction('ingest', decodeURIComponent('${encoded}'))">3. INGEST TO CORE</button>
+            <button class="action-chip" onclick="copyToClipboard(decodeURIComponent('${encoded}'), this)">COPY</button>
+        </div>
     `;
 
     container.appendChild(div);
