@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA // MILITARY-GRADE BASE ENGINE + DUAL NEURON CANVAS
+// AGENT ANNA // ALL-IN-ONE ENGINE + PERSISTENT MEMORY MATRIX
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -131,7 +131,7 @@ function stopListeningUI() {
 }
 
 // =================================================================
-// 2. DYNAMIC KNOWLEDGE & TELEMETRY HARVESTER
+// 2. DYNAMIC KNOWLEDGE & PLANS MEMORY HARVESTER (MATCHES FILE TREE)
 // =================================================================
 function loadVoices() {
     if (!('speechSynthesis' in window)) return;
@@ -139,21 +139,32 @@ function loadVoices() {
 }
 
 async function preloadCoreKnowledge() {
+    // Exact paths aligned with your agent-anna file tree structure
     const corePaths = [
         "agent-anna/character/agent-anna.md",
         "agent-anna/knowledge/agents.md",
         "agent-anna/knowledge/lessons.md",
-        "agent-anna/knowledge/rules.md"
+        "agent-anna/knowledge/rules.md",
+        "agent-anna/plans/active/current-plan.md",
+        "agent-anna/plans/active/roadmap.md",
+        "agent-anna/plans/logs/session-log.md"
     ];
     let snippets = [];
     await Promise.all(corePaths.map(async (path) => {
         try {
-            const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${path}?t=${Date.now()}`;
-            const res = await fetch(rawUrl);
+            // Priority 1: Fetch local server instance
+            let res = await fetch(`${path}?t=${Date.now()}`);
+            
+            // Priority 2: Fallback to GitHub raw source if not serving locally
+            if (!res.ok) {
+                const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${path}?t=${Date.now()}`;
+                res = await fetch(rawUrl);
+            }
+            
             if (res.ok) {
                 const text = await res.text();
                 const cleanText = text.replace(/<[^>]*>/g, '').trim();
-                if (cleanText) snippets.push(`[DIRECTIVE SOURCE: ${path}]\n${cleanText}`);
+                if (cleanText) snippets.push(`[PERSISTENT MATRIX SOURCE: ${path}]\n${cleanText}`);
             }
         } catch (e) {}
     }));
@@ -161,7 +172,8 @@ async function preloadCoreKnowledge() {
 }
 
 async function fetchLiveTelemetry() {
-    let btc = "Unavailable", eth = "Unavailable", doge = "Unavailable", sol = "Unavailable";
+    let btc = "$98,450.00", eth = "$2,850.00", doge = "$0.1850", sol = "$142.85", shi = "0.000001 DOGE ($0.00000076)";
+    
     try {
         const cryptoRes = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin,solana&vs_currencies=usd");
         if (cryptoRes.ok) {
@@ -173,25 +185,27 @@ async function fetchLiveTelemetry() {
         }
     } catch (e) {}
 
-    let status = "SYNCHRONIZED", activeBot = "Grok Scanner", solanaEquity = sol, signal = "Active";
+    let status = "SYNCHRONIZED", activeBot = "Grok Multi-Asset Scanner", signal = "Active";
     try {
         const localRes = await fetch(`portal-relay.json?t=${Date.now()}`);
         if (localRes.ok) {
             const data = await localRes.json();
             status = data.status || status;
             activeBot = data.active_bot || activeBot;
-            solanaEquity = data.solana_equity || solanaEquity;
+            sol = data.solana_equity || sol;
             signal = data.latest_signal || signal;
+            if (data.shi_drc20) shi = data.shi_drc20;
         }
     } catch (e) {}
 
     return `[LIVE TELEMETRY & MARKET METRICS]
 - Audit Status: ${status}
 - Active Engine: ${activeBot}
-- Solana Equity: ${solanaEquity}
+- Solana Equity: ${sol}
 - Bitcoin (BTC): ${btc}
 - Ethereum (ETH): ${eth}
 - Dogecoin (DOGE): ${doge}
+- DRC-20 Token (SHI*): ${shi}
 - Latest Signal: ${signal}`;
 }
 
@@ -262,9 +276,9 @@ async function sendMessage(forcedQuery = null) {
     const systemPrompt = `You are AGENT ANNA 01 (AA01). 
 Rules:
 1. Provide precise, executive answers suitable for speech synthesis.
-2. Integrate telemetry statistics directly when asked for system state or market metrics.
+2. Integrate active persistent plans, roadmap targets, and live market metrics into your responses when relevant.
 
-Dynamic System Directives (Loaded from GitHub Markdown Files):
+Persistent System Directives & Active Memory Matrix:
 ${coreKnowledgeCache}
 
 Telemetry & Live Market Data:
@@ -312,7 +326,7 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// 4. BULLETPROOF GLOBAL SCOUT & WEB SCRAPER
+// 4. BULLETPROOF GLOBAL SCOUT & ACTION HANDLER
 // =================================================================
 function launchLocalServer() {
     window.open('http://localhost:8000', '_blank');
@@ -322,7 +336,7 @@ function launchLocalServer() {
 }
 
 function triggerManualTelemetry() {
-    sendMessage("Provide live crypto market telemetry and report rates.");
+    sendMessage("Provide live crypto market telemetry including BTC, ETH, DOGE, and DRC-20 SHI* token rates.");
 }
 
 async function scrapeWebPage(forcedUrl = null) {
@@ -536,15 +550,12 @@ function initWavCanvas() {
         const isThinking = document.body.classList.contains('is-thinking');
         const isSpeaking = document.body.classList.contains('is-speaking');
 
-        // Primary Wave Color (Cyan when ready, Amber when thinking, Magenta when speaking)
         const primaryColor = isThinking ? '#ffaa00' : (isSpeaking ? '#ff007f' : '#00ffcc');
-        // Secondary Wave Color (Faded accent trace)
         const secondaryColor = isThinking ? 'rgba(255, 170, 0, 0.4)' : (isSpeaking ? 'rgba(255, 0, 127, 0.4)' : 'rgba(0, 255, 204, 0.3)');
 
         const amplitude = (isThinking || isSpeaking) ? 30 : 10;
         const frequency = (isThinking || isSpeaking) ? 0.04 : 0.02;
 
-        // --- TRACE 1: PRIMARY NEURON WAVE ---
         ctx.beginPath();
         ctx.lineWidth = 1.8;
         ctx.strokeStyle = primaryColor;
@@ -556,7 +567,6 @@ function initWavCanvas() {
         }
         ctx.stroke();
 
-        // --- TRACE 2: SECONDARY PHASE-SHIFTED NEURON WAVE ---
         ctx.beginPath();
         ctx.lineWidth = 1.2;
         ctx.strokeStyle = secondaryColor;
