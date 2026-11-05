@@ -9,9 +9,8 @@
     <!-- Dynamic Asset Path Resolver for Local & GitHub Pages Parity -->
     <script>
         const isGitHub = window.location.hostname.includes('github.io');
-        const basePath = isGitHub ? '/podcast/' : './';
+        const basePath = isGitHub ? '/podcast/agent-anna/' : './';
         
-        // Inject Stylesheet dynamically
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = basePath + 'styles.css';
@@ -20,67 +19,88 @@
 </head>
 <body>
 
-    <div id="status-bar">
-        <span id="state-text">READY</span>
-        <div class="eq-container">
-            <div class="eq-bar"></div>
-            <div class="eq-bar"></div>
-            <div class="eq-bar"></div>
-            <div class="eq-bar"></div>
+    <!-- LEFT HUD PANE (55% Width) -->
+    <div class="agent-hud-pane">
+        <div class="agent-header-meta">
+            <span class="agent-id-badge" id="agent-id-display">ID: AGENT-ANNA-01</span>
+            <div class="status-bar-indicator" id="status-bar">
+                <div class="status-dot"></div>
+                <span id="state-text">READY</span>
+            </div>
+        </div>
+
+        <div class="agent-visual-container">
+            <canvas id="wav-canvas"></canvas>
+
+            <div class="agent-portrait-frame">
+                <img id="agent-avatar-img" 
+                     src="./character/agent-anna.png" 
+                     onerror="this.onerror=null; this.src='https://images.squarespace-cdn.com/content/v1/55db4cd3e4b0300a610091bb/e3cf3515-cbfc-44d5-9418-045b7ff396ca/How-to-look-a-decade-younger-without-surgery-by-siti-med-spa-san-diego.jpg';" 
+                     alt="Agent Anna Portrait">
+            </div>
+            
+            <div class="agent-nameplate">
+                <h2 id="agent-title">AA01 // CORE</h2>
+                <p>Autonomous Telemetry & Voice Unit</p>
+            </div>
+
+            <div class="eq-container">
+                <div class="eq-bar"></div>
+                <div class="eq-bar"></div>
+                <div class="eq-bar"></div>
+                <div class="eq-bar"></div>
+                <div class="eq-bar"></div>
+            </div>
         </div>
     </div>
 
-    <div class="container">
-        <header>
-            <h1>AA01 // CORE</h1>
-            <p>Autonomous Telemetry & Voice Unit</p>
-        </header>
-
-        <div class="toolbar">
-            <button id="voice-btn" class="ctrl-btn active" onclick="toggleVoice()">🔊 ON</button>
-            <button class="ctrl-btn" onclick="toggleSettings()">⚙️ KEYS</button>
-            <button class="ctrl-btn" onclick="clearLogs()">🧹 CLEAR</button>
-            <span id="latency-display" style="font-family: monospace; font-size: 11px; color: #8493a8; margin-left: auto;">TRIP LATENCY: 0.00s</span>
+    <!-- RIGHT CHAT CONSOLE PANE (45% Width) -->
+    <div class="chat-console-pane">
+        <div class="chat-header">
+            <span>CONSOLE [JUV NEURAL]</span>
+            <span id="latency-display" class="latency-badge">TRIP LATENCY: 0.00s</span>
+            <div style="display: flex; gap: 6px;">
+                <button class="ctrl-btn" onclick="clearLogs()" title="Clear Logs">🧹</button>
+                <button class="ctrl-btn active" id="voice-btn" onclick="toggleVoice()">🔊 ON</button>
+                <button class="ctrl-btn" onclick="toggleSettings()">⚙️ KEYS</button>
+            </div>
         </div>
 
-        <div id="settings-panel" style="display:none; margin-bottom: 12px; padding: 10px; background: #0b132b; border: 1px solid #1b263b; border-radius: 4px;">
-            <label style="font-family: monospace; font-size: 11px; color: #00ffcc; display: block; margin-bottom: 4px;">DAHL API KEY:</label>
-            <input type="password" id="api-key" placeholder="sk-..." style="width: 100%; padding: 6px; background: #030712; border: 1px solid #1b263b; color: #fff; font-family: monospace; border-radius: 3px;" oninput="saveKey()">
+        <!-- QUICK LAUNCH & TACTICAL TASK BAR -->
+        <div class="quick-launch-bar">
+            <span class="quick-launch-label">TACTICAL:</span>
+            <button class="ctrl-btn" onclick="launchLocalServer()" title="Launch Python HTTP Server">🚀 START SERVER</button>
+            <button class="ctrl-btn" onclick="triggerManualTelemetry()" title="Fetch Live Market Tickers">📊 CRYPTO MARKET</button>
+            <button class="ctrl-btn" onclick="scrapeWebPage()" title="Scrape First 100 Lines from URL">🌐 SCRAPE WEB</button>
+            <button class="ctrl-btn military-btn" onclick="triggerMilitaryProtocol()" title="Advanced Military Trigger">⚡ PROTOCOL</button>
         </div>
 
-        <div class="action-bar">
-            <span style="font-family: monospace; font-size: 11px; color: #8493a8; align-self: center;">TACTICAL:</span>
-            <button class="action-btn" onclick="launchLocalServer()">🚀 START SERVER</button>
-            <button class="action-btn" onclick="triggerManualTelemetry()">📊 CRYPTO MARKET</button>
-            <button class="action-btn" onclick="scrapeWebPage()">🌐 SCRAPE WEB</button>
-            <button class="action-btn" onclick="triggerMilitaryProtocol()">⚡ PROTOCOL</button>
+        <div id="settings-panel">
+            <input type="password" id="api-key" placeholder="Enter Dahl API Key (sk-...)" style="width: 100%; padding: 8px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); font-family: monospace; font-size: 12px; border-radius: 4px;" oninput="saveKey()">
         </div>
 
-        <div class="terminal-box">
-            <div id="chat-container">
-                <div class="message assistant">
-                    <div class="msg-header">AA01 Core</div>
-                    <div class="msg-body">[AA01 NEURAL MATRIX ACTIVE — STREAMING...]</div>
-                </div>
-            </div>
+        <div class="thinking-banner" id="thinking-banner">
+            [AA01 NEURAL MATRIX ACTIVE — STREAMING...]
+        </div>
 
-            <!-- Central Audio Visualizer Canvas -->
-            <div style="width: 100%; height: 40px; background: #030712; border-top: 1px solid #1b263b; position: relative; overflow: hidden;">
-                <canvas id="wav-canvas" style="width: 100%; height: 100%; display: block;"></canvas>
+        <div id="chat-container">
+            <div class="message assistant">
+                <div class="msg-header">AA01 Core</div>
+                <div class="msg-body">Military-grade telemetry core online. Zero-bloat markdown sync active. Ready for command.</div>
             </div>
+        </div>
 
-            <div class="input-panel">
-                <button id="mic-btn" class="mic-btn" onclick="toggleMic()" title="Voice Input">🎙️</button>
-                <input type="text" id="user-input" placeholder="Enter target URL (e.g., https...) or prompt..." onkeydown="handleKey(event)">
-                <button onclick="sendMessage()">SEND</button>
-            </div>
+        <div class="input-control-bar">
+            <button class="ctrl-btn" id="mic-btn" onclick="toggleMic()" title="Toggle Microphone">🎤</button>
+            <input type="text" id="user-input" placeholder="Enter command, target URL, or query telemetry..." onkeydown="handleKey(event)">
+            <button class="ctrl-btn" onclick="sendMessage()">SEND</button>
         </div>
     </div>
 
     <!-- Dynamic Script Loader for Local & GitHub Pages Parity -->
     <script>
         const isGH = window.location.hostname.includes('github.io');
-        const rootPath = isGH ? '/podcast/' : './';
+        const rootPath = isGH ? '/podcast/agent-anna/' : './';
         
         const script = document.createElement('script');
         script.src = rootPath + 'app.js';
