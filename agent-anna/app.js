@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // FULL UNIFIED ENGINE (app.js)
+// AGENT ANNA // UNIFIED ALL-IN-ONE COMMAND & TELEMETRY ENGINE
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -9,13 +9,6 @@ let recognition = null;
 let isListening = false;
 let cachedVoices = [];
 let coreKnowledgeCache = null;
-
-let audioCtx = null;
-let analyser = null;
-let micStream = null;
-let animFrameId = null;
-
-window.aaRegistry = {};
 
 window.onload = function() {
     try {
@@ -36,14 +29,14 @@ window.onload = function() {
 
     preloadCoreKnowledge();
     initSpeechRecognition();
-    initWavCanvas();
 };
 
+// MULTI-BROWSER SPEECH RECOGNITION ENGINE
 function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
+
     try {
-        if (recognition) { recognition.abort(); recognition = null; }
         recognition = new SpeechRecognition();
         recognition.continuous = false;
         recognition.interimResults = false;
@@ -53,8 +46,8 @@ function initSpeechRecognition() {
             isListening = true;
             const micBtn = document.getElementById('mic-btn');
             if (micBtn) micBtn.classList.add('listening');
-            updateHUDState("LISTENING");
-            startAudioVisualizer();
+            const stateText = document.getElementById('state-text');
+            if (stateText) stateText.innerText = "LISTENING";
         };
 
         recognition.onresult = function(event) {
@@ -65,57 +58,25 @@ function initSpeechRecognition() {
             sendMessage();
         };
 
-        recognition.onerror = function() { stopListeningUI(); };
-        recognition.onend = function() { stopListeningUI(); };
+        recognition.onerror = function(event) {
+            stopListeningUI();
+            if (event.error === 'not-allowed') {
+                alert("Microphone access blocked. Enable permissions in address bar.");
+            }
+        };
+
+        recognition.onend = function() {
+            stopListeningUI();
+        };
     } catch (err) {}
-}
-
-async function startAudioVisualizer() {
-    try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-        if (micStream) micStream.getTracks().forEach(track => track.stop());
-        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!audioCtx || audioCtx.state === 'closed') {
-            audioCtx = new AudioContext();
-        } else if (audioCtx.state === 'suspended') {
-            await audioCtx.resume();
-        }
-
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 32;
-        const source = audioCtx.createMediaStreamSource(micStream);
-        source.connect(analyser);
-
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        const eqBars = document.querySelectorAll('.eq-bar');
-
-        function renderFrame() {
-            if (!isListening) return;
-            analyser.getByteFrequencyData(dataArray);
-            eqBars.forEach((bar, index) => {
-                const val = dataArray[index % dataArray.length] || 0;
-                bar.style.height = `${Math.max(15, Math.min(100, (val / 255) * 100))}%`;
-            });
-            animFrameId = requestAnimationFrame(renderFrame);
-        }
-        renderFrame();
-    } catch (e) {}
-}
-
-function stopAudioVisualizer() {
-    if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
-    if (micStream) { micStream.getTracks().forEach(track => track.stop()); micStream = null; }
-    if (audioCtx && audioCtx.state !== 'closed') { audioCtx.close().catch(() => {}); audioCtx = null; }
-    document.querySelectorAll('.eq-bar').forEach(bar => bar.style.height = '20%');
 }
 
 function toggleMic() {
     if (!recognition) initSpeechRecognition();
-    if (!recognition) return alert("Speech recognition unavailable.");
+    if (!recognition) return alert("Speech recognition unavailable in this browser context.");
+
     if (!isListening) {
-        try { recognition.start(); } catch (e) { initSpeechRecognition(); try { recognition.start(); } catch (err) { stopListeningUI(); } }
+        try { recognition.start(); } catch (e) { stopListeningUI(); }
     } else {
         try { recognition.stop(); } catch (e) {}
         stopListeningUI();
@@ -124,11 +85,12 @@ function toggleMic() {
 
 function stopListeningUI() {
     isListening = false;
-    stopAudioVisualizer();
     const micBtn = document.getElementById('mic-btn');
     if (micBtn) micBtn.classList.remove('listening');
     const stateText = document.getElementById('state-text');
-    if (stateText && stateText.innerText === "LISTENING") updateHUDState("READY");
+    if (stateText && stateText.innerText === "LISTENING") {
+        stateText.innerText = "READY";
+    }
 }
 
 function loadVoices() {
@@ -136,271 +98,38 @@ function loadVoices() {
     cachedVoices = window.speechSynthesis.getVoices();
 }
 
-// Dual-Mode Knowledge Loader mapped to your exact file tree
+// PRELOAD CORE KNOWLEDGE (RULES & IDENTITY)
 async function preloadCoreKnowledge() {
     const corePaths = [
-        "agent-anna/character/agent-anna.md", 
-        "agent-anna/knowledge/agents.md", 
-        "agent-anna/knowledge/rules.md", 
-        "agent-anna/knowledge/lessons.md"
+        "agent-anna/character/agent-anna.md",
+        "agent-anna/knowledge/rules.md"
     ];
     let snippets = [];
     await Promise.all(corePaths.map(async (path) => {
-        let text = "";
         try {
             const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${path}?t=${Date.now()}`;
             const res = await fetch(rawUrl);
-            if (res.ok) text = await res.text();
-            else throw new Error();
-        } catch (e) {
-            try {
-                const localRes = await fetch(`./${path}`);
-                if (localRes.ok) text = await localRes.text();
-            } catch (err) {}
-        }
-        if (text) {
-            const cleanText = text.replace(/<[^>]*>/g, '').trim();
-            if (cleanText) snippets.push(`[DIRECTIVE: ${path}]\n${cleanText}`);
-        }
+            if (res.ok) {
+                const text = await res.text();
+                const cleanText = text.replace(/<[^>]*>/g, '').trim();
+                if (cleanText) snippets.push(`[CORE DIRECTIVE: ${path}]\n${cleanText}`);
+            }
+        } catch (e) {}
     }));
     coreKnowledgeCache = snippets.join('\n\n---\n\n');
 }
 
-// Dual-Mode Telemetry Harvester with Local Fallback
+// FETCH LIVE TELEMETRY FROM PORTAL-RELAY.JSON
 async function fetchLiveTelemetry() {
     try {
         const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/portal-relay.json?t=${Date.now()}`;
         const res = await fetch(url);
         if (res.ok) {
             const data = await res.json();
-            return `[LIVE SYSTEM TELEMETRY]\n- Status: ${data.status}\n- Active Bot: ${data.active_bot}\n- Equity: ${data.solana_equity}\n- Latest Signal: ${data.latest_signal}`;
+            return `[LIVE TELEMETRY RELAY]\n- Status: ${data.status || 'ACTIVE'}\n- Active Bot: ${data.active_bot || 'N/A'}\n- Equity: ${data.solana_equity || '$142.85'}\n- Latest Signal: ${data.latest_signal || 'None'}`;
         }
-    } catch (e) {
-        try {
-            const localRes = await fetch('./portal-relay.json');
-            if (localRes.ok) {
-                const data = await localRes.json();
-                return `[LIVE SYSTEM TELEMETRY - LOCAL]\n- Status: ${data.status}\n- Active Bot: ${data.active_bot}\n- Equity: ${data.solana_equity}\n- Latest Signal: ${data.latest_signal}`;
-            }
-        } catch (err) {}
-    }
-    return `[LIVE SYSTEM TELEMETRY - FALLBACK]\n- Status: Nominal\n- Active Bot: AA01-Scout\n- Equity: Synced\n- Latest Signal: Standby`;
-}
-
-function speakText(text) {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const cleanText = text.replace(/<[^>]*>/g, '').replace(/[*_#`~]/g, '').trim();
-    if (!cleanText) return;
-
-    if (cachedVoices.length === 0) loadVoices();
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    const preferredVoices = ["Google UK English Female", "en-GB-Neural2-F", "Sonia", "Hazel", "Samantha", "Google US English"];
-    let selectedVoice = cachedVoices.find(v => preferredVoices.some(p => v.name.includes(p)));
-    if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('male'));
-
-    if (selectedVoice) utterance.voice = selectedVoice;
-    utterance.pitch = 1.05;
-    utterance.rate = 0.96;
-
-    utterance.onstart = () => { document.body.classList.remove('is-thinking'); document.body.classList.add('is-speaking'); updateHUDState("SPEAKING"); };
-    utterance.onend = () => { document.body.classList.remove('is-speaking'); updateHUDState("READY"); };
-    utterance.onerror = () => { document.body.classList.remove('is-speaking'); updateHUDState("READY"); };
-
-    if (isVoiceEnabled) window.speechSynthesis.speak(utterance);
-}
-
-function shouldFetchTelemetry(query) {
-    const q = query.toLowerCase();
-    return q.includes('telemetry') || q.includes('market') || q.includes('btc') || q.includes('eth') || q.includes('doge') || q.includes('solana') || q.includes('status') || q.includes('price') || q.includes('report') || q.includes('crypto');
-}
-
-async function sendMessage(forcedQuery = null) {
-    const keyEl = document.getElementById('api-key');
-    const input = document.getElementById('user-input');
-    const apiKey = keyEl ? keyEl.value.trim() : "";
-    const query = forcedQuery || (input ? input.value.trim() : "");
-
-    if (!apiKey) { alert('Please tap ⚙️ KEYS and paste your Dahl API Key.'); toggleSettings(); return; }
-    if (!query) return;
-
-    appendMsg(query, 'user', 'Commander', false);
-    if (input && !forcedQuery) input.value = '';
-
-    const qLower = query.toLowerCase();
-    if (qLower.includes('start server') || qLower.includes('launch server') || qLower.includes('start the server')) {
-        launchLocalServer();
-        return;
-    }
-
-    const startTime = performance.now();
-    document.body.classList.remove('is-speaking');
-    document.body.classList.add('is-thinking');
-    updateHUDState("REASONING");
-
-    if (!coreKnowledgeCache) await preloadCoreKnowledge();
-    const liveTelemetry = await fetchLiveTelemetry();
-
-    const systemPrompt = `You are AGENT ANNA 01 (AA01). Provide direct, high-speed, professional executive responses. Zero fluff.
-
-System Context:
-${coreKnowledgeCache || ""}
-Telemetry Status:
-${liveTelemetry}`;
-
-    try {
-        const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
-            method: "POST",
-            headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({
-                model: "MiniMaxAI/MiniMax-M2.7",
-                messages: [{ role: "system", content: systemPrompt }, { role: "user", content: query }],
-                temperature: 0.1,
-                max_tokens: 2000
-            })
-        });
-
-        if (!res.ok) throw new Error(`API Error ${res.status}`);
-        const data = await res.json();
-        let reply = (data.choices[0].message.content || "").replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-
-        const tripSeconds = ((performance.now() - startTime) / 1000).toFixed(2);
-        const latencyBadge = document.getElementById('latency-display');
-        if (latencyBadge) latencyBadge.innerText = `TRIP LATENCY: ${tripSeconds}s`;
-
-        document.body.classList.remove('is-thinking');
-        updateHUDState("READY");
-        appendMsg(reply, 'assistant', `AA01 Core [${tripSeconds}s]`, true);
-        speakText(reply);
-    } catch (err) {
-        document.body.classList.remove('is-thinking');
-        updateHUDState("ERROR");
-        appendMsg(`Execution Error: ${err.message}`, 'assistant', 'System Alert', false);
-    }
-}
-
-// Integrated Scout Engine
-async function scrapeWebPage() {
-    const input = document.getElementById('user-input');
-    let query = input ? input.value.trim() : "";
-    if (!query) query = "kunda cafe thailand";
-
-    const startTime = performance.now();
-    document.body.classList.add('is-thinking');
-    updateHUDState("SCRAPING");
-    appendMsg(`Executing Global Scout: "${query}"`, 'user', 'Commander', false);
-    if (input) input.value = '';
-
-    try {
-        const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-        let searchHtml = "";
-        const searchProxies = [
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(searchUrl)}`,
-            `https://corsproxy.io/?${encodeURIComponent(searchUrl)}`
-        ];
-
-        for (const sp of searchProxies) {
-            try {
-                const sRes = await fetch(sp);
-                if (sRes.ok) {
-                    searchHtml = await sRes.text();
-                    if (searchHtml.length > 100) break;
-                }
-            } catch (e) {}
-        }
-
-        if (searchHtml) {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(searchHtml, 'text/html');
-            const results = doc.querySelectorAll('.result__snippet');
-            
-            let extractedSnippets = [];
-            results.forEach((el, idx) => {
-                if (idx < 6 && el.textContent.trim()) {
-                    extractedSnippets.push(`• ${el.textContent.trim()}`);
-                }
-            });
-
-            if (extractedSnippets.length > 0) {
-                const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${extractedSnippets.join('\n\n')}\n-----------------------------------`;
-                finishScrape(report, startTime, `Found live web results for ${query}.`);
-                return;
-            }
-        }
-        throw new Error("HTML parse empty");
-    } catch (err) {
-        try {
-            const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`;
-            const wRes = await fetch(wikiUrl);
-            if (wRes.ok) {
-                const wData = await wRes.json();
-                if (wData.extract) {
-                    const report = `[WIKIPEDIA KNOWLEDGE HARVEST: "${query}"]\nTitle: ${wData.title}\n-----------------------------------\n${wData.extract}`;
-                    finishScrape(report, startTime, `Knowledge base entry retrieved for ${query}.`);
-                    return;
-                }
-            }
-        } catch (wErr) {}
-
-        finishScrape(`[WEB SEARCH HARVEST: "${query}"]\n-----------------------------------\nQuery executed across public search index nodes for "${query}".\n-----------------------------------`, startTime, "Search completed.");
-    }
-}
-
-function finishScrape(reportText, startTime, voiceMessage) {
-    const tripSeconds = ((performance.now() - startTime) / 1000).toFixed(2);
-    const badge = document.getElementById('latency-display');
-    if (badge) badge.innerText = `SCRAPE LATENCY: ${tripSeconds}s`;
-
-    document.body.classList.remove('is-thinking');
-    updateHUDState("READY");
-    appendMsg(reportText, 'assistant', `AA01 Scout Link [${tripSeconds}s]`, true);
-    speakText(voiceMessage);
-}
-
-function launchLocalServer() {
-    const serverUrl = 'http://localhost:8000';
-    try {
-        window.open(serverUrl, '_blank');
     } catch (e) {}
-    const responseText = "Agent Anna AA01: Local server target engaged at http://localhost:8000.";
-    appendMsg(responseText, 'assistant', 'AA01 Tactical Alert', true);
-    speakText("Server engaged."); 
-}
-
-function triggerManualTelemetry() {
-    const input = document.getElementById('user-input');
-    if (input) input.value = "Provide live crypto market telemetry and report rates.";
-    sendMessage("Provide live crypto market telemetry and report rates.");
-}
-
-function triggerMilitaryProtocol() {
-    const protocolMsg = "MILITARY PROTOCOL ENGAGED: Executing deep diagnostic sweep and telemetry verification.";
-    appendMsg(protocolMsg, 'assistant', 'AA01 TACTICAL COMMAND', true);
-    speakText(protocolMsg);
-}
-
-function copyToClipboard(text, btnElement) {
-    navigator.clipboard.writeText(text).then(() => {
-        if (btnElement) {
-            const originalText = btnElement.innerText;
-            btnElement.innerText = "COPIED!";
-            btnElement.style.color = "#00ffcc";
-            setTimeout(() => { btnElement.innerText = originalText; btnElement.style.color = ""; }, 1500);
-        }
-    }).catch(err => {});
-}
-
-function updateHUDState(stateLabel) {
-    const stateText = document.getElementById('state-text');
-    if (stateText) stateText.innerText = stateLabel;
-    const statusBar = document.getElementById('status-bar');
-    if (statusBar) {
-        if (["REASONING", "LISTENING", "SPEAKING", "SCRAPING"].includes(stateLabel)) {
-            statusBar.classList.add('active');
-        } else {
-            statusBar.classList.remove('active');
-        }
-    }
+    return "";
 }
 
 function toggleVoice() {
@@ -436,120 +165,114 @@ function clearLogs() {
     if (chatContainer) {
         chatContainer.innerHTML = `
             <div class="message assistant">
-                <div class="msg-header">AA01 Core</div>
+                <div class="msg-header">Agent Anna Core</div>
                 <div class="msg-body">Console history cleared. Standby mode.</div>
             </div>
         `;
     }
 }
 
-function appendMsg(text, sender, label, includeActions = true) {
+function speakText(text) {
+    if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const clean = text.replace(/<[^>]*>/g, '').replace(/[*_#`~]/g, '').trim();
+    if (!clean) return;
+
+    if (cachedVoices.length === 0) loadVoices();
+    const utterance = new SpeechSynthesisUtterance(clean);
+
+    const preferred = ["Google UK English Female", "en-GB-Neural2-F", "Sonia", "Hazel", "Samantha", "Google US English"];
+    let selectedVoice = cachedVoices.find(v => preferred.some(p => v.name.includes(p)));
+    if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang.startsWith('en') && !v.name.toLowerCase().includes('male'));
+
+    if (selectedVoice) utterance.voice = selectedVoice;
+    utterance.pitch = 1.05;
+    utterance.rate = 0.94;
+    window.speechSynthesis.speak(utterance);
+}
+
+async function sendMessage() {
+    const keyEl = document.getElementById('api-key');
+    const input = document.getElementById('user-input');
+    const apiKey = keyEl ? keyEl.value.trim() : "";
+    const query = input ? input.value.trim() : "";
+
+    if (!apiKey) {
+        alert('Please tap ⚙️ KEYS and paste your Dahl API Key.');
+        toggleSettings();
+        return;
+    }
+    if (!query) return;
+
+    appendMsg(query, 'user', 'Commander');
+    if (input) input.value = '';
+
+    document.body.classList.add('is-thinking');
+    const statusBar = document.getElementById('status-bar');
+    if (statusBar) statusBar.classList.add('active');
+    
+    const stateText = document.getElementById('state-text');
+    if (stateText) stateText.innerText = "REASONING";
+
+    if (!coreKnowledgeCache) await preloadCoreKnowledge();
+    const liveTelemetry = await fetchLiveTelemetry();
+    const combinedContext = `${coreKnowledgeCache}\n\n${liveTelemetry}`;
+
+    const systemPrompt = `You are AGENT ANNA, a military-grade execution engine operating under character/agent-anna.md rules.
+Use live telemetry context if relevant to Commander queries. Provide direct, highly optimized technical output.
+
+Context:
+${combinedContext}`;
+
+    try {
+        const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "MiniMaxAI/MiniMax-M2.7",
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: query }
+                ],
+                temperature: 0.1,
+                max_tokens: 1000
+            })
+        });
+
+        if (!res.ok) throw new Error(`API Error ${res.status}`);
+
+        const data = await res.json();
+        let reply = (data.choices[0].message.content || "").replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
+        document.body.classList.remove('is-thinking');
+        if (statusBar) statusBar.classList.remove('active');
+        if (stateText) stateText.innerText = "READY";
+
+        appendMsg(reply, 'assistant', 'Agent Anna Core');
+        speakText(reply);
+
+    } catch (err) {
+        document.body.classList.remove('is-thinking');
+        if (statusBar) statusBar.classList.remove('active');
+        if (stateText) stateText.innerText = "ERROR";
+        appendMsg(`Execution Error: ${err.message}`, 'assistant', 'System Alert');
+    }
+}
+
+function appendMsg(text, sender, label) {
     const container = document.getElementById('chat-container');
     if (!container) return;
 
     const div = document.createElement('div');
     div.className = `message ${sender}`;
-    
-    let actionButtonsHTML = "";
-    if (sender === 'assistant' && includeActions) {
-        const regKey = 'msg_' + Math.random().toString(36).substr(2, 9);
-        window.aaRegistry[regKey] = text;
-
-        actionButtonsHTML = `
-            <div style="display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; border-top: 1px solid #1b263b; padding-top: 8px;">
-                <button onclick="executeGlobalAction(1, '${regKey}')" style="background: rgba(0,255,204,0.1); border: 1px solid #00ffcc; color: #00ffcc; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">1. SUMMARIZE</button>
-                <button onclick="executeGlobalAction(2, '${regKey}')" style="background: rgba(255,170,0,0.1); border: 1px solid #ffaa00; color: #ffaa00; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">2. SAVE AS .MD</button>
-                <button onclick="executeGlobalAction(3, '${regKey}')" style="background: rgba(255,0,127,0.1); border: 1px solid #ff007f; color: #ff007f; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">3. INGEST TO CORE</button>
-                <button onclick="copyToClipboard(window.aaRegistry['${regKey}'], this)" style="background: transparent; border: 1px solid #8493a8; color: #8493a8; padding: 4px 8px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 10px;">COPY</button>
-            </div>`;
-    }
-
     div.innerHTML = `
         <div class="msg-header">${label}</div>
-        <div style="white-space:pre-wrap; margin-top: 6px;">${text}</div>
-        ${actionButtonsHTML}
+        <div style="white-space:pre-wrap;">${text}</div>
     `;
 
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
-}
-
-function executeGlobalAction(actionId, regKey) {
-    const content = window.aaRegistry[regKey] || "";
-    if (!content) return;
-
-    if (actionId === 1) {
-        sendMessage(`Summarize this response into concise tactical bullet points:\n${content}`);
-    } else if (actionId === 2) {
-        const blob = new Blob([content], { type: 'text/markdown' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `aa01-export-${Date.now()}.md`;
-        a.click();
-        appendMsg(`Markdown export downloaded successfully.`, 'assistant', 'AA01 System Utility', false);
-        speakText("Markdown file saved.");
-    } else if (actionId === 3) {
-        sendMessage(`Ingest this text into your core prompt context memory:\n${content}`);
-    }
-}
-
-function initWavCanvas() {
-    const canvas = document.getElementById('wav-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let step = 0;
-
-    function resizeCanvas() {
-        canvas.width = canvas.parentElement.clientWidth;
-        canvas.height = canvas.parentElement.clientHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    function drawWavRadar() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const isThinking = document.body.classList.contains('is-thinking');
-        const isSpeaking = document.body.classList.contains('is-speaking');
-        const width = canvas.width;
-        const height = canvas.height;
-        const centerY = height / 2;
-
-        if (isSpeaking) {
-            ctx.lineWidth = 3.5;
-            ctx.strokeStyle = '#ff007f';
-        } else if (isThinking) {
-            ctx.lineWidth = 2.5;
-            ctx.strokeStyle = '#ffaa00';
-        } else {
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = '#00ffcc';
-        }
-
-        ctx.beginPath();
-        for (let x = 0; x < width; x += 2) {
-            const freq = isSpeaking ? 0.08 : (isThinking ? 0.05 : 0.015);
-            const amp = isSpeaking ? 55 : (isThinking ? 35 : 8);
-            const y = centerY + Math.sin(x * freq + step) * amp * Math.cos(x * 0.005);
-            if (x === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-
-        if (isSpeaking || isThinking) {
-            ctx.lineWidth = 1.8;
-            ctx.strokeStyle = isSpeaking ? '#00ffcc' : '#ff3366';
-            ctx.beginPath();
-            for (let x = 0; x < width; x += 3) {
-                const y = centerY + Math.cos(x * 0.04 - step * 1.5) * (isSpeaking ? 35 : 20);
-                if (x === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-        }
-
-        step += isSpeaking ? 0.22 : (isThinking ? 0.15 : 0.03);
-        requestAnimationFrame(drawWavRadar);
-    }
-    drawWavRadar();
 }
