@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // RESTORED FAST SEARCH ENGINE (app.js)
+// AGENT ANNA 01 (AA01) // FULL MULTI-TIER SCOUT ENGINE (app.js)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -258,7 +258,9 @@ System Context:\n${coreKnowledgeCache}\nTelemetry Status:\n${liveTelemetry}`;
     }
 }
 
-// RESTORED FAST SCOUT ENGINE (Direct DuckDuckGo & Wikipedia HTML parsing)
+// =================================================================
+// 4. RESTORED MULTI-TIER SCOUT ENGINE (Active Search & Fallbacks)
+// =================================================================
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
     const query = input ? input.value.trim() : "";
@@ -274,32 +276,82 @@ async function scrapeWebPage() {
     if (input) input.value = '';
 
     let extractedSnippets = [];
+
+    // Tier 1: DuckDuckGo HTML Proxy Scrape
     try {
         const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-        const sRes = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(searchUrl)}`);
-        if (sRes.ok) {
-            const searchHtml = await sRes.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(searchHtml, 'text/html');
-            doc.querySelectorAll('.result__snippet').forEach((el, idx) => {
-                if (idx < 6 && el.textContent.trim()) extractedSnippets.push(`• ${el.textContent.trim()}`);
-            });
+        const proxies = [
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(searchUrl)}`,
+            `https://corsproxy.io/?${encodeURIComponent(searchUrl)}`
+        ];
+        for (const pUrl of proxies) {
+            const sRes = await fetch(pUrl);
+            if (sRes.ok) {
+                const searchHtml = await sRes.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(searchHtml, 'text/html');
+                doc.querySelectorAll('.result__snippet').forEach((el, idx) => {
+                    if (idx < 6 && el.textContent.trim()) extractedSnippets.push(`• ${el.textContent.trim()}`);
+                });
+                if (extractedSnippets.length > 0) break;
+            }
         }
     } catch (e) {}
 
+    // Tier 2: Wikipedia Summary API
     if (extractedSnippets.length === 0) {
         try {
             const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`;
             const wRes = await fetch(wikiUrl);
             if (wRes.ok) {
                 const wData = await wRes.json();
-                if (wData.extract) extractedSnippets.push(`• [Wikipedia]: ${wData.extract}`);
+                if (wData.extract) extractedSnippets.push(`• [Wikipedia Index Match: ${wData.title}] ${wData.extract}`);
             }
         } catch (e) {}
     }
 
+    // Tier 3: DuckDuckGo Instant Answer API
     if (extractedSnippets.length === 0) {
-        extractedSnippets.push(`• Scout Query Target: ${query}\n• Status: Direct public index query completed.`);
+        try {
+            const ddgApiUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`;
+            const dRes = await fetch(ddgApiUrl);
+            if (dRes.ok) {
+                const dData = await dRes.json();
+                if (dData.AbstractText) extractedSnippets.push(`• [Direct Index Abstract]: ${dData.AbstractText}`);
+            }
+        } catch (e) {}
+    }
+
+    // Tier 4: LLM Intelligence Fallback if web scrapers are blocked by CORS
+    if (extractedSnippets.length === 0) {
+        const keyEl = document.getElementById('api-key');
+        const apiKey = keyEl ? keyEl.value.trim() : "";
+        if (apiKey) {
+            try {
+                const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "MiniMaxAI/MiniMax-M2.7",
+                        messages: [
+                            { role: "system", content: "You are an intelligence scout. Provide detailed factual background and operational context for the requested topic." },
+                            { role: "user", content: `Provide detailed background and factual info for: "${query}"` }
+                        ],
+                        temperature: 0.1,
+                        max_tokens: 1500
+                    })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const reply = (data.choices[0].message.content || "").replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+                    extractedSnippets.push(`• [Intelligence Synthesis]: ${reply}`);
+                }
+            } catch (err) {}
+        }
+    }
+
+    if (extractedSnippets.length === 0) {
+        extractedSnippets.push(`• Scout Query Target: ${query}\n• Status: Public index queried across active nodes.`);
     }
 
     const tripSeconds = ((performance.now() - startTime) / 1000).toFixed(2);
