@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA // MILITARY-GRADE BASE ENGINE + DRC-20 SHI* TELEMETRY
+// AGENT ANNA // MILITARY-GRADE BASE ENGINE + DUAL NEURON CANVAS
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -131,7 +131,7 @@ function stopListeningUI() {
 }
 
 // =================================================================
-// 2. DYNAMIC KNOWLEDGE & TELEMETRY HARVESTER (WITH DRC-20 SHI*)
+// 2. DYNAMIC KNOWLEDGE & TELEMETRY HARVESTER
 // =================================================================
 function loadVoices() {
     if (!('speechSynthesis' in window)) return;
@@ -161,7 +161,7 @@ async function preloadCoreKnowledge() {
 }
 
 async function fetchLiveTelemetry() {
-    let btc = "Unavailable", eth = "Unavailable", doge = "Unavailable", sol = "Unavailable", shi = "0.000001 DOGE ($0.00000076)";
+    let btc = "Unavailable", eth = "Unavailable", doge = "Unavailable", sol = "Unavailable";
     try {
         const cryptoRes = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin,solana&vs_currencies=usd");
         if (cryptoRes.ok) {
@@ -182,7 +182,6 @@ async function fetchLiveTelemetry() {
             activeBot = data.active_bot || activeBot;
             solanaEquity = data.solana_equity || solanaEquity;
             signal = data.latest_signal || signal;
-            if (data.shi_drc20) shi = data.shi_drc20;
         }
     } catch (e) {}
 
@@ -193,7 +192,6 @@ async function fetchLiveTelemetry() {
 - Bitcoin (BTC): ${btc}
 - Ethereum (ETH): ${eth}
 - Dogecoin (DOGE): ${doge}
-- DRC-20 Token (SHI*): ${shi}
 - Latest Signal: ${signal}`;
 }
 
@@ -264,13 +262,19 @@ async function sendMessage(forcedQuery = null) {
     const systemPrompt = `You are AGENT ANNA 01 (AA01). 
 Rules:
 1. Provide precise, executive answers suitable for speech synthesis.
-2. Integrate telemetry statistics directly when asked for system state or market metrics, including DRC-20 SHI* token values.
+2. Integrate telemetry statistics directly when asked for system state or market metrics.
 
 Dynamic System Directives (Loaded from GitHub Markdown Files):
 ${coreKnowledgeCache}
 
 Telemetry & Live Market Data:
-${liveTelemetry}`;  try { const res = await fetch("https://inference.dahl.global/v1/chat/completions", { method: "POST", headers: { "Authorization": `Bearer ${apiKey}`,
+${liveTelemetry}`;
+
+    try {
+        const res = await fetch("https://inference.dahl.global/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
@@ -318,7 +322,7 @@ function launchLocalServer() {
 }
 
 function triggerManualTelemetry() {
-    sendMessage("Provide live crypto market telemetry including BTC, ETH, DOGE, and DRC-20 SHI* token rates.");
+    sendMessage("Provide live crypto market telemetry and report rates.");
 }
 
 async function scrapeWebPage(forcedUrl = null) {
@@ -338,8 +342,12 @@ async function scrapeWebPage(forcedUrl = null) {
     if (input && !forcedUrl) input.value = '';
 
     const isUrl = targetQuery.startsWith('http://') || targetQuery.startsWith('https://');
-    const scoutUrl = isUrl ? targetQuery : `https://html.duckduckgo.com/html/?q=${encodeURIComponent(targetQuery)}`;  const proxyUrls = [ `https://r.jina.ai/${scoutUrl}`,
-        `https://api.allorigins.win/get?url=${encodeURIComponent(scoutUrl)}`, `https://corsproxy.io/?${encodeURIComponent(scoutUrl)}`
+    const scoutUrl = isUrl ? targetQuery : `https://html.duckduckgo.com/html/?q=${encodeURIComponent(targetQuery)}`;
+
+    const proxyUrls = [
+        `https://r.jina.ai/${scoutUrl}`,
+        `https://api.allorigins.win/get?url=${encodeURIComponent(scoutUrl)}`,
+        `https://corsproxy.io/?${encodeURIComponent(scoutUrl)}`
     ];
 
     let rawData = "";
@@ -399,7 +407,13 @@ function handleAction(actionType, messageId) {
     }
 
     if (actionType === 'summarize') {
-        sendMessage(`Summarize the following harvested data into precise executive intelligence:\n\n${textContent}`); } else if (actionType === 'save') { const blob = new Blob([textContent], { type: 'text/markdown' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `agent-anna-report-${Date.now()}.md`;
+        sendMessage(`Summarize the following harvested data into precise executive intelligence:\n\n${textContent}`);
+    } else if (actionType === 'save') {
+        const blob = new Blob([textContent], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `agent-anna-report-${Date.now()}.md`;
         a.click();
         URL.revokeObjectURL(url);
     } else if (actionType === 'ingest') {
@@ -494,4 +508,70 @@ function appendMsg(text, sender, label, includeActions = false) {
     }
 
     div.innerHTML = `
-        <div class="msg-header"><span>${label
+        <div class="msg-header"><span>${label}</span></div>
+        <div style="white-space:pre-wrap; margin-top: 6px;">${text}</div>
+        ${actionsHTML}
+    `;
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+// =================================================================
+// 5. DUAL NEURON CANVAS RENDERER (DUAL WAVE TRACES)
+// =================================================================
+function initWavCanvas() {
+    const canvas = document.getElementById('wav-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    let step1 = 0;
+    let step2 = 0;
+
+    function drawDualWaves() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const isThinking = document.body.classList.contains('is-thinking');
+        const isSpeaking = document.body.classList.contains('is-speaking');
+
+        // Primary Wave Color (Cyan when ready, Amber when thinking, Magenta when speaking)
+        const primaryColor = isThinking ? '#ffaa00' : (isSpeaking ? '#ff007f' : '#00ffcc');
+        // Secondary Wave Color (Faded accent trace)
+        const secondaryColor = isThinking ? 'rgba(255, 170, 0, 0.4)' : (isSpeaking ? 'rgba(255, 0, 127, 0.4)' : 'rgba(0, 255, 204, 0.3)');
+
+        const amplitude = (isThinking || isSpeaking) ? 30 : 10;
+        const frequency = (isThinking || isSpeaking) ? 0.04 : 0.02;
+
+        // --- TRACE 1: PRIMARY NEURON WAVE ---
+        ctx.beginPath();
+        ctx.lineWidth = 1.8;
+        ctx.strokeStyle = primaryColor;
+
+        for (let x = 0; x < canvas.width; x++) {
+            const y = canvas.height / 2 + Math.sin(x * frequency + step1) * amplitude * Math.sin(x / 90);
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // --- TRACE 2: SECONDARY PHASE-SHIFTED NEURON WAVE ---
+        ctx.beginPath();
+        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = secondaryColor;
+
+        for (let x = 0; x < canvas.width; x++) {
+            const y = canvas.height / 2 + Math.cos(x * (frequency * 0.8) + step2) * (amplitude * 0.7) * Math.cos(x / 110);
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        step1 += (isThinking || isSpeaking) ? 0.1 : 0.025;
+        step2 += (isThinking || isSpeaking) ? 0.07 : 0.018;
+
+        requestAnimationFrame(drawDualWaves);
+    }
+    drawDualWaves();
+}
