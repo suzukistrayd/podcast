@@ -187,21 +187,10 @@ async function fetchLiveTelemetry() {
 }
 
 // =================================================================
-// SECTION 3: VOICE SYNTHESIZER & INFERENCE LOOP
+// SECTION 3: VOICE SYNTHESIZER & INFERENCE LOOP (STABLE VISUAL LOCK)
 // =================================================================
 function speakText(text) {
-    document.body.classList.remove('is-thinking');
-    document.body.classList.add('is-speaking');
-    updateHUDState("SPEAKING");
-
-    if (!isVoiceEnabled || !('speechSynthesis' in window)) {
-        setTimeout(() => {
-            document.body.classList.remove('is-speaking');
-            updateHUDState("READY");
-        }, 2500);
-        return;
-    }
-
+    if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     
     const cleanText = text.replace(/<[^>]*>/g, '').replace(/[*_#`~]/g, '').trim();
@@ -218,21 +207,36 @@ function speakText(text) {
     utterance.pitch = 1.05;
     utterance.rate = 0.96;
 
+    // Lock visual speaking state immediately and persistently
+    document.body.classList.remove('is-thinking');
+    document.body.classList.add('is-speaking');
+    updateHUDState("SPEAKING");
+
     utterance.onstart = () => { 
         document.body.classList.remove('is-thinking');
         document.body.classList.add('is-speaking'); 
         updateHUDState("SPEAKING"); 
     };
+
     utterance.onend = () => { 
         document.body.classList.remove('is-speaking'); 
         updateHUDState("READY"); 
     };
+
     utterance.onerror = () => { 
         document.body.classList.remove('is-speaking'); 
         updateHUDState("READY"); 
     };
 
-    window.speechSynthesis.speak(utterance);
+    if (isVoiceEnabled) {
+        window.speechSynthesis.speak(utterance);
+    } else {
+        // Fallback timer if voice is muted so the glow resets gracefully
+        setTimeout(() => {
+            document.body.classList.remove('is-speaking');
+            updateHUDState("READY");
+        }, 3000);
+    }
 }
 
 function shouldFetchTelemetry(query) {
@@ -331,7 +335,7 @@ function launchLocalServer() {
     window.open('http://localhost:8000', '_blank');
     const responseText = "Local server portal opened. Run 'python -m http.server 8000' in PowerShell.";
     appendMsg(responseText, 'assistant', 'AA01 Tactical Alert', true);
-    speakText(responseText); // Fires neural canvas animation instantly
+    speakText(responseText); // Trigger synchronized speech and stable neural pulse
 }
 
 function triggerManualTelemetry() {
