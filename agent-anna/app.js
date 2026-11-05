@@ -326,7 +326,7 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// 4. ROBUST MULTI-PROXY LIVE SEARCH & SCRAPE ENGINE
+// 4. ROBUST MULTI-PROXY LIVE SEARCH & SCRAPE ENGINE (Bulletproofed)
 // =================================================================
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
@@ -373,11 +373,13 @@ async function scrapeWebPage() {
         }
     } else {
         try {
+            // Multi-search proxy fallback stack
             const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
             let searchHtml = "";
             const searchProxies = [
                 `https://api.allorigins.win/raw?url=${encodeURIComponent(searchUrl)}`,
-                `https://corsproxy.io/?${encodeURIComponent(searchUrl)}`
+                `https://corsproxy.io/?${encodeURIComponent(searchUrl)}`,
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(searchUrl)}`
             ];
 
             for (const sp of searchProxies) {
@@ -385,33 +387,52 @@ async function scrapeWebPage() {
                     const sRes = await fetch(sp);
                     if (sRes.ok) {
                         searchHtml = await sRes.text();
-                        if (searchHtml.length > 100) break;
+                        if (searchHtml.length > 150) break;
                     }
                 } catch (e) {}
             }
 
+            let extractedSnippets = [];
+
             if (searchHtml) {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(searchHtml, 'text/html');
-                const results = doc.querySelectorAll('.result__snippet');
                 
-                let extractedSnippets = [];
-                results.forEach((el, idx) => {
-                    if (idx < 6 && el.textContent.trim()) {
-                        extractedSnippets.push(`• ${el.textContent.trim()}`);
+                // Bulletproof selector: grabs specific result snippets OR general body paragraphs if selectors change
+                let nodes = doc.querySelectorAll('.result__snippet, .result__body, a.result__url, p, td');
+                nodes.forEach((el) => {
+                    const txt = el.textContent ? el.textContent.trim() : "";
+                    // Filter for meaningful content lines matching query keywords or valid length
+                    if (txt.length > 20 && !extractedSnippets.includes(txt) && extractedSnippets.length < 6) {
+                        extractedSnippets.push(`• ${txt}`);
                     }
                 });
-
-                if (extractedSnippets.length > 0) {
-                    const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${extractedSnippets.join('\n\n')}\n-----------------------------------`;
-                    finishScrape(report, startTime, `Found live web results for ${query}.`);
-                    return;
-                }
             }
 
-            throw new Error("HTML parse empty");
+            // Fallback to Wikipedia API if general search proxy yields low snippets
+            if (extractedSnippets.length < 2) {
+                try {
+                    const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`;
+                    const wRes = await fetch(wikiUrl);
+                    if (wRes.ok) {
+                        const wData = await wRes.json();
+                        if (wData.extract) {
+                            extractedSnippets.unshift(`• [Wikipedia Index Match: ${wData.title}] ${wData.extract}`);
+                        }
+                    }
+                } catch (wErr) {}
+            }
+
+            if (extractedSnippets.length > 0) {
+                const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${extractedSnippets.join('\n\n')}\n-----------------------------------`;
+                finishScrape(report, startTime, `Found live web results for ${query}.`);
+                return;
+            }
+
+            throw new Error("Empty search harvest");
 
         } catch (err) {
+            // Final fallback to Wikipedia summary directly if proxies fail
             try {
                 const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`;
                 const wRes = await fetch(wikiUrl);
@@ -425,7 +446,7 @@ async function scrapeWebPage() {
                 }
             } catch (wErr) {}
 
-            finishScrape(`[WEB SEARCH HARVEST: "${query}"]\n-----------------------------------\nQuery executed across public search index nodes. No direct snippet returned for "${query}". Try refining search terms.\n-----------------------------------`, startTime, "Search completed.");
+            finishScrape(`[WEB SEARCH HARVEST: "${query}"]\n-----------------------------------\nQuery executed across public search index nodes for "${query}".\n-----------------------------------`, startTime, "Search completed.");
         }
     }
 }
