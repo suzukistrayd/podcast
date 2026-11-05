@@ -1,5 +1,5 @@
 // =================================================================
-// AGENT ANNA 01 (AA01) // HIGH-SPEED PRODUCTION ENGINE (app.js)
+// AGENT ANNA 01 (AA01) // UNIFIED RUNTIME & ACTION ENGINE (app.js)
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -181,18 +181,11 @@ async function fetchLiveTelemetry() {
         }
     } catch (e) {}
 
-    const payload = `[LIVE TELEMETRY HARVEST]
+    return `[LIVE TELEMETRY HARVEST]
 - Solana (SOL): ${sol}
 - Bitcoin (BTC): ${btc}
 - Ethereum (ETH): ${eth}
 - Dogecoin (DOGE): ${doge}`;
-
-    try {
-        navigator.clipboard.writeText(payload);
-        window.dispatchEvent(new CustomEvent('telemetry-sync', { detail: payload }));
-    } catch (e) {}
-
-    return payload;
 }
 
 // =================================================================
@@ -280,19 +273,11 @@ async function sendMessage(forcedQuery = null) {
         liveTelemetry = "[TELEMETRY: Standby]";
     }
     
-    // Conditional verification applied strictly for synthesis & cleanup tasks, not basic lookups
-    const isCleanupTask = query.toLowerCase().includes('summarize') || query.toLowerCase().includes('ingest');
-    const verificationDirective = isCleanupTask ? `
-VERIFICATION GATE ACTIVE (74% Threshold):
-- Reject any unsupported extrapolation during cleanup/synthesis.
-- If data is unverified, output: "[VERIFICATION FAILED: Insufficient verified telemetry.]"` : "";
-
     const systemPrompt = `You are AGENT ANNA 01 (AA01). 
-${verificationDirective}
-
 Rules:
 1. Provide precise, executive answers suitable for speech synthesis.
-2. Avoid all negativity and political content.
+2. DO NOT inject or mention crypto/market rates unless explicitly asked.
+3. Avoid all negativity and political content.
 
 System Context:
 ${coreKnowledgeCache}
@@ -341,12 +326,12 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// 4. HIGH-SPEED FLEXIBLE WEB SEARCH & SCOUT ENGINE
+// 4. ROBUST MULTI-PROXY LIVE SEARCH & SCRAPE ENGINE
 // =================================================================
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
     let query = input ? input.value.trim() : "";
-    if (!query) query = "martin strayd";
+    if (!query) query = "kunda cafe thailand";
 
     const startTime = performance.now();
     document.body.classList.add('is-thinking');
@@ -360,7 +345,8 @@ async function scrapeWebPage() {
         let htmlContent = "";
         const proxies = [
             `https://api.allorigins.win/raw?url=${encodeURIComponent(query)}`,
-            `https://corsproxy.io/?${encodeURIComponent(query)}`
+            `https://corsproxy.io/?${encodeURIComponent(query)}`,
+            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(query)}`
         ];
 
         for (const pUrl of proxies) {
@@ -383,63 +369,64 @@ async function scrapeWebPage() {
             const report = `[PORTAL HARVEST: ${query}]\nTotal Valid Lines: ${lines.length}\n-----------------------------------\n${lines.slice(0, 80).join('\n')}`;
             finishScrape(report, startTime, "Target URL harvested successfully.");
         } else {
-            finishScrape(`[PORTAL HARVEST ERROR: ${query}]\nTarget domain blocked client proxy streams.`, startTime, "Target URL access restricted.");
+            finishScrape(`[PORTAL HARVEST ERROR: ${query}]\nTarget domain actively blocked client proxy streams.`, startTime, "Target URL blocked access.");
         }
     } else {
-        let extractedSnippets = [];
-
-        // Tier 1: DuckDuckGo HTML Snippets
         try {
             const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(searchUrl)}`);
-            if (res.ok) {
-                const wrapper = await res.json();
+            let searchHtml = "";
+            const searchProxies = [
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(searchUrl)}`,
+                `https://corsproxy.io/?${encodeURIComponent(searchUrl)}`
+            ];
+
+            for (const sp of searchProxies) {
+                try {
+                    const sRes = await fetch(sp);
+                    if (sRes.ok) {
+                        searchHtml = await sRes.text();
+                        if (searchHtml.length > 100) break;
+                    }
+                } catch (e) {}
+            }
+
+            if (searchHtml) {
                 const parser = new DOMParser();
-                const doc = parser.parseFromString(wrapper.contents || "", 'text/html');
-                doc.querySelectorAll('.result__snippet').forEach((el, idx) => {
+                const doc = parser.parseFromString(searchHtml, 'text/html');
+                const results = doc.querySelectorAll('.result__snippet');
+                
+                let extractedSnippets = [];
+                results.forEach((el, idx) => {
                     if (idx < 6 && el.textContent.trim()) {
                         extractedSnippets.push(`• ${el.textContent.trim()}`);
                     }
                 });
-            }
-        } catch (e) {}
 
-        // Tier 2: Wikipedia Summary API Fallback
-        if (extractedSnippets.length === 0) {
+                if (extractedSnippets.length > 0) {
+                    const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${extractedSnippets.join('\n\n')}\n-----------------------------------`;
+                    finishScrape(report, startTime, `Found live web results for ${query}.`);
+                    return;
+                }
+            }
+
+            throw new Error("HTML parse empty");
+
+        } catch (err) {
             try {
                 const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.replace(/\s+/g, '_'))}`;
                 const wRes = await fetch(wikiUrl);
                 if (wRes.ok) {
                     const wData = await wRes.json();
                     if (wData.extract) {
-                        extractedSnippets.push(`• [Wikipedia Index Match: ${wData.title}] ${wData.extract}`);
+                        const report = `[WIKIPEDIA KNOWLEDGE HARVEST: "${query}"]\nTitle: ${wData.title}\n-----------------------------------\n${wData.extract}`;
+                        finishScrape(report, startTime, `Knowledge base entry retrieved for ${query}.`);
+                        return;
                     }
                 }
             } catch (wErr) {}
-        }
 
-        // Tier 3: Direct DuckDuckGo Instant Answer API Fallback
-        if (extractedSnippets.length === 0) {
-            try {
-                const ddgApiUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`;
-                const dRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(ddgApiUrl)}`);
-                if (dRes.ok) {
-                    const dWrapper = await dRes.json();
-                    const dData = JSON.parse(dWrapper.contents || "{}");
-                    if (dData.AbstractText) {
-                        extractedSnippets.push(`• [Direct Index Abstract]: ${dData.AbstractText}`);
-                    }
-                }
-            } catch (dErr) {}
+            finishScrape(`[WEB SEARCH HARVEST: "${query}"]\n-----------------------------------\nQuery executed across public search index nodes. No direct snippet returned for "${query}". Try refining search terms.\n-----------------------------------`, startTime, "Search completed.");
         }
-
-        // Tier 4: Flexible Open Search Entity Report (Never blocks basic search)
-        if (extractedSnippets.length === 0) {
-            extractedSnippets.push(`• Public Entity Index: ${query}\n• Search query successfully processed across decentralized public nodes. Entity parameters identified and available for operational summarization or extraction.`);
-        }
-
-        const report = `[LIVE WEB SEARCH RESULTS: "${query}"]\n-----------------------------------\n${extractedSnippets.join('\n\n')}\n-----------------------------------`;
-        finishScrape(report, startTime, `Found live web results for ${query}.`);
     }
 }
 
