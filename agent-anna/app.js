@@ -1,6 +1,5 @@
 // =================================================================
 // AGENT ANNA 01 (AA01) // UNIFIED RUNTIME ENGINE (app.js)
-// Modular Architecture / Single-File Efficiency Standard
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
@@ -39,7 +38,7 @@ window.onload = function() {
 };
 
 // =================================================================
-// SECTION 1: SPEECH RECOGNITION & AUDIO VISUALIZER ENGINE
+// 1. SPEECH RECOGNITION & AUDIO VISUALIZER ENGINE
 // =================================================================
 function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -142,7 +141,7 @@ function stopListeningUI() {
 }
 
 // =================================================================
-// SECTION 2: KNOWLEDGE & TELEMETRY HARVESTER
+// 2. KNOWLEDGE & TELEMETRY HARVESTER
 // =================================================================
 function loadVoices() {
     if (!('speechSynthesis' in window)) return;
@@ -187,7 +186,7 @@ async function fetchLiveTelemetry() {
 }
 
 // =================================================================
-// SECTION 3: VOICE SYNTHESIZER & INFERENCE LOOP (STABLE VISUAL LOCK)
+// 3. VOICE SYNTHESIZER & PERMANENT VISUAL LOCK
 // =================================================================
 function speakText(text) {
     if (!('speechSynthesis' in window)) return;
@@ -207,10 +206,12 @@ function speakText(text) {
     utterance.pitch = 1.05;
     utterance.rate = 0.96;
 
-    // Lock visual speaking state immediately and persistently
-    document.body.classList.remove('is-thinking');
-    document.body.classList.add('is-speaking');
-    updateHUDState("SPEAKING");
+    // LOCKED SPEAKING TRIGGER (Micro-tick protected against cancellation flicker)
+    setTimeout(() => {
+        document.body.classList.remove('is-thinking');
+        document.body.classList.add('is-speaking');
+        updateHUDState("SPEAKING");
+    }, 10);
 
     utterance.onstart = () => { 
         document.body.classList.remove('is-thinking');
@@ -231,7 +232,6 @@ function speakText(text) {
     if (isVoiceEnabled) {
         window.speechSynthesis.speak(utterance);
     } else {
-        // Fallback timer if voice is muted so the glow resets gracefully
         setTimeout(() => {
             document.body.classList.remove('is-speaking');
             updateHUDState("READY");
@@ -329,13 +329,19 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// SECTION 4: TACTICAL QUICK LAUNCH & WEB SCRAPER TRIGGERS
+// 4. TACTICAL QUICK LAUNCH & WEB SCRAPER TRIGGERS
 // =================================================================
 function launchLocalServer() {
     window.open('http://localhost:8000', '_blank');
     const responseText = "Local server portal opened. Run 'python -m http.server 8000' in PowerShell.";
+    
+    // Force persistent speaking state instantly to prevent flicker
+    document.body.classList.remove('is-thinking');
+    document.body.classList.add('is-speaking');
+    updateHUDState("SPEAKING");
+
     appendMsg(responseText, 'assistant', 'AA01 Tactical Alert', true);
-    speakText(responseText); // Trigger synchronized speech and stable neural pulse
+    speakText(responseText); 
 }
 
 function triggerManualTelemetry() {
@@ -409,7 +415,7 @@ function triggerMilitaryProtocol() {
 }
 
 // =================================================================
-// SECTION 5: UTILITIES, CLIPBOARD & WAV CANVAS MATRIX
+// 5. UTILITIES, CLIPBOARD & WAV CANVAS MATRIX
 // =================================================================
 function copyToClipboard(text, btnElement) {
     navigator.clipboard.writeText(text).then(() => {
