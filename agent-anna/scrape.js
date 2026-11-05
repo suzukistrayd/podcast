@@ -1,11 +1,13 @@
 // =================================================================
 // AGENT ANNA 01 // WEB SCRAPER MODULE (scrape.js)
+// Dedicated proxy harvesting & communication portal routines
 // =================================================================
 
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
     let targetUrl = input ? input.value.trim() : "";
     
+    // Default fallback if input box is empty or not a URL
     if (!targetUrl || (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://'))) {
         targetUrl = "https://strayd.com"; 
     }
