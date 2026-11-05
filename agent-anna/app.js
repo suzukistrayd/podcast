@@ -154,7 +154,6 @@ async function preloadCoreKnowledge() {
     await Promise.all(corePaths.map(async (path) => {
         try {
             const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${path}?t=${Date.now()}`;
-            // Use CORS proxy fallback if direct fetch encounters network restrictions
             const res = await fetch(rawUrl).catch(() => fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(rawUrl)}`));
             if (res && res.ok) {
                 const text = await res.text();
@@ -320,7 +319,7 @@ ${liveTelemetry}`;
         document.body.classList.remove('is-thinking');
         updateHUDState("READY");
 
-        appendMsg(reply, 'assistant', `AA01 Core [${tripSeconds}s]`, isCryptoQuery);
+        appendMsg(reply, 'assistant', `AA01 Core [${tripSeconds}s]`, true);
         speakText(reply);
 
     } catch (err) {
@@ -341,12 +340,16 @@ function triggerManualTelemetry() {
 
 async function scrapeWebPage() {
     const input = document.getElementById('user-input');
-    const targetUrl = input ? input.value.trim() : "";
+    let targetUrl = input ? input.value.trim() : "";
     
     if (!targetUrl || (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://'))) {
-        alert("Enter a valid target URL in the input box first (e.g., https://example.com)");
-        if (input) input.focus();
-        return;
+        if (targetUrl.includes('.')) {
+            targetUrl = 'https://' + targetUrl;
+        } else {
+            alert("Enter a valid target URL in the input box first (e.g., https://kundacafe.com)");
+            if (input) input.focus();
+            return;
+        }
     }
 
     const startTime = performance.now();
@@ -356,27 +359,27 @@ async function scrapeWebPage() {
     if (input) input.value = '';
 
     try {
-        // Fallback proxy chain to prevent network restrictions
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-        let res = await fetch(proxyUrl).catch(() => null);
-        
-        if (!res || !res.ok) {
-            // Secondary fallback proxy
-            res = await fetch(`https://r.jina.ai/${targetUrl}`).catch(() => null);
-        }
-
-        if (!res || !res.ok) throw new Error("All proxy scrapers blocked or unreachable.");
-        
         let cleanText = "";
-        const contentType = res.headers.get("content-type") || "";
-        
-        if (contentType.includes("json")) {
-            const data = await res.json();
-            const rawHtml = data.contents || data.data || "";
-            cleanText = rawHtml.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
+        let res = null;
+
+        // Strategy 1: Try Jina Reader API (bypass CORS entirely)
+        res = await fetch(`https://r.jina.ai/${targetUrl}`, {
+            headers: { "Accept": "text/plain" }
+        }).catch(() => null);
+
+        if (res && res.ok) {
+            cleanText = await res.text();
         } else {
-            const rawText = await res.text();
-            cleanText = rawText.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
+            // Strategy 2: Try AllOrigins Raw endpoint
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+            res = await fetch(proxyUrl).catch(() => null);
+            
+            if (res && res.ok) {
+                const rawHtml = await res.text();
+                cleanText = rawHtml.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
+            } else {
+                throw new Error("All proxy routes blocked or target domain is unreachable.");
+            }
         }
 
         const lines = cleanText.split('\n').filter(l => l.trim().length > 0);
