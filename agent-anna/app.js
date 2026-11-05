@@ -195,7 +195,7 @@ async function fetchLiveTelemetry() {
 }
 
 // =================================================================
-// 3. VOICE SYNTHESIZER & INFERENCE LOOP
+// 3. VOICE SYNTHESIZER & INFERENCE LOOP (WITH REASONING STATE LOCK)
 // =================================================================
 function speakText(text) {
     if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
@@ -305,7 +305,7 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// 4. TACTICAL SHORTCUTS & UTILITIES
+// 4. TACTICAL SHORTCUTS & RESILIENT WEB SCRAPER
 // =================================================================
 function launchLocalServer() {
     window.open('http://localhost:8000', '_blank');
@@ -334,32 +334,53 @@ async function scrapeWebPage() {
     appendMsg(`Initiating secure scout pass for URL: ${targetUrl}`, 'user', 'Commander');
     if (input) input.value = '';
 
-    try {
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-        const res = await fetch(proxyUrl);
-        if (!res.ok) throw new Error(`Scraper HTTP Error ${res.status}`);
-        
-        const data = await res.json();
-        const rawHtml = data.contents || "";
-        const cleanText = rawHtml.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
-        const lines = cleanText.split('\n');
-        const first100Lines = lines.slice(0, 100).join('\n');
-        
-        const report = `[WEB SCRAPER: FIRST 100 LINES EXTRACTED]\nTarget: ${targetUrl}\nTotal Lines: ${lines.length}\n-----------------------------------\n${first100Lines}`;
+    const proxyUrls = [
+        `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
+        `https://r.jina.ai/${targetUrl}`
+    ];
 
-        const endTime = performance.now();
-        const tripSeconds = ((endTime - startTime) / 1000).toFixed(2);
-        
-        document.body.classList.remove('is-thinking');
-        updateHUDState("READY");
+    let rawHtml = "";
+    let success = false;
 
-        appendMsg(report, 'assistant', `AA01 Scraper [${tripSeconds}s]`, true);
-        speakText(`Web scrape complete for target URL. First 100 lines harvested successfully.`);
-    } catch (err) {
+    for (const pUrl of proxyUrls) {
+        try {
+            const res = await fetch(pUrl);
+            if (res.ok) {
+                if (pUrl.includes('allorigins')) {
+                    const data = await res.json();
+                    rawHtml = data.contents || "";
+                } else {
+                    rawHtml = await res.text();
+                }
+                if (rawHtml.length > 50) {
+                    success = true;
+                    break;
+                }
+            }
+        } catch (e) {}
+    }
+
+    if (!success) {
         document.body.classList.remove('is-thinking');
         updateHUDState("ERROR");
-        appendMsg(`Scraper Error: ${err.message}`, 'assistant', 'System Alert', false);
+        appendMsg(`Scraper Error: Failed to fetch target URL through proxies. Check connection or URL validity.`, 'assistant', 'System Alert', false);
+        return;
     }
+
+    const cleanText = rawHtml.replace(/<[^>]*>/g, '\n').replace(/\n+/g, '\n').trim();
+    const lines = cleanText.split('\n');
+    const first100Lines = lines.slice(0, 100).join('\n');
+    
+    const report = `[WEB SCRAPER: FIRST 100 LINES EXTRACTED]\nTarget: ${targetUrl}\nTotal Lines: ${lines.length}\n-----------------------------------\n${first100Lines}`;
+
+    const endTime = performance.now();
+    const tripSeconds = ((endTime - startTime) / 1000).toFixed(2);
+    
+    document.body.classList.remove('is-thinking');
+    updateHUDState("READY");
+
+    appendMsg(report, 'assistant', `AA01 Scraper [${tripSeconds}s]`, true);
+    speakText(`Web scrape complete for target URL. First 100 lines harvested successfully.`);
 }
 
 function triggerMilitaryProtocol() {
@@ -469,11 +490,14 @@ function initWavCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.beginPath();
         ctx.lineWidth = 1.5;
-        ctx.strokeStyle = '#00ffcc';
+        
+        const isThinking = document.body.classList.contains('is-thinking');
+        const isSpeaking = document.body.classList.contains('is-speaking');
 
-        const active = document.body.classList.contains('is-thinking') || document.body.classList.contains('is-speaking');
-        const amplitude = active ? 25 : 8;
-        const frequency = active ? 0.03 : 0.015;
+        ctx.strokeStyle = isThinking ? '#ffaa00' : (isSpeaking ? '#ff007f' : '#00ffcc');
+
+        const amplitude = (isThinking || isSpeaking) ? 28 : 8;
+        const frequency = (isThinking || isSpeaking) ? 0.035 : 0.015;
 
         for (let x = 0; x < canvas.width; x++) {
             const y = canvas.height / 2 + Math.sin(x * frequency + step) * amplitude * Math.sin(x / 100);
@@ -481,7 +505,7 @@ function initWavCanvas() {
             else ctx.lineTo(x, y);
         }
         ctx.stroke();
-        step += active ? 0.08 : 0.02;
+        step += (isThinking || isSpeaking) ? 0.09 : 0.02;
         requestAnimationFrame(drawWave);
     }
     drawWave();
