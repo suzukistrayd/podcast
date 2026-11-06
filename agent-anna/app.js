@@ -1,9 +1,10 @@
 // =================================================================
-// AGENT ANNA // ALL-IN-ONE ENGINE + PERSISTENT MEMORY MATRIX
+// AGENT ANNA // AUTONOMOUS SELF-SUFFICIENT CORE ENGINE
 // =================================================================
 
 const REPO_OWNER = "suzukistrayd";
 const REPO_NAME = "podcast";
+
 let isVoiceEnabled = true;
 let recognition = null;
 let isListening = false;
@@ -23,6 +24,11 @@ window.onload = function() {
             const keyInput = document.getElementById('api-key');
             if (keyInput) keyInput.value = savedKey;
         }
+        const savedGhToken = localStorage.getItem('gh_pat_token');
+        if (savedGhToken) {
+            const ghInput = document.getElementById('gh-token');
+            if (ghInput) ghInput.value = savedGhToken;
+        }
     } catch (e) {}
 
     const inputEl = document.getElementById('user-input');
@@ -37,6 +43,11 @@ window.onload = function() {
     initSpeechRecognition();
     initWavCanvas();
 };
+
+// AUTOMATED SESSION EXIT LOGGING HOOK
+window.addEventListener('beforeunload', function (e) {
+    autoLogSessionEnd();
+});
 
 // =================================================================
 // 1. SPEECH RECOGNITION & VISUALIZER ENGINE
@@ -131,7 +142,7 @@ function stopListeningUI() {
 }
 
 // =================================================================
-// 2. DYNAMIC KNOWLEDGE & PLANS MEMORY HARVESTER (MATCHES FILE TREE)
+// 2. DYNAMIC KNOWLEDGE & PLANS MEMORY HARVESTER
 // =================================================================
 function loadVoices() {
     if (!('speechSynthesis' in window)) return;
@@ -139,7 +150,6 @@ function loadVoices() {
 }
 
 async function preloadCoreKnowledge() {
-    // Exact paths aligned with your agent-anna file tree structure
     const corePaths = [
         "agent-anna/character/agent-anna.md",
         "agent-anna/knowledge/agents.md",
@@ -152,15 +162,11 @@ async function preloadCoreKnowledge() {
     let snippets = [];
     await Promise.all(corePaths.map(async (path) => {
         try {
-            // Priority 1: Fetch local server instance
             let res = await fetch(`${path}?t=${Date.now()}`);
-            
-            // Priority 2: Fallback to GitHub raw source if not serving locally
             if (!res.ok) {
                 const rawUrl = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${path}?t=${Date.now()}`;
                 res = await fetch(rawUrl);
             }
-            
             if (res.ok) {
                 const text = await res.text();
                 const cleanText = text.replace(/<[^>]*>/g, '').trim();
@@ -276,7 +282,7 @@ async function sendMessage(forcedQuery = null) {
     const systemPrompt = `You are AGENT ANNA 01 (AA01). 
 Rules:
 1. Provide precise, executive answers suitable for speech synthesis.
-2. Integrate active persistent plans, roadmap targets, and live market metrics into your responses when relevant.
+2. Integrate active persistent plans, roadmap targets, and consolidated memory into your responses.
 
 Persistent System Directives & Active Memory Matrix:
 ${coreKnowledgeCache}
@@ -326,8 +332,95 @@ ${liveTelemetry}`;
 }
 
 // =================================================================
-// 4. BULLETPROOF GLOBAL SCOUT & ACTION HANDLER
+// 4. AUTONOMOUS GITHUB API COMMIT & INGESTION CORE ENGINE
 // =================================================================
+async function commitFileToGitHub(filePath, contentToAppend, commitMessage) {
+    let ghToken = localStorage.getItem('gh_pat_token');
+    if (!ghToken) {
+        ghToken = prompt("Enter your GitHub Personal Access Token (PAT) with repo write permissions:");
+        if (ghToken) localStorage.setItem('gh_pat_token', ghToken.trim());
+        else return false;
+    }
+
+    const apiUrl = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`;
+
+    try {
+        const getRes = await fetch(apiUrl, {
+            headers: { "Authorization": `token ${ghToken}`, "Accept": "vnd.github.v3+json" }
+        });
+        
+        let fileSha = "";
+        let existingContent = "";
+        if (getRes.ok) {
+            const fileData = await getRes.json();
+            fileSha = fileData.sha;
+            existingContent = decodeURIComponent(escape(atob(fileData.content)));
+        }
+
+        const updatedContent = existingContent + `\n\n${contentToAppend}`;
+        const base64Encoded = btoa(unescape(encodeURIComponent(updatedContent)));
+
+        const putRes = await fetch(apiUrl, {
+            method: "PUT",
+            headers: {
+                "Authorization": `token ${ghToken}`,
+                "Content-Type": "application/json",
+                "Accept": "vnd.github.v3+json"
+            },
+            body: JSON.stringify({
+                message: commitMessage,
+                content: base64Encoded,
+                sha: fileSha
+            })
+        });
+
+        return putRes.ok;
+    } catch (err) {
+        return false;
+    }
+}
+
+async function handleAction(actionType, messageId) {
+    const textContent = messagePayloadStore[messageId] || "";
+    if (!textContent) {
+        alert("Payload reference not found.");
+        return;
+    }
+
+    if (actionType === 'summarize') {
+        sendMessage(`Summarize the following harvested data into precise executive intelligence:\n\n${textContent}`);
+    } else if (actionType === 'save') {
+        const blob = new Blob([textContent], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `agent-anna-report-${Date.now()}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+    } else if (actionType === 'ingest') {
+        updateHUDState("INGESTING");
+        const timestamp = new Date().toISOString();
+        const payload = `### CONSOLIDATED INTELLIGENCE ENTRY [${timestamp}]\n${textContent}`;
+        
+        const planSuccess = await commitFileToGitHub("agent-anna/plans/active/current-plan.md", payload, `Auto-Ingest Current Plan [${timestamp}]`);
+        const logSuccess = await commitFileToGitHub("agent-anna/plans/logs/session-log.md", payload, `Auto-Log Session Entry [${timestamp}]`);
+
+        updateHUDState("READY");
+
+        if (planSuccess && logSuccess) {
+            alert("SUCCESS: Payload autonomously ingested into active plans and session log!");
+        } else {
+            alert("Ingestion Warning: Check your GitHub PAT in settings or network connectivity.");
+        }
+    }
+}
+
+async function autoLogSessionEnd() {
+    const timestamp = new Date().toISOString();
+    const logPayload = `### AUTOMATED SESSION CLOSE LOG [${timestamp}]\n- Session ended by Commander.\n- State matrix synchronized.`;
+    commitFileToGitHub("agent-anna/plans/logs/session-log.md", logPayload, `Auto Session Close Log [${timestamp}]`);
+}
+
 function launchLocalServer() {
     window.open('http://localhost:8000', '_blank');
     const msg = "Local server portal accessed. Run 'python -m http.server 8000' in PowerShell.";
@@ -413,28 +506,6 @@ function triggerMilitaryProtocol() {
     speakText(protocolText);
 }
 
-function handleAction(actionType, messageId) {
-    const textContent = messagePayloadStore[messageId] || "";
-    if (!textContent) {
-        alert("Payload reference not found.");
-        return;
-    }
-
-    if (actionType === 'summarize') {
-        sendMessage(`Summarize the following harvested data into precise executive intelligence:\n\n${textContent}`);
-    } else if (actionType === 'save') {
-        const blob = new Blob([textContent], { type: 'text/markdown' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `agent-anna-report-${Date.now()}.md`;
-        a.click();
-        URL.revokeObjectURL(url);
-    } else if (actionType === 'ingest') {
-        alert("Payload queued for core GitHub ingestion matrix sync.");
-    }
-}
-
 function copyToClipboard(messageId, btnElement) {
     const textContent = messagePayloadStore[messageId] || "";
     navigator.clipboard.writeText(textContent).then(() => {
@@ -451,7 +522,7 @@ function updateHUDState(stateLabel) {
     if (stateText) stateText.innerText = stateLabel;
     const statusBar = document.getElementById('status-bar');
     if (statusBar) {
-        if (["REASONING", "LISTENING", "SCRAPING"].includes(stateLabel)) {
+        if (["REASONING", "LISTENING", "SCRAPING", "INGESTING"].includes(stateLabel)) {
             statusBar.classList.add('active');
         } else {
             statusBar.classList.remove('active');
@@ -477,6 +548,8 @@ function toggleSettings() {
 function saveKey() {
     const el = document.getElementById('api-key');
     if (el) localStorage.setItem('dahl_key', el.value.trim());
+    const ghEl = document.getElementById('gh-token');
+    if (ghEl) localStorage.setItem('gh_pat_token', ghEl.value.trim());
 }
 
 function handleKey(event) {
